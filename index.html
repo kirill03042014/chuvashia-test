@@ -19,17 +19,18 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Rubik:wght@400;500;700&display=swap');
   
-  /* ПЕРЕМЕННЫЕ ТЕМ */
   :root {
     --bg-body: #0a0c10;
     --text-main: #c8d0d8;
     --text-title: #e8f0f8;
     --text-desc: #8a9aaa;
     
-    /* Стеклянные эффекты (Liquid Glass) */
-    --glass-bg: rgba(18, 22, 28, 0.65);
+    /* Настройки стекла (меняются ползунком) */
+    --glass-opacity: 0.65; 
+    --glass-blur: 15px;
+    
+    --glass-bg: rgba(18, 22, 28, var(--glass-opacity));
     --glass-border: rgba(255, 255, 255, 0.08);
-    --glass-blur: blur(15px);
     --input-bg: rgba(10, 12, 16, 0.8);
     --btn-bg: rgba(26, 32, 40, 0.8);
   }
@@ -40,7 +41,7 @@
     --text-title: #1a202c;
     --text-desc: #64748b;
     
-    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-bg: rgba(255, 255, 255, var(--glass-opacity));
     --glass-border: rgba(0, 0, 0, 0.1);
     --input-bg: rgba(255, 255, 255, 0.9);
     --btn-bg: rgba(255, 255, 255, 0.9);
@@ -61,28 +62,37 @@
   
   .container { max-width: 920px; margin: 0 auto; position: relative; }
   
-  /* КНОПКА УСТАНОВКИ */
-  #installBanner { 
-    display: none; position: fixed; top: 15px; left: 50%; transform: translateX(-50%); 
-    background: #00ffc8; color: #0a0c10; padding: 12px 25px; border-radius: 30px; 
-    font-weight: bold; box-shadow: 0 10px 25px rgba(0,255,200,0.4); z-index: 9999; 
-    cursor: pointer; text-align: center; width: 90%; max-width: 350px; 
-    border: 1px solid #fff; font-family: 'Oswald', sans-serif; font-size: 16px; 
-    text-transform: uppercase; backdrop-filter: blur(5px);
+  /* ЛЕВЫЙ ВЕРХНИЙ УГОЛ */
+  .top-bar { 
+    display: flex; 
+    justify-content: flex-start; /* Кнопки слева */
+    gap: 10px; 
+    margin-bottom: 20px; 
+    flex-wrap: wrap;
   }
-  #installBanner svg { width: 20px; height: 20px; margin-right: 8px; vertical-align: middle; }
-
-  /* ВЕРХНЕЕ МЕНЮ */
-  .top-bar { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 10px; }
+  
   .icon-btn { 
     background: var(--glass-bg); border: 1px solid var(--glass-border); 
     color: var(--text-main); width: 45px; height: 45px; 
     display: flex; align-items: center; justify-content: center; 
     cursor: pointer; border-radius: 50%; backdrop-filter: var(--glass-blur);
-    transition: all 0.3s;
+    transition: all 0.3s; position: relative;
   }
   .icon-btn:hover { background: var(--input-bg); }
   .icon-btn svg { width: 22px; height: 22px; }
+
+  /* Кнопка установки (появляется скриптом) */
+  #installBtn {
+    display: none; /* Скрыта по умолчанию */
+    background: #00ffc8; color: #0a0c10; border: 1px solid #fff;
+    box-shadow: 0 0 15px rgba(0,255,200,0.5);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(0,255,200, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(0,255,200, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(0,255,200, 0); }
+  }
 
   h1 { font-family: 'Oswald', sans-serif; font-size: 2.4em; text-transform: uppercase; text-align: center; color: var(--text-title); text-shadow: 0 0 15px rgba(0,255,200,0.3); margin-bottom: 5px; letter-spacing: 1px; }
   .subtitle { text-align: center; font-size: 12px; text-transform: uppercase; letter-spacing: 3px; color: var(--text-desc); margin-bottom: 25px; }
@@ -99,7 +109,7 @@
     transition: background 0.4s, border 0.4s;
   }
   
-  /* ИНПУТЫ И КНОПКИ */
+  /* ИНПУТЫ */
   input, textarea, select { 
     font-family: inherit; font-size: 15px; width: 100%; padding: 14px; 
     border: 1px solid var(--glass-border); border-radius: 8px; 
@@ -197,9 +207,9 @@
   .help-btn svg { width: 28px; height: 28px; }
   
   /* МОДАЛЬНЫЕ ОКНА (СТЕКЛО) */
-  .help-modal, .profile-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1001; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
-  .help-content, .profile-content { background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 25px; border-radius: 16px; max-width: 450px; width: 100%; color: var(--text-main); backdrop-filter: var(--glass-blur); box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
-  .help-content h3, .profile-content h3 { color: var(--text-title); margin-bottom: 20px; text-align: center; font-family: 'Oswald'; text-transform: uppercase; letter-spacing: 1px; }
+  .help-modal, .profile-modal, .settings-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1001; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
+  .help-content, .profile-content, .settings-content { background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 25px; border-radius: 16px; max-width: 450px; width: 100%; color: var(--text-main); backdrop-filter: var(--glass-blur); box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+  .help-content h3, .profile-content h3, .settings-content h3 { color: var(--text-title); margin-bottom: 20px; text-align: center; font-family: 'Oswald'; text-transform: uppercase; letter-spacing: 1px; }
   .help-content textarea { width: 100%; height: 150px; margin-bottom: 15px; background: var(--input-bg); color: var(--text-main); border: 1px solid var(--glass-border); padding: 12px; font-size: 12px; border-radius: 8px; }
 
   /* ЗВЕЗДЫ */
@@ -209,6 +219,24 @@
   .star-btn svg { width: 24px; height: 24px; fill: currentColor; filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)); }
   .star-btn.active { color: #ffc800; filter: drop-shadow(0 0 8px rgba(255,200,0,0.6)); }
   .rating-text { font-size: 13px; color: var(--text-desc); margin-left: 12px; }
+
+  /* ПОЛЗУНОК ПРОЗРАЧНОСТИ */
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    background: transparent;
+    padding: 0;
+    margin: 15px 0;
+    border: none;
+  }
+  input[type=range]::-webkit-slider-runnable-track {
+    width: 100%; height: 8px; cursor: pointer; background: var(--glass-border); border-radius: 4px;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    height: 24px; width: 24px; border-radius: 50%; background: #00ffc8;
+    cursor: pointer; -webkit-appearance: none; margin-top: -8px;
+    box-shadow: 0 0 10px rgba(0,255,200,0.5);
+  }
 
   @media (max-width: 600px) {
     .form-row { flex-direction: column; gap: 0; }
@@ -221,13 +249,11 @@
 </head>
 <body>
 
-<!-- КНОПКА УСТАНОВКИ -->
-<button id="installBanner" type="button">
-  <i data-lucide="download"></i> Установить приложение
-</button>
-
 <div class="container">
+  <!-- ВЕРХНЕЕ МЕНЮ (ЛЕВЫЙ УГОЛ) -->
   <div class="top-bar">
+    <button class="icon-btn" id="installBtn" title="Установить приложение" style="display: none;"><i data-lucide="download"></i></button>
+    <button class="icon-btn" id="settingsBtn" title="Настройки"><i data-lucide="settings"></i></button>
     <button class="icon-btn" id="themeToggle" title="Сменить тему"><i data-lucide="moon"></i></button>
     <button class="icon-btn" id="profileBtn" title="Профиль"><i data-lucide="user"></i></button>
   </div>
@@ -287,6 +313,7 @@
   <i data-lucide="shirt"></i>
 </button>
 
+<!-- ОКНО ОШИБКИ -->
 <div class="help-modal hidden" id="helpModal">
   <div class="help-content">
     <h3>Точная ошибка</h3>
@@ -296,6 +323,18 @@
   </div>
 </div>
 
+<!-- ОКНО НАСТРОЕК -->
+<div class="settings-modal hidden" id="settingsModal">
+  <div class="settings-content">
+    <h3>Настройки вида</h3>
+    <label>Прозрачность панелей (Стекло)</label>
+    <input type="range" id="glassSlider" min="0.1" max="1" step="0.05" value="0.65">
+    <p style="text-align:center; font-size:12px; color:var(--text-desc); margin-bottom: 20px;">Двигай ползунок, чтобы настроить эффект размытия.</p>
+    <button id="closeSettingsBtn" type="button" class="btn-toggle">Закрыть</button>
+  </div>
+</div>
+
+<!-- ОКНО ПРОФИЛЯ -->
 <div class="profile-modal hidden" id="profileModal">
   <div class="profile-content">
     <h3 id="profileTitle">Профиль</h3>
@@ -357,18 +396,37 @@ let isLightTheme = localStorage.getItem('cheb_theme') === 'light';
 
 const statusEl = document.getElementById('status');
 
+// === НАСТРОЙКИ (ПРОЗРАЧНОСТЬ) ===
+const savedOpacity = localStorage.getItem('cheb_glass_opacity') || '0.65';
+document.documentElement.style.setProperty('--glass-opacity', savedOpacity);
+document.getElementById('glassSlider').value = savedOpacity;
+
+document.getElementById('settingsBtn').addEventListener('click', () => {
+  document.getElementById('settingsModal').classList.remove('hidden');
+});
+
+document.getElementById('closeSettingsBtn').addEventListener('click', () => {
+  document.getElementById('settingsModal').classList.add('hidden');
+});
+
+document.getElementById('glassSlider').addEventListener('input', (e) => {
+  const val = e.target.value;
+  document.documentElement.style.setProperty('--glass-opacity', val);
+  localStorage.setItem('cheb_glass_opacity', val);
+});
+
 // === УСТАНОВКА PWA ===
 let deferredPrompt;
-const installBanner = document.getElementById('installBanner');
+const installBtn = document.getElementById('installBtn');
 
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  installBanner.style.display = 'block';
+  installBtn.style.display = 'flex'; // Показываем круглую кнопку слева
 });
 
-installBanner.addEventListener('click', async () => {
-  installBanner.style.display = 'none';
+installBtn.addEventListener('click', async () => {
+  installBtn.style.display = 'none';
   if (deferredPrompt) {
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
@@ -377,7 +435,7 @@ installBanner.addEventListener('click', async () => {
 });
 
 window.addEventListener('appinstalled', () => {
-  installBanner.style.display = 'none';
+  installBtn.style.display = 'none';
 });
 
 if ('serviceWorker' in navigator) {
