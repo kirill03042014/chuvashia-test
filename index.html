@@ -11,76 +11,112 @@
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Rubik:wght@400;500;700&display=swap');
+  
+  /* === ПЕРЕМЕННЫЕ ДЛЯ ТЕМ === */
+  :root {
+    --bg-body: #0a0c10;
+    --text-main: #c8d0d8;
+    --panel-bg: #12161c;
+    --border-color: #2a3440;
+    --input-bg: #0a0c10;
+    --text-title: #e8f0f8;
+    --text-desc: #8a9aaa;
+    --card-bg: #12161c;
+  }
+
+  body.light-theme {
+    --bg-body: #f0f4f8;
+    --text-main: #2c3e50;
+    --panel-bg: #ffffff;
+    --border-color: #cbd5e1;
+    --input-bg: #ffffff;
+    --text-title: #1a202c;
+    --text-desc: #4a5568;
+    --card-bg: #ffffff;
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body { font-family: 'Rubik', sans-serif; background: #0a0c10; color: #c8d0d8; font-size: 16px; padding: 20px 15px 80px; }
-  .container { max-width: 920px; margin: 0 auto; }
-  h1 { font-family: 'Oswald', sans-serif; font-size: 2.2em; text-transform: uppercase; text-align: center; color: #e8f0f8; text-shadow: 0 0 10px rgba(0,255,200,0.5); margin-bottom: 5px; }
-  .subtitle { text-align: center; font-size: 12px; text-transform: uppercase; letter-spacing: 3px; color: #5a7a8a; margin-bottom: 20px; }
-  .panel { background: #12161c; border: 1px solid #2a3440; border-radius: 4px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.6); }
-  input, textarea, select, button { font-family: inherit; font-size: 15px; width: 100%; padding: 12px; border: 1px solid #2a3440; border-radius: 3px; margin-bottom: 10px; background: #0a0c10; color: #e0e8f0; -webkit-appearance: none; }
+  body { font-family: 'Rubik', sans-serif; background: var(--bg-body); color: var(--text-main); font-size: 16px; padding: 20px 15px 80px; transition: background 0.3s, color 0.3s; }
+  .container { max-width: 920px; margin: 0 auto; position: relative; }
+  
+  /* Шапка */
+  .top-bar { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 10px; }
+  .icon-btn { background: transparent; border: none; color: var(--text-main); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 50%; transition: background 0.2s; }
+  .icon-btn:hover { background: rgba(128,128,128,0.2); }
+  .icon-btn svg { width: 24px; height: 24px; }
+
+  h1 { font-family: 'Oswald', sans-serif; font-size: 2.2em; text-transform: uppercase; text-align: center; color: var(--text-title); text-shadow: 0 0 10px rgba(0,255,200,0.5); margin-bottom: 5px; }
+  .subtitle { text-align: center; font-size: 12px; text-transform: uppercase; letter-spacing: 3px; color: var(--text-desc); margin-bottom: 20px; }
+  .panel { background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 4px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); transition: background 0.3s, border 0.3s; }
+  input, textarea, select, button { font-family: inherit; font-size: 15px; width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 3px; margin-bottom: 10px; background: var(--input-bg); color: var(--text-main); -webkit-appearance: none; transition: background 0.3s, border 0.3s; }
   input:focus, textarea:focus, select:focus { outline: none; border-color: #00ffc8; }
   textarea { resize: vertical; min-height: 70px; }
   button { background: linear-gradient(180deg, #1a2028, #12161c); color: #00ffc8; border: 1px solid #00ffc8; font-weight: 600; font-family: 'Oswald', sans-serif; text-transform: uppercase; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
   button:active { transform: scale(0.98); }
   button svg { width: 18px; height: 18px; }
-  .btn-toggle { background: transparent; color: #8899aa; border: 1px dashed #3a4a5a; }
+  .btn-toggle { background: transparent; color: var(--text-desc); border: 1px dashed var(--border-color); }
   .form-row { display: flex; gap: 10px; }
   .form-row > * { flex: 1; }
-  label { font-family: 'Oswald', sans-serif; font-size: 11px; text-transform: uppercase; color: #5a7a8a; display: block; margin-bottom: 4px; }
-  .place-card { background: #12161c; border: 1px solid #2a3440; border-left: 3px solid #00ffc8; border-radius: 4px; margin-bottom: 15px; overflow: hidden; }
-  .photo-container { width: 100%; height: 200px; background: #000; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; border-bottom: 1px solid #2a3440; }
+  label { font-family: 'Oswald', sans-serif; font-size: 11px; text-transform: uppercase; color: var(--text-desc); display: block; margin-bottom: 4px; }
+  .place-card { background: var(--card-bg); border: 1px solid var(--border-color); border-left: 3px solid #00ffc8; border-radius: 4px; margin-bottom: 15px; overflow: hidden; transition: background 0.3s; }
+  .photo-container { width: 100%; height: 200px; background: #000; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; border-bottom: 1px solid var(--border-color); }
   .photo-container::-webkit-scrollbar { display: none; }
   .photo-item { flex: 0 0 100%; scroll-snap-align: start; height: 100%; object-fit: cover; }
   .place-content { padding: 15px; }
-  .place-card h3 { font-family: 'Oswald', sans-serif; font-size: 1.3em; text-transform: uppercase; color: #e8f0f8; margin-bottom: 5px; }
-  .desc { color: #8a9aaa; font-size: 15px; margin-bottom: 10px; line-height: 1.4; }
+  .place-card h3 { font-family: 'Oswald', sans-serif; font-size: 1.3em; text-transform: uppercase; color: var(--text-title); margin-bottom: 5px; }
+  .desc { color: var(--text-desc); font-size: 15px; margin-bottom: 10px; line-height: 1.4; }
   .badges { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
   .badge { font-family: 'Oswald', sans-serif; font-size: 10px; padding: 3px 8px; border-radius: 2px; text-transform: uppercase; display: flex; align-items: center; gap: 4px; }
   .badge svg { width: 12px; height: 12px; }
   .b-city { background: rgba(100,200,255,0.1); color: #64c8ff; border: 1px solid rgba(100,200,255,0.3); }
-  .b-cat { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+  .b-cat { background: rgba(128,128,128,0.1); color: var(--text-main); border: 1px solid rgba(128,128,128,0.2); }
   .b-guard { background: rgba(0,255,200,0.1); color: #00ffc8; border: 1px solid rgba(0,255,200,0.3); }
   .b-noguard { background: rgba(255,0,102,0.1); color: #ff0066; border: 1px solid rgba(255,0,102,0.3); }
   .b-stars { background: rgba(255,200,0,0.1); color: #ffc800; border: 1px solid rgba(255,200,0,0.3); }
   .actions { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 10px; }
   .actions button { width: auto; padding: 8px 14px; font-size: 13px; margin: 0; }
-  .btn-like { border-color: #ffc800; color: #ffc800; } .btn-like.liked { background: #ffc800; color: #0a0c10; }
-  .btn-ban { border-color: #ff0066; color: #ff0066; }
+  .btn-like { border-color: #ffc800; color: #ffc800; } .btn-like.liked { background: #ffc800; color: var(--bg-body); }
+  .btn-ban { border-color: #ff0066; color: #ff0066; display: none; /* Скрыто для обычных юзеров */ }
   .btn-fav { border-color: #00ffc8; color: #00ffc8; }
   .socials { display: flex; gap: 5px; }
-  .socials button { width: auto; padding: 8px 12px; font-size: 12px; border-color: #888; color: #ccc; }
-  #map { height: 300px; width: 100%; border-radius: 4px; margin-bottom: 15px; background: #1a2028; border: 1px solid #2a3440; }
+  .socials button { width: auto; padding: 8px 12px; font-size: 12px; border-color: #888; color: var(--text-main); }
+  #map { height: 300px; width: 100%; border-radius: 4px; margin-bottom: 15px; background: var(--panel-bg); border: 1px solid var(--border-color); }
   .tabs { display: flex; gap: 10px; margin-bottom: 15px; }
-  .tabs button { flex: 1; background: transparent; border: 1px solid #2a3440; color: #5a7a8a; padding: 10px; font-size: 13px; }
+  .tabs button { flex: 1; background: transparent; border: 1px solid var(--border-color); color: var(--text-desc); padding: 10px; font-size: 13px; }
   .tabs button.active { background: #00ffc8; color: #0a0c10; border-color: #00ffc8; }
-  .comments { margin-top: 15px; padding-top: 10px; border-top: 1px solid #1e2832; }
-  .comment { background: #0a0c10; padding: 8px; border-left: 2px solid #2a3440; font-size: 14px; margin-bottom: 5px; }
+  .comments { margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border-color); }
+  .comment { background: var(--bg-body); padding: 8px; border-left: 2px solid var(--border-color); font-size: 14px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
+  .del-comment { width: auto; padding: 2px 5px; border: none; background: transparent; color: #ff0066; cursor: pointer; display: none; /* Скрыто для обычных юзеров */ }
+  .del-comment svg { width: 16px; height: 16px; }
   .comment-form { display: flex; gap: 5px; margin-top: 5px; }
   .comment-form input { margin: 0; padding: 8px; }
   .comment-form button { width: auto; padding: 8px 15px; margin: 0; }
-  .empty { text-align: center; padding: 30px; color: #3a4a5a; text-transform: uppercase; font-family: 'Oswald'; }
+  .empty { text-align: center; padding: 30px; color: var(--text-desc); text-transform: uppercase; font-family: 'Oswald'; }
   .hidden { display: none !important; }
   .status { text-align: center; font-family: 'Oswald'; font-size: 12px; padding: 8px; margin-bottom: 15px; border-radius: 2px; text-transform: uppercase; }
   .status.ok { color: #00ffc8; } .status.error { color: #ff0066; }
   .city-filters { display: flex; gap: 5px; flex-wrap: wrap; }
-  .city-filters button { width: auto; padding: 6px 12px; font-size: 12px; background: transparent; border-color: #2a3440; color: #5a7a8a; }
+  .city-filters button { width: auto; padding: 6px 12px; font-size: 12px; background: transparent; border-color: var(--border-color); color: var(--text-desc); }
   .city-filters button.active { background: #00ffc8; color: #000; border-color: #00ffc8; }
 
-  /* Стили для кнопки помощи */
   .help-btn { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; border-radius: 50%; background: #ff0066; color: #fff; border: none; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(255,0,102,0.5); z-index: 1000; cursor: pointer; }
   .help-btn svg { width: 30px; height: 30px; }
-  .help-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 1001; display: flex; align-items: center; justify-content: center; padding: 20px; }
-  .help-content { background: #12161c; border: 1px solid #2a3440; padding: 20px; border-radius: 4px; max-width: 500px; width: 100%; color: #fff; }
+  .help-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1001; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .help-content { background: var(--panel-bg); border: 1px solid var(--border-color); padding: 20px; border-radius: 4px; max-width: 500px; width: 100%; color: var(--text-main); }
   .help-content h3 { color: #ff0066; margin-bottom: 15px; }
-  .help-content textarea { width: 100%; height: 150px; margin-bottom: 15px; background: #0a0c10; color: #fff; border: 1px solid #2a3440; padding: 10px; font-size: 12px; }
+  .help-content textarea { width: 100%; height: 150px; margin-bottom: 15px; background: var(--bg-body); color: var(--text-main); border: 1px solid var(--border-color); padding: 10px; font-size: 12px; }
 
-  /* Стили для звезд рейтинга */
+  /* Модалка профиля/админа */
+  .profile-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1002; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .profile-content { background: var(--panel-bg); border: 1px solid var(--border-color); padding: 20px; border-radius: 4px; max-width: 400px; width: 100%; }
+  .profile-content h3 { color: var(--text-title); margin-bottom: 15px; text-align: center; }
+
   .rating-stars { display: flex; gap: 5px; margin: 10px 0; align-items: center; }
   .star-btn { background: transparent; border: none; color: #444; cursor: pointer; padding: 0; width: auto; margin: 0; transition: transform 0.1s; }
   .star-btn:active { transform: scale(1.2); }
   .star-btn svg { width: 22px; height: 22px; fill: currentColor; }
-  .star-btn.active { color: #ffc800; } /* Цвет загоревшейся звезды */
-  .rating-text { font-size: 12px; color: #8a9aaa; margin-left: 10px; }
+  .star-btn.active { color: #ffc800; }
+  .rating-text { font-size: 12px; color: var(--text-desc); margin-left: 10px; }
 
   @media (max-width: 600px) {
     .form-row { flex-direction: column; gap: 0; }
@@ -93,6 +129,12 @@
 </head>
 <body>
 <div class="container">
+  <!-- ВЕРХНЯЯ ПАНЕЛЬ С ИКОНКАМИ -->
+  <div class="top-bar">
+    <button class="icon-btn" id="themeToggle" title="Сменить тему"><i data-lucide="moon"></i></button>
+    <button class="icon-btn" id="profileBtn" title="Профиль"><i data-lucide="user"></i></button>
+  </div>
+
   <h1>Крутые места Чувашии</h1>
   <div class="subtitle">Чебоксары · Новочебоксарск · Чувашия</div>
   <div id="status" class="status loading">Загрузка...</div>
@@ -158,14 +200,30 @@
   </div>
 </div>
 
+<!-- Модалка профиля/админа -->
+<div class="profile-modal hidden" id="profileModal">
+  <div class="profile-content">
+    <h3 id="profileTitle">Вход в профиль</h3>
+    <div id="loginForm">
+      <input type="password" id="adminPassword" placeholder="Введите пароль">
+      <button id="loginBtn" type="button">Войти</button>
+      <button id="cancelLoginBtn" type="button" class="btn-toggle" style="margin-top: 10px;">Отмена</button>
+    </div>
+    <div id="adminPanel" class="hidden">
+      <p style="text-align:center; color:#00ffc8; font-weight:bold; margin-bottom:15px;">Вы вошли как Администратор</p>
+      <button id="logoutBtn" type="button" style="border-color: #ff0066; color: #ff0066;">Выйти из профиля</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ============================================
-// КЛЮЧИ APPWRITE
+// КЛЮЧИ APPWRITE (НЕ ЗАБУДЬ ВСТАВИТЬ НОВЫЙ ID КОЛЛЕКЦИИ!)
 // ============================================
 const APPWRITE_ENDPOINT = 'https://fra.cloud.appwrite.io/v1';
 const APPWRITE_PROJECT_ID = '6af75290002021ce6c30';
 const DATABASE_ID = '6af752b800204637c982'; 
-const COLLECTION_ID = '6af754b70031b4620e57'; 
+const COLLECTION_ID = 'ТУТ_БУДЕТ_ID_НОВОЙ_КОЛЛЕКЦИИ'; // <--- ВСТАВЬ СЮДА СВОЙ ID
 
 const { Client, Databases, ID } = Appwrite;
 const client = new Client().setEndpoint(APPWRITE_ENDPOINT).setProject(APPWRITE_PROJECT_ID);
@@ -175,12 +233,86 @@ let map = null, markers = [];
 let places = [];
 let favorites = JSON.parse(localStorage.getItem('cheb_favs') || '[]');
 let likedPlaces = JSON.parse(localStorage.getItem('cheb_liked') || '[]');
-// Загружаем личные оценки пользователя из памяти телефона
 let myRatings = JSON.parse(localStorage.getItem('cheb_my_ratings') || '{}');
 let currentCity = 'all', currentTab = 'popular';
 let lastError = 'Ошибок не было.';
 
+// Переменные для тем и админа
+let isAdmin = false;
+const ADMIN_PASSWORD = 'SmirnovKirill03@inbox.ry'; // Твой пароль
+let isLightTheme = localStorage.getItem('cheb_theme') === 'light';
+
 const statusEl = document.getElementById('status');
+
+// === УПРАВЛЕНИЕ ТЕМОЙ ===
+if (isLightTheme) {
+  document.body.classList.add('light-theme');
+  document.getElementById('themeToggle').innerHTML = '<i data-lucide="sun"></i>';
+}
+
+document.getElementById('themeToggle').addEventListener('click', () => {
+  isLightTheme = !isLightTheme;
+  if (isLightTheme) {
+    document.body.classList.add('light-theme');
+    document.getElementById('themeToggle').innerHTML = '<i data-lucide="sun"></i>';
+    localStorage.setItem('cheb_theme', 'light');
+  } else {
+    document.body.classList.remove('light-theme');
+    document.getElementById('themeToggle').innerHTML = '<i data-lucide="moon"></i>';
+    localStorage.setItem('cheb_theme', 'dark');
+  }
+  lucide.createIcons();
+});
+
+// === УПРАВЛЕНИЕ ПРОФИЛЕМ ===
+const profileModal = document.getElementById('profileModal');
+const loginForm = document.getElementById('loginForm');
+const adminPanel = document.getElementById('adminPanel');
+
+document.getElementById('profileBtn').addEventListener('click', () => {
+  profileModal.classList.remove('hidden');
+  if (isAdmin) {
+    loginForm.classList.add('hidden');
+    adminPanel.classList.remove('hidden');
+  } else {
+    loginForm.classList.remove('hidden');
+    adminPanel.classList.add('hidden');
+  }
+});
+
+document.getElementById('cancelLoginBtn').addEventListener('click', () => {
+  profileModal.classList.add('hidden');
+  document.getElementById('adminPassword').value = '';
+});
+
+document.getElementById('loginBtn').addEventListener('click', () => {
+  const pass = document.getElementById('adminPassword').value;
+  if (pass === ADMIN_PASSWORD) {
+    isAdmin = true;
+    localStorage.setItem('cheb_isAdmin', 'true');
+    alert('Добро пожаловать, Администратор!');
+    loginForm.classList.add('hidden');
+    adminPanel.classList.remove('hidden');
+    document.getElementById('adminPassword').value = '';
+    render(); // Перерисовываем, чтобы появились кнопки бана
+  } else {
+    alert('Неверный пароль!');
+  }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+  isAdmin = false;
+  localStorage.removeItem('cheb_isAdmin');
+  profileModal.classList.add('hidden');
+  render();
+});
+
+// Проверяем, не заходил ли админ ранее
+if (localStorage.getItem('cheb_isAdmin') === 'true') {
+  isAdmin = true;
+}
+
+// === ОСТАЛЬНОЙ КОД ===
 
 function saveFavs() { localStorage.setItem('cheb_favs', JSON.stringify(favorites)); }
 function saveLikes() { localStorage.setItem('cheb_liked', JSON.stringify(likedPlaces)); }
@@ -254,18 +386,19 @@ function render() {
     const avgRating = p.rating_count > 0 ? (p.rating_sum / p.rating_count).toFixed(1) : '—';
     const isFav = favorites.includes(String(p.id));
     const isLiked = likedPlaces.includes(String(p.id));
-    // Получаем личную оценку этого места (если ставил)
     const myRating = myRatings[p.id] || 0;
     
     let photoUrl = '';
     if (p.photos && Array.isArray(p.photos) && p.photos.length > 0) photoUrl = p.photos[0];
     else if (p.photos && typeof p.photos === 'string') photoUrl = p.photos;
 
-    // Генерируем HTML для звездочек
     let starsHtml = '';
     for (let i = 1; i <= 5; i++) {
       starsHtml += `<button class="star-btn ${i <= myRating ? 'active' : ''}" onclick="ratePlace('${p.id}', ${i})" type="button"><i data-lucide="star"></i></button>`;
     }
+
+    // Показываем кнопку бана только если ты админ
+    const banBtnDisplay = isAdmin ? 'inline-flex' : 'none';
 
     return `
     <div class="place-card">
@@ -289,7 +422,7 @@ function render() {
           <button class="btn-like ${isLiked ? 'liked' : ''}" onclick="toggleLike('${p.id}')" type="button">
             <i data-lucide="heart"></i> ${isLiked ? 'Убрать лайк' : p.likes + ' Лайков'}
           </button>
-          <button class="btn-ban" onclick="banPlace('${p.id}')" type="button"><i data-lucide="ban"></i> Бан</button>
+          <button class="btn-ban" style="display:${banBtnDisplay}" onclick="banPlace('${p.id}')" type="button"><i data-lucide="ban"></i> Бан</button>
           <button class="btn-fav" onclick="toggleFav('${p.id}')" type="button"><i data-lucide="star"></i> ${isFav ? 'Убрать' : 'В избранное'}</button>
         </div>
         ${p.video ? `<div style="margin-top:10px;"><a href="${escapeHtml(p.video)}" target="_blank" style="display:inline-flex; align-items:center; gap:5px; color:#ff0000; text-decoration:none; font-weight:bold;"><i data-lucide="video"></i> Смотреть видео</a></div>` : ''}
@@ -298,8 +431,13 @@ function render() {
           <button class="btn-tg" onclick="window.open('https://t.me/share/url?url=${encodeURIComponent(location.href)}&text=${encodeURIComponent(p.name)}', '_blank')" type="button">TG</button>
         </div>
         <div class="comments">
-          <strong style="font-size:12px;color:#5a7a8a;">КОММЕНТАРИИ (${(p.comments || []).length})</strong>
-          ${(p.comments || []).map(c => `<div class="comment">${escapeHtml(c)}</div>`).join('')}
+          <strong style="font-size:12px;color:var(--text-desc);">КОММЕНТАРИИ (${(p.comments || []).length})</strong>
+          ${(p.comments || []).map((c, index) => `
+            <div class="comment">
+              <span>${escapeHtml(c)}</span>
+              <button class="del-comment" style="display:${isAdmin ? 'inline-flex' : 'none'}" onclick="deleteComment('${p.id}', ${index})" type="button"><i data-lucide="trash-2"></i></button>
+            </div>
+          `).join('')}
           <div class="comment-form">
             <input type="text" id="c_${p.id}" placeholder="Комментарий..." onkeydown="if(event.key==='Enter') addComment('${p.id}')">
             <button onclick="addComment('${p.id}')" type="button"><i data-lucide="send"></i></button>
@@ -312,27 +450,22 @@ function render() {
   if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
-// === НОВАЯ ФУНКЦИЯ ОЦЕНКИ ===
 async function ratePlace(id, rating) {
   const p = places.find(x => x.id === id);
   if (!p) return;
 
   const oldRating = myRatings[id] || 0;
-  if (oldRating === rating) return; // Если нажал ту же звезду, ничего не делаем
+  if (oldRating === rating) return;
 
-  // Обновляем локальную память
   myRatings[id] = rating;
   saveMyRatings();
 
-  // Пересчитываем общий рейтинг (сумма и количество)
   let newSum = p.rating_sum;
   let newCount = p.rating_count;
 
   if (oldRating > 0) {
-    // Если уже ставил, то вычитаем старую оценку
     newSum = newSum - oldRating + rating;
   } else {
-    // Если ставит впервые, прибавляем новую
     newSum = newSum + rating;
     newCount = newCount + 1;
   }
@@ -340,9 +473,8 @@ async function ratePlace(id, rating) {
   p.rating_sum = newSum;
   p.rating_count = newCount;
   
-  render(); // Мгновенно перерисовываем, чтобы звезды загорелись
+  render();
 
-  // Отправляем в базу
   try {
     await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { 
       rating_sum: String(newSum), 
@@ -372,7 +504,8 @@ async function toggleLike(id) {
 }
 
 async function banPlace(id) {
-  if (!confirm('Забанить?')) return;
+  if (!isAdmin) return;
+  if (!confirm('Забанить это место?')) return;
   try {
     await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { is_banned: 'true' });
     places = places.filter(x => x.id !== id);
@@ -391,6 +524,20 @@ async function addComment(id) {
   try {
     await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { comments: p.comments });
   } catch(e) { lastError = e.message; console.error('Ошибка комментария', e); }
+  render();
+}
+
+// Удаление комментария (только для админа)
+async function deleteComment(id, index) {
+  if (!isAdmin) return;
+  const p = places.find(x => x.id === id);
+  if (!p || !p.comments) return;
+  
+  p.comments.splice(index, 1); // Удаляем комментарий
+  
+  try {
+    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { comments: p.comments });
+  } catch(e) { lastError = e.message; console.error(e); }
   render();
 }
 
@@ -478,7 +625,7 @@ document.getElementById('tabs').onclick = (e) => {
 
 document.getElementById('searchInput').addEventListener('input', render);
 
-// === КНОПКА ПОМОЩИ И ЗАКРЫТИЕ ===
+// === КНОПКА ПОМОЩИ ===
 const helpModal = document.getElementById('helpModal');
 
 document.getElementById('helpBtn').addEventListener('click', () => {
@@ -501,4 +648,4 @@ initMap();
 loadData();
 </script>
 </body>
-                                                                 </html>
+  </html>
