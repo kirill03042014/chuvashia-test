@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>КРУТЫЕ МЕСТА ЧУВАШИИ</title>
 
-<!-- ИКОНКИ И УСТАНОВКА (PWA) -->
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
 <link rel="manifest" href="manifest.json">
@@ -25,13 +24,14 @@
     --text-title: #e8f0f8;
     --text-desc: #8a9aaa;
     
-    --glass-opacity: 0.65; 
-    --glass-blur: 15px;
+    /* УСИЛЕННЫЙ ЭФФЕКТ СТЕКЛА */
+    --glass-opacity: 0.45; 
+    --glass-blur: 25px;
     
     --glass-bg: rgba(18, 22, 28, var(--glass-opacity));
-    --glass-border: rgba(255, 255, 255, 0.08);
-    --input-bg: rgba(10, 12, 16, 0.8);
-    --btn-bg: rgba(26, 32, 40, 0.8);
+    --glass-border: rgba(255, 255, 255, 0.15);
+    --input-bg: rgba(10, 12, 16, 0.7);
+    --btn-bg: rgba(26, 32, 40, 0.7);
   }
 
   body.light-theme {
@@ -41,9 +41,9 @@
     --text-desc: #64748b;
     
     --glass-bg: rgba(255, 255, 255, var(--glass-opacity));
-    --glass-border: rgba(0, 0, 0, 0.1);
-    --input-bg: rgba(255, 255, 255, 0.9);
-    --btn-bg: rgba(255, 255, 255, 0.9);
+    --glass-border: rgba(0, 0, 0, 0.15);
+    --input-bg: rgba(255, 255, 255, 0.8);
+    --btn-bg: rgba(255, 255, 255, 0.8);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -55,19 +55,14 @@
     font-size: 16px; 
     padding: 20px 15px 80px; 
     transition: background 0.4s, color 0.4s; 
-    background-image: radial-gradient(circle at 50% 0%, rgba(0,255,200,0.1) 0%, transparent 50%);
+    background-image: radial-gradient(circle at 50% 0%, rgba(0,255,200,0.15) 0%, transparent 60%);
     background-attachment: fixed;
   }
   
   .container { max-width: 920px; margin: 0 auto; position: relative; }
   
-  /* ЛЕВЫЙ ВЕРХНИЙ УГОЛ */
   .top-bar { 
-    display: flex; 
-    justify-content: flex-start; 
-    gap: 10px; 
-    margin-bottom: 20px; 
-    flex-wrap: wrap;
+    display: flex; justify-content: flex-start; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;
   }
   
   .icon-btn { 
@@ -81,10 +76,8 @@
   .icon-btn svg { width: 22px; height: 22px; }
 
   #installBtn {
-    display: none; 
-    background: #00ffc8; color: #0a0c10; border: 1px solid #fff;
-    box-shadow: 0 0 15px rgba(0,255,200,0.5);
-    animation: pulse 2s infinite;
+    display: none; background: #00ffc8; color: #0a0c10; border: 1px solid #fff;
+    box-shadow: 0 0 15px rgba(0,255,200,0.5); animation: pulse 2s infinite;
   }
   @keyframes pulse {
     0% { box-shadow: 0 0 0 0 rgba(0,255,200, 0.7); }
@@ -102,7 +95,7 @@
     padding: 15px; 
     margin-bottom: 15px; 
     backdrop-filter: var(--glass-blur); 
-    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
     transition: background 0.4s, border 0.4s;
   }
   
@@ -112,7 +105,7 @@
     margin-bottom: 10px; background: var(--input-bg); color: var(--text-main); 
     -webkit-appearance: none; transition: all 0.3s;
   }
-  input:focus, textarea:focus, select:focus { outline: none; border-color: #00ffc8; box-shadow: 0 0 10px rgba(0,255,200,0.2); }
+  input:focus, textarea:focus, select:focus { outline: none; border-color: #00ffc8; box-shadow: 0 0 10px rgba(0,255,200,0.3); }
   textarea { resize: vertical; min-height: 70px; }
   
   button { 
@@ -139,7 +132,7 @@
     margin-bottom: 20px; 
     overflow: hidden; 
     backdrop-filter: var(--glass-blur);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
     transition: background 0.4s, border 0.4s;
   }
   .photo-container { width: 100%; height: 220px; background: #000; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; border-bottom: 1px solid var(--glass-border); }
@@ -196,7 +189,7 @@
   .help-btn { position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; border-radius: 50%; background: #ff0066; color: #fff; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 32px rgba(255,0,102,0.4); z-index: 1000; cursor: pointer; backdrop-filter: blur(5px); }
   .help-btn svg { width: 28px; height: 28px; }
   
-  .help-modal, .profile-modal, .settings-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1001; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
+  .help-modal, .profile-modal, .settings-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1001; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(10px); }
   .help-content, .profile-content, .settings-content { background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 25px; border-radius: 16px; max-width: 450px; width: 100%; color: var(--text-main); backdrop-filter: var(--glass-blur); box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
   .help-content h3, .profile-content h3, .settings-content h3 { color: var(--text-title); margin-bottom: 20px; text-align: center; font-family: 'Oswald'; text-transform: uppercase; letter-spacing: 1px; }
   .help-content textarea { width: 100%; height: 150px; margin-bottom: 15px; background: var(--input-bg); color: var(--text-main); border: 1px solid var(--glass-border); padding: 12px; font-size: 12px; border-radius: 8px; }
@@ -209,12 +202,7 @@
   .rating-text { font-size: 13px; color: var(--text-desc); margin-left: 12px; }
 
   input[type=range] {
-    -webkit-appearance: none;
-    width: 100%;
-    background: transparent;
-    padding: 0;
-    margin: 15px 0;
-    border: none;
+    -webkit-appearance: none; width: 100%; background: transparent; padding: 0; margin: 15px 0; border: none;
   }
   input[type=range]::-webkit-slider-runnable-track {
     width: 100%; height: 8px; cursor: pointer; background: var(--glass-border); border-radius: 4px;
@@ -237,7 +225,6 @@
 <body>
 
 <div class="container">
-  <!-- ЛЕВЫЙ ВЕРХНИЙ УГОЛ -->
   <div class="top-bar">
     <button class="icon-btn" id="installBtn" title="Установить приложение"><i data-lucide="download"></i></button>
     <button class="icon-btn" id="settingsBtn" title="Настройки"><i data-lucide="settings"></i></button>
@@ -300,7 +287,6 @@
   <i data-lucide="shirt"></i>
 </button>
 
-<!-- ОКНО ОШИБКИ -->
 <div class="help-modal hidden" id="helpModal">
   <div class="help-content">
     <h3>Точная ошибка</h3>
@@ -310,18 +296,16 @@
   </div>
 </div>
 
-<!-- ОКНО НАСТРОЕК -->
 <div class="settings-modal hidden" id="settingsModal">
   <div class="settings-content">
     <h3>Настройки вида</h3>
     <label>Прозрачность панелей (Стекло)</label>
-    <input type="range" id="glassSlider" min="0.1" max="1" step="0.05" value="0.65">
+    <input type="range" id="glassSlider" min="0.1" max="1" step="0.05" value="0.45">
     <p style="text-align:center; font-size:12px; color:var(--text-desc); margin-bottom: 20px;">Двигай ползунок, чтобы настроить эффект размытия.</p>
     <button id="closeSettingsBtn" type="button" class="btn-toggle">Закрыть</button>
   </div>
 </div>
 
-<!-- ОКНО ПРОФИЛЯ -->
 <div class="profile-modal hidden" id="profileModal">
   <div class="profile-content">
     <h3 id="profileTitle">Профиль</h3>
@@ -358,6 +342,40 @@
 
 <script>
 // ============================================
+// ЗВУК НАЖАТИЯ (СИНТЕЗАТОР)
+// ============================================
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+
+function playClickSound() {
+  if (!audioCtx) audioCtx = new AudioContext();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  
+  const oscillator = audioCtx.createOscillator();
+  const gainNode = audioCtx.createGain();
+  
+  oscillator.type = 'sine';
+  oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+  oscillator.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.05);
+  
+  gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+  
+  oscillator.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+  
+  oscillator.start();
+  oscillator.stop(audioCtx.currentTime + 0.05);
+}
+
+// Вешаем звук на все кнопки
+document.addEventListener('click', (e) => {
+  if (e.target.closest('button') || e.target.closest('.icon-btn') || e.target.closest('.star-btn')) {
+    playClickSound();
+  }
+});
+
+// ============================================
 // КЛЮЧИ APPWRITE
 // ============================================
 const APPWRITE_ENDPOINT = 'https://fra.cloud.appwrite.io/v1';
@@ -384,7 +402,7 @@ let isLightTheme = localStorage.getItem('cheb_theme') === 'light';
 const statusEl = document.getElementById('status');
 
 // === НАСТРОЙКИ (ПРОЗРАЧНОСТЬ) ===
-const savedOpacity = localStorage.getItem('cheb_glass_opacity') || '0.65';
+const savedOpacity = localStorage.getItem('cheb_glass_opacity') || '0.45';
 document.documentElement.style.setProperty('--glass-opacity', savedOpacity);
 document.getElementById('glassSlider').value = savedOpacity;
 
@@ -922,4 +940,4 @@ initMap();
 loadData();
 </script>
 </body>
-</html>
+                                                                 </html>
