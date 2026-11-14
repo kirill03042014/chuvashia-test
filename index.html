@@ -262,6 +262,12 @@ let isLightTheme = localStorage.getItem('cheb_theme') === 'light';
 
 const statusEl = document.getElementById('status');
 
+// === РЕГИСТРАЦИЯ SERVICE WORKER ДЛЯ УСТАНОВКИ ===
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+
+// === УПРАВЛЕНИЕ ТЕМОЙ ===
 if (isLightTheme) {
   document.body.classList.add('light-theme');
   document.getElementById('themeToggle').innerHTML = '<i data-lucide="sun"></i>';
@@ -281,6 +287,7 @@ document.getElementById('themeToggle').addEventListener('click', () => {
   lucide.createIcons();
 });
 
+// === ПРОФИЛЬ ===
 const profileModal = document.getElementById('profileModal');
 const loginSection = document.getElementById('loginSection');
 const registerSection = document.getElementById('registerSection');
@@ -419,6 +426,7 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
   updateProfileUI();
 });
 
+// === ОСТАЛЬНОЙ КОД ===
 function saveFavs() { localStorage.setItem('cheb_favs', JSON.stringify(favorites)); }
 function saveLikes() { localStorage.setItem('cheb_liked', JSON.stringify(likedPlaces)); }
 function saveMyRatings() { localStorage.setItem('cheb_my_ratings', JSON.stringify(myRatings)); }
