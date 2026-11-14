@@ -12,7 +12,6 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Rubik:wght@400;500;700&display=swap');
   
-  /* === ПЕРЕМЕННЫЕ ДЛЯ ТЕМ === */
   :root {
     --bg-body: #0a0c10;
     --text-main: #c8d0d8;
@@ -39,7 +38,6 @@
   body { font-family: 'Rubik', sans-serif; background: var(--bg-body); color: var(--text-main); font-size: 16px; padding: 20px 15px 80px; transition: background 0.3s, color 0.3s; }
   .container { max-width: 920px; margin: 0 auto; position: relative; }
   
-  /* Шапка */
   .top-bar { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 10px; }
   .icon-btn { background: transparent; border: none; color: var(--text-main); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 50%; transition: background 0.2s; }
   .icon-btn:hover { background: rgba(128,128,128,0.2); }
@@ -76,7 +74,7 @@
   .actions { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 10px; }
   .actions button { width: auto; padding: 8px 14px; font-size: 13px; margin: 0; }
   .btn-like { border-color: #ffc800; color: #ffc800; } .btn-like.liked { background: #ffc800; color: var(--bg-body); }
-  .btn-ban { border-color: #ff0066; color: #ff0066; display: none; /* Скрыто для обычных юзеров */ }
+  .btn-ban { border-color: #ff0066; color: #ff0066; display: none; }
   .btn-fav { border-color: #00ffc8; color: #00ffc8; }
   .socials { display: flex; gap: 5px; }
   .socials button { width: auto; padding: 8px 12px; font-size: 12px; border-color: #888; color: var(--text-main); }
@@ -86,7 +84,7 @@
   .tabs button.active { background: #00ffc8; color: #0a0c10; border-color: #00ffc8; }
   .comments { margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border-color); }
   .comment { background: var(--bg-body); padding: 8px; border-left: 2px solid var(--border-color); font-size: 14px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
-  .del-comment { width: auto; padding: 2px 5px; border: none; background: transparent; color: #ff0066; cursor: pointer; display: none; /* Скрыто для обычных юзеров */ }
+  .del-comment { width: auto; padding: 2px 5px; border: none; background: transparent; color: #ff0066; cursor: pointer; display: none; }
   .del-comment svg { width: 16px; height: 16px; }
   .comment-form { display: flex; gap: 5px; margin-top: 5px; }
   .comment-form input { margin: 0; padding: 8px; }
@@ -106,7 +104,6 @@
   .help-content h3 { color: #ff0066; margin-bottom: 15px; }
   .help-content textarea { width: 100%; height: 150px; margin-bottom: 15px; background: var(--bg-body); color: var(--text-main); border: 1px solid var(--border-color); padding: 10px; font-size: 12px; }
 
-  /* Модалка профиля/админа */
   .profile-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1002; display: flex; align-items: center; justify-content: center; padding: 20px; }
   .profile-content { background: var(--panel-bg); border: 1px solid var(--border-color); padding: 20px; border-radius: 4px; max-width: 400px; width: 100%; }
   .profile-content h3 { color: var(--text-title); margin-bottom: 15px; text-align: center; }
@@ -129,7 +126,6 @@
 </head>
 <body>
 <div class="container">
-  <!-- ВЕРХНЯЯ ПАНЕЛЬ С ИКОНКАМИ -->
   <div class="top-bar">
     <button class="icon-btn" id="themeToggle" title="Сменить тему"><i data-lucide="moon"></i></button>
     <button class="icon-btn" id="profileBtn" title="Профиль"><i data-lucide="user"></i></button>
@@ -186,7 +182,6 @@
   <div id="placesList"></div>
 </div>
 
-<!-- Кнопка Помощи (Футболка) -->
 <button class="help-btn" id="helpBtn" type="button">
   <i data-lucide="shirt"></i>
 </button>
@@ -200,7 +195,6 @@
   </div>
 </div>
 
-<!-- Модалка профиля/админа -->
 <div class="profile-modal hidden" id="profileModal">
   <div class="profile-content">
     <h3 id="profileTitle">Вход в профиль</h3>
@@ -218,12 +212,12 @@
 
 <script>
 // ============================================
-// КЛЮЧИ APPWRITE (НЕ ЗАБУДЬ ВСТАВИТЬ НОВЫЙ ID КОЛЛЕКЦИИ!)
+// КЛЮЧИ APPWRITE
 // ============================================
 const APPWRITE_ENDPOINT = 'https://fra.cloud.appwrite.io/v1';
 const APPWRITE_PROJECT_ID = '6af75290002021ce6c30';
 const DATABASE_ID = '6af752b800204637c982'; 
-const COLLECTION_ID = 'ТУТ_БУДЕТ_ID_НОВОЙ_КОЛЛЕКЦИИ'; // <--- ВСТАВЬ СЮДА СВОЙ ID
+const COLLECTION_ID = '6af754b70031b4620e57'; // <--- ТВОЙ ID
 
 const { Client, Databases, ID } = Appwrite;
 const client = new Client().setEndpoint(APPWRITE_ENDPOINT).setProject(APPWRITE_PROJECT_ID);
@@ -237,14 +231,12 @@ let myRatings = JSON.parse(localStorage.getItem('cheb_my_ratings') || '{}');
 let currentCity = 'all', currentTab = 'popular';
 let lastError = 'Ошибок не было.';
 
-// Переменные для тем и админа
 let isAdmin = false;
-const ADMIN_PASSWORD = 'SmirnovKirill03@inbox.ry'; // Твой пароль
+const ADMIN_PASSWORD = 'SmirnovKirill03@inbox.ry';
 let isLightTheme = localStorage.getItem('cheb_theme') === 'light';
 
 const statusEl = document.getElementById('status');
 
-// === УПРАВЛЕНИЕ ТЕМОЙ ===
 if (isLightTheme) {
   document.body.classList.add('light-theme');
   document.getElementById('themeToggle').innerHTML = '<i data-lucide="sun"></i>';
@@ -264,7 +256,6 @@ document.getElementById('themeToggle').addEventListener('click', () => {
   lucide.createIcons();
 });
 
-// === УПРАВЛЕНИЕ ПРОФИЛЕМ ===
 const profileModal = document.getElementById('profileModal');
 const loginForm = document.getElementById('loginForm');
 const adminPanel = document.getElementById('adminPanel');
@@ -294,7 +285,7 @@ document.getElementById('loginBtn').addEventListener('click', () => {
     loginForm.classList.add('hidden');
     adminPanel.classList.remove('hidden');
     document.getElementById('adminPassword').value = '';
-    render(); // Перерисовываем, чтобы появились кнопки бана
+    render();
   } else {
     alert('Неверный пароль!');
   }
@@ -307,12 +298,9 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
   render();
 });
 
-// Проверяем, не заходил ли админ ранее
 if (localStorage.getItem('cheb_isAdmin') === 'true') {
   isAdmin = true;
 }
-
-// === ОСТАЛЬНОЙ КОД ===
 
 function saveFavs() { localStorage.setItem('cheb_favs', JSON.stringify(favorites)); }
 function saveLikes() { localStorage.setItem('cheb_liked', JSON.stringify(likedPlaces)); }
@@ -397,7 +385,6 @@ function render() {
       starsHtml += `<button class="star-btn ${i <= myRating ? 'active' : ''}" onclick="ratePlace('${p.id}', ${i})" type="button"><i data-lucide="star"></i></button>`;
     }
 
-    // Показываем кнопку бана только если ты админ
     const banBtnDisplay = isAdmin ? 'inline-flex' : 'none';
 
     return `
@@ -527,13 +514,12 @@ async function addComment(id) {
   render();
 }
 
-// Удаление комментария (только для админа)
 async function deleteComment(id, index) {
   if (!isAdmin) return;
   const p = places.find(x => x.id === id);
   if (!p || !p.comments) return;
   
-  p.comments.splice(index, 1); // Удаляем комментарий
+  p.comments.splice(index, 1);
   
   try {
     await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { comments: p.comments });
@@ -625,7 +611,6 @@ document.getElementById('tabs').onclick = (e) => {
 
 document.getElementById('searchInput').addEventListener('input', render);
 
-// === КНОПКА ПОМОЩИ ===
 const helpModal = document.getElementById('helpModal');
 
 document.getElementById('helpBtn').addEventListener('click', () => {
@@ -648,4 +633,4 @@ initMap();
 loadData();
 </script>
 </body>
-  </html>
+</html>
