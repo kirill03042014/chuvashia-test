@@ -4,9 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>КРУТЫЕ МЕСТА ЧУВАШИИ</title>
-  <link rel="manifest" href="manifest.json">
+
+<!-- КОД ДЛЯ УСТАНОВКИ ПРИЛОЖЕНИЯ (PWA) -->
+<link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon.png">
 <meta name="theme-color" content="#00ffc8">
+
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/lucide@latest" defer></script>
@@ -340,8 +343,8 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
 
   try {
     const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [
-      Query.equal('city', 'USER_ACCOUNT'), // Ищем только аккаунты
-      Query.equal('name', nick) // Имя пользователя храним в поле name
+      Query.equal('city', 'USER_ACCOUNT'),
+      Query.equal('name', nick)
     ]);
 
     if (res.documents.length === 0) {
@@ -350,12 +353,12 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
     }
 
     const user = res.documents[0];
-    if (user.desc !== pass) { // Пароль храним в поле desc
+    if (user.desc !== pass) {
       alert('Неверный пароль!');
       return;
     }
 
-    currentUser = { nickname: user.name, is_admin: user.guard, id: user.$id }; // guard = 'true' значит админ
+    currentUser = { nickname: user.name, is_admin: user.guard, id: user.$id };
     localStorage.setItem('cheb_current_user', JSON.stringify(currentUser));
     alert(`С возвращением, ${user.name}!`);
     document.getElementById('loginNickname').value = '';
@@ -385,13 +388,12 @@ document.getElementById('registerBtn').addEventListener('click', async () => {
       return;
     }
 
-    // Создаем "невидимого" пользователя
     await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), {
       name: nick,
-      desc: pass, // Пароль
-      city: 'USER_ACCOUNT', // Метка, по которой мы понимаем, что это аккаунт
+      desc: pass,
+      city: 'USER_ACCOUNT',
       category: 'user',
-      guard: 'false', // Не админ
+      guard: 'false',
       is_banned: 'false',
       likes: '0', rating_sum: '0', rating_count: '0',
       comments: [], photos: []
@@ -417,9 +419,6 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
   updateProfileUI();
 });
 
-// ============================================
-// ОСТАЛЬНОЙ КОД
-// ============================================
 function saveFavs() { localStorage.setItem('cheb_favs', JSON.stringify(favorites)); }
 function saveLikes() { localStorage.setItem('cheb_liked', JSON.stringify(likedPlaces)); }
 function saveMyRatings() { localStorage.setItem('cheb_my_ratings', JSON.stringify(myRatings)); }
@@ -435,7 +434,6 @@ async function loadData() {
   try {
     statusEl.textContent = 'Загрузка из Appwrite...';
     const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID);
-    // Фильтруем места, исключая аккаунты (у них city === 'USER_ACCOUNT')
     places = response.documents.filter(doc => doc.city !== 'USER_ACCOUNT').map(doc => ({
       ...doc,
       id: doc.$id, 
@@ -754,4 +752,4 @@ initMap();
 loadData();
 </script>
 </body>
-  </html>
+</html>
