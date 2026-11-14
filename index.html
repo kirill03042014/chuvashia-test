@@ -59,7 +59,7 @@
   .comment-form input { margin: 0; padding: 8px; }
   .comment-form button { width: auto; padding: 8px 15px; margin: 0; }
   .empty { text-align: center; padding: 30px; color: #3a4a5a; text-transform: uppercase; font-family: 'Oswald'; }
-  .hidden { display: none; }
+  .hidden { display: none !important; }
   .status { text-align: center; font-family: 'Oswald'; font-size: 12px; padding: 8px; margin-bottom: 15px; border-radius: 2px; text-transform: uppercase; }
   .status.ok { color: #00ffc8; } .status.error { color: #ff0066; }
   .city-filters { display: flex; gap: 5px; flex-wrap: wrap; }
@@ -146,7 +146,7 @@
     <h3>Точная ошибка</h3>
     <p style="font-size:12px; margin-bottom:10px;">Скопируй текст ниже и отправь мне:</p>
     <textarea id="errorLog" readonly></textarea>
-    <button type="button" onclick="document.getElementById('helpModal').classList.add('hidden')">Закрыть</button>
+    <button id="closeHelpBtn" type="button">Закрыть</button>
   </div>
 </div>
 
@@ -197,7 +197,7 @@ async function loadData() {
     statusEl.style.display = 'none';
   } catch(e) { 
     console.error(e);
-    statusEl.textContent = 'Ошибка базы'; 
+    statusEl.textContent = 'Ошибка базы';
     statusEl.style.color = '#ff0066';
     lastError = e.message + '\n\nДетали: ' + JSON.stringify(e, null, 2);
   }
@@ -411,11 +411,17 @@ document.getElementById('tabs').onclick = (e) => {
 
 document.getElementById('searchInput').addEventListener('input', render);
 
-// === КНОПКА ПОМОЩИ ===
-document.getElementById('helpBtn').onclick = () => {
+// === КНОПКА ПОМОЩИ И ЗАКРЫТИЕ (ИСПРАВЛЕНО) ===
+const helpModal = document.getElementById('helpModal');
+
+document.getElementById('helpBtn').addEventListener('click', () => {
   document.getElementById('errorLog').value = lastError;
-  document.getElementById('helpModal').classList.remove('hidden');
-};
+  helpModal.classList.remove('hidden');
+});
+
+document.getElementById('closeHelpBtn').addEventListener('click', () => {
+  helpModal.classList.add('hidden');
+});
 
 function escapeHtml(s) { 
   if (!s) return '';
