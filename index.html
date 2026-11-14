@@ -5,9 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>КРУТЫЕ МЕСТА ЧУВАШИИ</title>
 
-<!-- КОД ДЛЯ УСТАНОВКИ ПРИЛОЖЕНИЯ (PWA) -->
+<!-- ИКОНКИ И УСТАНОВКА (PWA) -->
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon.png">
 <meta name="theme-color" content="#00ffc8">
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -18,108 +19,196 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Rubik:wght@400;500;700&display=swap');
   
+  /* ПЕРЕМЕННЫЕ ТЕМ */
   :root {
     --bg-body: #0a0c10;
     --text-main: #c8d0d8;
-    --panel-bg: #12161c;
-    --border-color: #2a3440;
-    --input-bg: #0a0c10;
     --text-title: #e8f0f8;
     --text-desc: #8a9aaa;
-    --card-bg: #12161c;
+    
+    /* Стеклянные эффекты (Liquid Glass) */
+    --glass-bg: rgba(18, 22, 28, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-blur: blur(15px);
+    --input-bg: rgba(10, 12, 16, 0.8);
+    --btn-bg: rgba(26, 32, 40, 0.8);
   }
 
   body.light-theme {
-    --bg-body: #f0f4f8;
+    --bg-body: #eef2f6;
     --text-main: #2c3e50;
-    --panel-bg: #ffffff;
-    --border-color: #cbd5e1;
-    --input-bg: #ffffff;
     --text-title: #1a202c;
-    --text-desc: #4a5568;
-    --card-bg: #ffffff;
+    --text-desc: #64748b;
+    
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-border: rgba(0, 0, 0, 0.1);
+    --input-bg: rgba(255, 255, 255, 0.9);
+    --btn-bg: rgba(255, 255, 255, 0.9);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body { font-family: 'Rubik', sans-serif; background: var(--bg-body); color: var(--text-main); font-size: 16px; padding: 20px 15px 80px; transition: background 0.3s, color 0.3s; }
+  
+  body { 
+    font-family: 'Rubik', sans-serif; 
+    background: var(--bg-body); 
+    color: var(--text-main); 
+    font-size: 16px; 
+    padding: 20px 15px 80px; 
+    transition: background 0.4s, color 0.4s; 
+    background-image: radial-gradient(circle at 50% 0%, rgba(0,255,200,0.1) 0%, transparent 50%);
+    background-attachment: fixed;
+  }
+  
   .container { max-width: 920px; margin: 0 auto; position: relative; }
   
-  .top-bar { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 10px; }
-  .icon-btn { background: transparent; border: none; color: var(--text-main); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 50%; transition: background 0.2s; }
-  .icon-btn:hover { background: rgba(128,128,128,0.2); }
-  .icon-btn svg { width: 24px; height: 24px; }
+  /* КНОПКА УСТАНОВКИ */
+  #installBanner { 
+    display: none; position: fixed; top: 15px; left: 50%; transform: translateX(-50%); 
+    background: #00ffc8; color: #0a0c10; padding: 12px 25px; border-radius: 30px; 
+    font-weight: bold; box-shadow: 0 10px 25px rgba(0,255,200,0.4); z-index: 9999; 
+    cursor: pointer; text-align: center; width: 90%; max-width: 350px; 
+    border: 1px solid #fff; font-family: 'Oswald', sans-serif; font-size: 16px; 
+    text-transform: uppercase; backdrop-filter: blur(5px);
+  }
+  #installBanner svg { width: 20px; height: 20px; margin-right: 8px; vertical-align: middle; }
 
-  h1 { font-family: 'Oswald', sans-serif; font-size: 2.2em; text-transform: uppercase; text-align: center; color: var(--text-title); text-shadow: 0 0 10px rgba(0,255,200,0.5); margin-bottom: 5px; }
-  .subtitle { text-align: center; font-size: 12px; text-transform: uppercase; letter-spacing: 3px; color: var(--text-desc); margin-bottom: 20px; }
-  .panel { background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 4px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); transition: background 0.3s, border 0.3s; }
-  input, textarea, select, button { font-family: inherit; font-size: 15px; width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 3px; margin-bottom: 10px; background: var(--input-bg); color: var(--text-main); -webkit-appearance: none; transition: background 0.3s, border 0.3s; }
-  input:focus, textarea:focus, select:focus { outline: none; border-color: #00ffc8; }
+  /* ВЕРХНЕЕ МЕНЮ */
+  .top-bar { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 10px; }
+  .icon-btn { 
+    background: var(--glass-bg); border: 1px solid var(--glass-border); 
+    color: var(--text-main); width: 45px; height: 45px; 
+    display: flex; align-items: center; justify-content: center; 
+    cursor: pointer; border-radius: 50%; backdrop-filter: var(--glass-blur);
+    transition: all 0.3s;
+  }
+  .icon-btn:hover { background: var(--input-bg); }
+  .icon-btn svg { width: 22px; height: 22px; }
+
+  h1 { font-family: 'Oswald', sans-serif; font-size: 2.4em; text-transform: uppercase; text-align: center; color: var(--text-title); text-shadow: 0 0 15px rgba(0,255,200,0.3); margin-bottom: 5px; letter-spacing: 1px; }
+  .subtitle { text-align: center; font-size: 12px; text-transform: uppercase; letter-spacing: 3px; color: var(--text-desc); margin-bottom: 25px; }
+  
+  /* СТЕКЛЯННЫЕ ПАНЕЛИ */
+  .panel { 
+    background: var(--glass-bg); 
+    border: 1px solid var(--glass-border); 
+    border-radius: 12px; 
+    padding: 15px; 
+    margin-bottom: 15px; 
+    backdrop-filter: var(--glass-blur); 
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    transition: background 0.4s, border 0.4s;
+  }
+  
+  /* ИНПУТЫ И КНОПКИ */
+  input, textarea, select { 
+    font-family: inherit; font-size: 15px; width: 100%; padding: 14px; 
+    border: 1px solid var(--glass-border); border-radius: 8px; 
+    margin-bottom: 10px; background: var(--input-bg); color: var(--text-main); 
+    -webkit-appearance: none; transition: all 0.3s;
+  }
+  input:focus, textarea:focus, select:focus { outline: none; border-color: #00ffc8; box-shadow: 0 0 10px rgba(0,255,200,0.2); }
   textarea { resize: vertical; min-height: 70px; }
-  button { background: linear-gradient(180deg, #1a2028, #12161c); color: #00ffc8; border: 1px solid #00ffc8; font-weight: 600; font-family: 'Oswald', sans-serif; text-transform: uppercase; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
-  button:active { transform: scale(0.98); }
+  
+  button { 
+    background: var(--btn-bg); color: #00ffc8; 
+    border: 1px solid rgba(0,255,200,0.5); border-radius: 8px; 
+    font-weight: 600; font-family: 'Oswald', sans-serif; 
+    text-transform: uppercase; cursor: pointer; transition: all 0.2s; 
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; 
+    padding: 12px; width: 100%;
+  }
+  button:active { transform: scale(0.97); }
   button svg { width: 18px; height: 18px; }
-  .btn-toggle { background: transparent; color: var(--text-desc); border: 1px dashed var(--border-color); }
+  
+  .btn-toggle { background: transparent; color: var(--text-desc); border: 1px dashed var(--glass-border); }
   .form-row { display: flex; gap: 10px; }
   .form-row > * { flex: 1; }
-  label { font-family: 'Oswald', sans-serif; font-size: 11px; text-transform: uppercase; color: var(--text-desc); display: block; margin-bottom: 4px; }
-  .place-card { background: var(--card-bg); border: 1px solid var(--border-color); border-left: 3px solid #00ffc8; border-radius: 4px; margin-bottom: 15px; overflow: hidden; transition: background 0.3s; }
-  .photo-container { width: 100%; height: 200px; background: #000; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; border-bottom: 1px solid var(--border-color); }
+  label { font-family: 'Oswald', sans-serif; font-size: 11px; text-transform: uppercase; color: var(--text-desc); display: block; margin-bottom: 6px; letter-spacing: 1px; }
+  
+  /* КАРТОЧКИ */
+  .place-card { 
+    background: var(--glass-bg); 
+    border: 1px solid var(--glass-border); 
+    border-left: 4px solid #00ffc8; 
+    border-radius: 12px; 
+    margin-bottom: 20px; 
+    overflow: hidden; 
+    backdrop-filter: var(--glass-blur);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    transition: background 0.4s, border 0.4s;
+  }
+  .photo-container { width: 100%; height: 220px; background: #000; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; border-bottom: 1px solid var(--glass-border); }
   .photo-container::-webkit-scrollbar { display: none; }
   .photo-item { flex: 0 0 100%; scroll-snap-align: start; height: 100%; object-fit: cover; }
-  .place-content { padding: 15px; }
-  .place-card h3 { font-family: 'Oswald', sans-serif; font-size: 1.3em; text-transform: uppercase; color: var(--text-title); margin-bottom: 5px; }
-  .desc { color: var(--text-desc); font-size: 15px; margin-bottom: 10px; line-height: 1.4; }
-  .badges { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
-  .badge { font-family: 'Oswald', sans-serif; font-size: 10px; padding: 3px 8px; border-radius: 2px; text-transform: uppercase; display: flex; align-items: center; gap: 4px; }
-  .badge svg { width: 12px; height: 12px; }
-  .b-city { background: rgba(100,200,255,0.1); color: #64c8ff; border: 1px solid rgba(100,200,255,0.3); }
-  .b-cat { background: rgba(128,128,128,0.1); color: var(--text-main); border: 1px solid rgba(128,128,128,0.2); }
-  .b-guard { background: rgba(0,255,200,0.1); color: #00ffc8; border: 1px solid rgba(0,255,200,0.3); }
-  .b-noguard { background: rgba(255,0,102,0.1); color: #ff0066; border: 1px solid rgba(255,0,102,0.3); }
-  .b-stars { background: rgba(255,200,0,0.1); color: #ffc800; border: 1px solid rgba(255,200,0,0.3); }
-  .actions { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 10px; }
-  .actions button { width: auto; padding: 8px 14px; font-size: 13px; margin: 0; }
-  .btn-like { border-color: #ffc800; color: #ffc800; } .btn-like.liked { background: #ffc800; color: var(--bg-body); }
+  .place-content { padding: 20px; }
+  .place-card h3 { font-family: 'Oswald', sans-serif; font-size: 1.5em; text-transform: uppercase; color: var(--text-title); margin-bottom: 8px; }
+  .desc { color: var(--text-desc); font-size: 15px; margin-bottom: 15px; line-height: 1.5; }
+  
+  /* БЕЙДЖИ */
+  .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
+  .badge { font-family: 'Oswald', sans-serif; font-size: 10px; padding: 5px 10px; border-radius: 4px; text-transform: uppercase; display: flex; align-items: center; gap: 5px; backdrop-filter: blur(5px); }
+  .badge svg { width: 14px; height: 14px; }
+  .b-city { background: rgba(100,200,255,0.15); color: #64c8ff; border: 1px solid rgba(100,200,255,0.3); }
+  .b-cat { background: rgba(128,128,128,0.15); color: var(--text-main); border: 1px solid var(--glass-border); }
+  .b-guard { background: rgba(0,255,200,0.15); color: #00ffc8; border: 1px solid rgba(0,255,200,0.3); }
+  .b-noguard { background: rgba(255,0,102,0.15); color: #ff0066; border: 1px solid rgba(255,0,102,0.3); }
+  .b-stars { background: rgba(255,200,0,0.15); color: #ffc800; border: 1px solid rgba(255,200,0,0.3); }
+  
+  /* ДЕЙСТВИЯ */
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 15px; }
+  .actions button { width: auto; padding: 10px 16px; font-size: 13px; margin: 0; }
+  .btn-like { border-color: #ffc800; color: #ffc800; } 
+  .btn-like.liked { background: #ffc800; color: var(--bg-body); border-color: #ffc800; }
   .btn-ban { border-color: #ff0066; color: #ff0066; display: none; }
   .btn-fav { border-color: #00ffc8; color: #00ffc8; }
-  .socials { display: flex; gap: 5px; }
-  .socials button { width: auto; padding: 8px 12px; font-size: 12px; border-color: #888; color: var(--text-main); }
-  #map { height: 300px; width: 100%; border-radius: 4px; margin-bottom: 15px; background: var(--panel-bg); border: 1px solid var(--border-color); }
-  .tabs { display: flex; gap: 10px; margin-bottom: 15px; }
-  .tabs button { flex: 1; background: transparent; border: 1px solid var(--border-color); color: var(--text-desc); padding: 10px; font-size: 13px; }
-  .tabs button.active { background: #00ffc8; color: #0a0c10; border-color: #00ffc8; }
-  .comments { margin-top: 15px; padding-top: 10px; border-top: 1px solid var(--border-color); }
-  .comment { background: var(--bg-body); padding: 8px; border-left: 2px solid var(--border-color); font-size: 14px; margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center; }
-  .del-comment { width: auto; padding: 2px 5px; border: none; background: transparent; color: #ff0066; cursor: pointer; display: none; }
+  
+  .socials { display: flex; gap: 8px; margin-top: 15px; }
+  .socials button { width: auto; padding: 10px 16px; font-size: 12px; border-color: var(--glass-border); color: var(--text-main); }
+  
+  #map { height: 350px; width: 100%; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--glass-border); box-shadow: 0 8px 32px rgba(0,0,0,0.15); z-index: 1; }
+  
+  /* ВКЛАДКИ */
+  .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+  .tabs button { flex: 1; background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-desc); padding: 12px; font-size: 14px; border-radius: 8px; backdrop-filter: var(--glass-blur); }
+  .tabs button.active { background: #00ffc8; color: #0a0c10; border-color: #00ffc8; box-shadow: 0 4px 15px rgba(0,255,200,0.3); }
+  
+  /* КОММЕНТАРИИ */
+  .comments { margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--glass-border); }
+  .comment { background: var(--input-bg); padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--glass-border); }
+  .del-comment { width: auto; padding: 4px 8px; border: none; background: transparent; color: #ff0066; cursor: pointer; display: none; }
   .del-comment svg { width: 16px; height: 16px; }
-  .comment-form { display: flex; gap: 5px; margin-top: 5px; }
-  .comment-form input { margin: 0; padding: 8px; }
-  .comment-form button { width: auto; padding: 8px 15px; margin: 0; }
-  .empty { text-align: center; padding: 30px; color: var(--text-desc); text-transform: uppercase; font-family: 'Oswald'; }
+  .comment-form { display: flex; gap: 8px; margin-top: 10px; }
+  .comment-form input { margin: 0; padding: 12px; }
+  .comment-form button { width: auto; padding: 12px 20px; margin: 0; }
+  
+  .empty { text-align: center; padding: 40px; color: var(--text-desc); text-transform: uppercase; font-family: 'Oswald'; font-size: 1.2em; letter-spacing: 2px; }
   .hidden { display: none !important; }
-  .status { text-align: center; font-family: 'Oswald'; font-size: 12px; padding: 8px; margin-bottom: 15px; border-radius: 2px; text-transform: uppercase; }
-  .status.ok { color: #00ffc8; } .status.error { color: #ff0066; }
-  .city-filters { display: flex; gap: 5px; flex-wrap: wrap; }
-  .city-filters button { width: auto; padding: 6px 12px; font-size: 12px; background: transparent; border-color: var(--border-color); color: var(--text-desc); }
+  
+  .status { text-align: center; font-family: 'Oswald'; font-size: 13px; padding: 10px; margin-bottom: 15px; border-radius: 8px; text-transform: uppercase; backdrop-filter: blur(5px); }
+  .status.ok { color: #00ffc8; background: rgba(0,255,200,0.1); } 
+  .status.error { color: #ff0066; background: rgba(255,0,102,0.1); }
+  
+  .city-filters { display: flex; gap: 8px; flex-wrap: wrap; }
+  .city-filters button { width: auto; padding: 8px 16px; font-size: 12px; background: transparent; border-color: var(--glass-border); color: var(--text-desc); border-radius: 20px; }
   .city-filters button.active { background: #00ffc8; color: #000; border-color: #00ffc8; }
 
-  .help-btn { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; border-radius: 50%; background: #ff0066; color: #fff; border: none; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(255,0,102,0.5); z-index: 1000; cursor: pointer; }
-  .help-btn svg { width: 30px; height: 30px; }
-  .help-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1001; display: flex; align-items: center; justify-content: center; padding: 20px; }
-  .help-content { background: var(--panel-bg); border: 1px solid var(--border-color); padding: 20px; border-radius: 4px; max-width: 500px; width: 100%; color: var(--text-main); }
-  .help-content h3 { color: #ff0066; margin-bottom: 15px; }
-  .help-content textarea { width: 100%; height: 150px; margin-bottom: 15px; background: var(--bg-body); color: var(--text-main); border: 1px solid var(--border-color); padding: 10px; font-size: 12px; }
+  /* КНОПКА ПОМОЩИ */
+  .help-btn { position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; border-radius: 50%; background: #ff0066; color: #fff; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 32px rgba(255,0,102,0.4); z-index: 1000; cursor: pointer; backdrop-filter: blur(5px); }
+  .help-btn svg { width: 28px; height: 28px; }
+  
+  /* МОДАЛЬНЫЕ ОКНА (СТЕКЛО) */
+  .help-modal, .profile-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1001; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(5px); }
+  .help-content, .profile-content { background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 25px; border-radius: 16px; max-width: 450px; width: 100%; color: var(--text-main); backdrop-filter: var(--glass-blur); box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
+  .help-content h3, .profile-content h3 { color: var(--text-title); margin-bottom: 20px; text-align: center; font-family: 'Oswald'; text-transform: uppercase; letter-spacing: 1px; }
+  .help-content textarea { width: 100%; height: 150px; margin-bottom: 15px; background: var(--input-bg); color: var(--text-main); border: 1px solid var(--glass-border); padding: 12px; font-size: 12px; border-radius: 8px; }
 
-  .profile-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 1002; display: flex; align-items: center; justify-content: center; padding: 20px; }
-  .profile-content { background: var(--panel-bg); border: 1px solid var(--border-color); padding: 20px; border-radius: 4px; max-width: 400px; width: 100%; }
-  .profile-content h3 { color: var(--text-title); margin-bottom: 15px; text-align: center; }
-
-  .rating-stars { display: flex; gap: 5px; margin: 10px 0; align-items: center; }
-  .star-btn { background: transparent; border: none; color: #444; cursor: pointer; padding: 0; width: auto; margin: 0; transition: transform 0.1s; }
-  .star-btn:active { transform: scale(1.2); }
-  .star-btn svg { width: 22px; height: 22px; fill: currentColor; }
-  .star-btn.active { color: #ffc800; }
-  .rating-text { font-size: 12px; color: var(--text-desc); margin-left: 10px; }
+  /* ЗВЕЗДЫ */
+  .rating-stars { display: flex; gap: 6px; margin: 15px 0; align-items: center; }
+  .star-btn { background: transparent; border: none; color: #555; cursor: pointer; padding: 0; width: auto; margin: 0; transition: transform 0.1s; }
+  .star-btn:active { transform: scale(1.3); }
+  .star-btn svg { width: 24px; height: 24px; fill: currentColor; filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)); }
+  .star-btn.active { color: #ffc800; filter: drop-shadow(0 0 8px rgba(255,200,0,0.6)); }
+  .rating-text { font-size: 13px; color: var(--text-desc); margin-left: 12px; }
 
   @media (max-width: 600px) {
     .form-row { flex-direction: column; gap: 0; }
@@ -131,6 +220,12 @@
 </style>
 </head>
 <body>
+
+<!-- КНОПКА УСТАНОВКИ -->
+<button id="installBanner" type="button">
+  <i data-lucide="download"></i> Установить приложение
+</button>
+
 <div class="container">
   <div class="top-bar">
     <button class="icon-btn" id="themeToggle" title="Сменить тему"><i data-lucide="moon"></i></button>
@@ -195,7 +290,7 @@
 <div class="help-modal hidden" id="helpModal">
   <div class="help-content">
     <h3>Точная ошибка</h3>
-    <p style="font-size:12px; margin-bottom:10px;">Скопируй текст ниже и отправь мне:</p>
+    <p style="font-size:13px; margin-bottom:15px;">Скопируй текст ниже и отправь разработчику:</p>
     <textarea id="errorLog" readonly></textarea>
     <button id="closeHelpBtn" type="button">Закрыть</button>
   </div>
@@ -227,11 +322,11 @@
     </div>
 
     <div id="loggedInSection" class="hidden">
-      <p id="userGreeting" style="text-align:center; margin-bottom:15px; font-weight:bold; color:#00ffc8;"></p>
+      <p id="userGreeting" style="text-align:center; margin-bottom:20px; font-weight:bold; color:#00ffc8; font-size: 1.1em;"></p>
       <button id="logoutBtn" type="button" style="border-color: #ff0066; color: #ff0066;">Выйти</button>
     </div>
 
-    <button id="closeProfileBtn" type="button" class="btn-toggle" style="margin-top:15px;">Закрыть меню</button>
+    <button id="closeProfileBtn" type="button" class="btn-toggle" style="margin-top:20px;">Закрыть меню</button>
   </div>
 </div>
 
@@ -262,12 +357,34 @@ let isLightTheme = localStorage.getItem('cheb_theme') === 'light';
 
 const statusEl = document.getElementById('status');
 
-// === РЕГИСТРАЦИЯ SERVICE WORKER ДЛЯ УСТАНОВКИ ===
+// === УСТАНОВКА PWA ===
+let deferredPrompt;
+const installBanner = document.getElementById('installBanner');
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  installBanner.style.display = 'block';
+});
+
+installBanner.addEventListener('click', async () => {
+  installBanner.style.display = 'none';
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+  }
+});
+
+window.addEventListener('appinstalled', () => {
+  installBanner.style.display = 'none';
+});
+
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js');
 }
 
-// === УПРАВЛЕНИЕ ТЕМОЙ ===
+// === ТЕМА ===
 if (isLightTheme) {
   document.body.classList.add('light-theme');
   document.getElementById('themeToggle').innerHTML = '<i data-lucide="sun"></i>';
@@ -539,13 +656,13 @@ function render() {
           <button class="btn-ban" style="display:${banBtnDisplay}" onclick="banPlace('${p.id}')" type="button"><i data-lucide="ban"></i> Бан</button>
           <button class="btn-fav" onclick="toggleFav('${p.id}')" type="button"><i data-lucide="star"></i> ${isFav ? 'Убрать' : 'В избранное'}</button>
         </div>
-        ${p.video ? `<div style="margin-top:10px;"><a href="${escapeHtml(p.video)}" target="_blank" style="display:inline-flex; align-items:center; gap:5px; color:#ff0000; text-decoration:none; font-weight:bold;"><i data-lucide="video"></i> Смотреть видео</a></div>` : ''}
-        <div class="socials" style="margin-top:10px;">
+        ${p.video ? `<div style="margin-top:15px;"><a href="${escapeHtml(p.video)}" target="_blank" style="display:inline-flex; align-items:center; gap:5px; color:#ff0000; text-decoration:none; font-weight:bold;"><i data-lucide="video"></i> Смотреть видео</a></div>` : ''}
+        <div class="socials" style="margin-top:15px;">
           <button class="btn-vk" onclick="window.open('https://vk.com/share.php?url=${encodeURIComponent(location.href)}&title=${encodeURIComponent(p.name)}', '_blank')" type="button">ВК</button>
           <button class="btn-tg" onclick="window.open('https://t.me/share/url?url=${encodeURIComponent(location.href)}&text=${encodeURIComponent(p.name)}', '_blank')" type="button">TG</button>
         </div>
         <div class="comments">
-          <strong style="font-size:12px;color:var(--text-desc);">КОММЕНТАРИИ (${(p.comments || []).length})</strong>
+          <strong style="font-size:13px;color:var(--text-desc); text-transform:uppercase; letter-spacing:1px;">Комментарии (${(p.comments || []).length})</strong>
           ${(p.comments || []).map((c, index) => `
             <div class="comment">
               <span>${escapeHtml(c)}</span>
@@ -553,7 +670,7 @@ function render() {
             </div>
           `).join('')}
           <div class="comment-form">
-            <input type="text" id="c_${p.id}" placeholder="Комментарий..." onkeydown="if(event.key==='Enter') addComment('${p.id}')">
+            <input type="text" id="c_${p.id}" placeholder="Написать..." onkeydown="if(event.key==='Enter') addComment('${p.id}')">
             <button onclick="addComment('${p.id}')" type="button"><i data-lucide="send"></i></button>
           </div>
         </div>
