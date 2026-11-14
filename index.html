@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>КРУТЫЕ МЕСТА ЧУВАШИИ</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/lucide@latest" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.0"></script>
+
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Rubik:wght@400;500;700&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'Rubik', sans-serif; background: #0a0c10; color: #c8d0d8; font-size: 16px; padding: 20px 15px 80px; }
+  .container { max-width: 920px; margin: 0 auto; }
+  h1 { font-family: 'Oswald', sans-serif; font-size: 2.2em; text-transform: uppercase; text-align: center; color: #e8f0f8; text-shadow: 0 0 10px rgba(0,255,200,0.5); margin-bottom: 5px; }
+  .subtitle { text-align: center; font-size: 12px; text-transform: uppercase; letter-spacing: 3px; color: #5a7a8a; margin-bottom: 20px; }
+  .panel { background: #12161c; border: 1px solid #2a3440; border-radius: 4px; padding: 15px; margin-bottom: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.6); }
+  input, textarea, select, button { font-family: inherit; font-size: 15px; width: 100%; padding: 12px; border: 1px solid #2a3440; border-radius: 3px; margin-bottom: 10px; background: #0a0c10; color: #e0e8f0; -webkit-appearance: none; }
+  input:focus, textarea:focus, select:focus { outline: none; border-color: #00ffc8; }
+  textarea { resize: vertical; min-height: 70px; }
+  button { background: linear-gradient(180deg, #1a2028, #12161c); color: #00ffc8; border: 1px solid #00ffc8; font-weight: 600; font-family: 'Oswald', sans-serif; text-transform: uppercase; cursor: pointer; transition: 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+  button:active { transform: scale(0.98); }
+  button svg { width: 18px; height: 18px; }
+  .btn-toggle { background: transparent; color: #8899aa; border: 1px dashed #3a4a5a; }
+  .form-row { display: flex; gap: 10px; }
+  .form-row > * { flex: 1; }
+  label { font-family: 'Oswald', sans-serif; font-size: 11px; text-transform: uppercase; color: #5a7a8a; display: block; margin-bottom: 4px; }
+  .place-card { background: #12161c; border: 1px solid #2a3440; border-left: 3px solid #00ffc8; border-radius: 4px; margin-bottom: 15px; overflow: hidden; }
+  .photo-container { width: 100%; height: 200px; background: #000; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; border-bottom: 1px solid #2a3440; }
+  .photo-container::-webkit-scrollbar { display: none; }
+  .photo-item { flex: 0 0 100%; scroll-snap-align: start; height: 100%; object-fit: cover; }
+  .place-content { padding: 15px; }
+  .place-card h3 { font-family: 'Oswald', sans-serif; font-size: 1.3em; text-transform: uppercase; color: #e8f0f8; margin-bottom: 5px; }
+  .desc { color: #8a9aaa; font-size: 15px; margin-bottom: 10px; line-height: 1.4; }
+  .badges { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+  .badge { font-family: 'Oswald', sans-serif; font-size: 10px; padding: 3px 8px; border-radius: 2px; text-transform: uppercase; display: flex; align-items: center; gap: 4px; }
+  .badge svg { width: 12px; height: 12px; }
+  .b-city { background: rgba(100,200,255,0.1); color: #64c8ff; border: 1px solid rgba(100,200,255,0.3); }
+  .b-cat { background: rgba(255,255,255,0.1); color: #fff; border: 1px solid rgba(255,255,255,0.2); }
+  .b-guard { background: rgba(0,255,200,0.1); color: #00ffc8; border: 1px solid rgba(0,255,200,0.3); }
+  .b-noguard { background: rgba(255,0,102,0.1); color: #ff0066; border: 1px solid rgba(255,0,102,0.3); }
+  .b-stars { background: rgba(255,200,0,0.1); color: #ffc800; border: 1px solid rgba(255,200,0,0.3); }
+  .actions { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 10px; }
+  .actions button { width: auto; padding: 8px 14px; font-size: 13px; margin: 0; }
+  .btn-like { border-color: #ffc800; color: #ffc800; } .btn-like.liked { background: #ffc800; color: #0a0c10; }
+  .btn-ban { border-color: #ff0066; color: #ff0066; }
+  .btn-fav { border-color: #00ffc8; color: #00ffc8; }
+  .socials { display: flex; gap: 5px; }
+  .socials button { width: auto; padding: 8px 12px; font-size: 12px; border-color: #888; color: #ccc; }
+  #map { height: 300px; width: 100%; border-radius: 4px; margin-bottom: 15px; background: #1a2028; border: 1px solid #2a3440; }
+  .tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+  .tabs button { flex: 1; background: transparent; border: 1px solid #2a3440; color: #5a7a8a; padding: 10px; font-size: 13px; }
+  .tabs button.active { background: #00ffc8; color: #0a0c10; border-color: #00ffc8; }
+  .comments { margin-top: 15px; padding-top: 10px; border-top: 1px solid #1e2832; }
+  .comment { background: #0a0c10; padding: 8px; border-left: 2px solid #2a3440; font-size: 14px; margin-bottom: 5px; }
+  .comment-form { display: flex; gap: 5px; margin-top: 5px; }
+  .comment-form input { margin: 0; padding: 8px; }
+  .comment-form button { width: auto; padding: 8px 15px; margin: 0; }
+  .empty { text-align: center; padding: 30px; color: #3a4a5a; text-transform: uppercase; font-family: 'Oswald'; }
+  .hidden { display: none; }
+  .status { text-align: center; font-family: 'Oswald'; font-size: 12px; padding: 8px; margin-bottom: 15px; border-radius: 2px; text-transform: uppercase; }
+  .status.ok { color: #00ffc8; } .status.error { color: #ff0066; }
+  .city-filters { display: flex; gap: 5px; flex-wrap: wrap; }
+  .city-filters button { width: auto; padding: 6px 12px; font-size: 12px; background: transparent; border-color: #2a3440; color: #5a7a8a; }
+  .city-filters button.active { background: #00ffc8; color: #000; border-color: #00ffc8; }
+
+  /* Стили для кнопки помощи */
+  .help-btn { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; border-radius: 50%; background: #ff0066; color: #fff; border: none; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(255,0,102,0.5); z-index: 1000; cursor: pointer; }
+  .help-btn svg { width: 30px; height: 30px; }
+  .help-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 1001; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .help-content { background: #12161c; border: 1px solid #2a3440; padding: 20px; border-radius: 4px; max-width: 500px; width: 100%; color: #fff; }
+  .help-content h3 { color: #ff0066; margin-bottom: 15px; }
+  .help-content textarea { width: 100%; height: 150px; margin-bottom: 15px; background: #0a0c10; color: #fff; border: 1px solid #2a3440; padding: 10px; font-size: 12px; }
+
+  @media (max-width: 600px) {
+    .form-row { flex-direction: column; gap: 0; }
+    .actions { flex-direction: column; }
+    .actions button { width: 100%; }
+    .socials { flex-direction: row; }
+    .socials button { flex: 1; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Крутые места Чувашии</h1>
+  <div class="subtitle">Чебоксары · Новочебоксарск · Чувашия</div>
+  <div id="status" class="status loading">Загрузка...</div>
+
+  <div class="tabs" id="tabs">
+    <button class="active" data-tab="popular"><i data-lucide="flame"></i> Популярное</button>
+    <button data-tab="new"><i data-lucide="sparkles"></i> Новое</button>
+    <button data-tab="favorites"><i data-lucide="star"></i> Избранное</button>
+  </div>
+
+  <div class="panel">
+    <div class="city-filters" id="cityFilters">
+      <button class="active" data-city="all">Все</button>
+      <button data-city="Чебоксары">Чебоксары</button>
+      <button data-city="Новочебоксарск">Новочебоксарск</button>
+      <button data-city="Чувашия">Чувашия</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <input type="text" id="searchInput" placeholder="Поиск по названию или описанию...">
+  </div>
+
+  <div id="map"></div>
+
+  <div class="panel">
+    <button class="btn-toggle" id="toggleForm" type="button"><i data-lucide="plus-circle"></i> Добавить новое место</button>
+    <div id="addForm" class="hidden" style="margin-top:15px;">
+      <label>Название *</label><input type="text" id="inName" placeholder="Название">
+      <label>Описание *</label><textarea id="inDesc" placeholder="Описание"></textarea>
+      <label>Ссылка на фото (необязательно)</label>
+      <input type="url" id="inPhotos" placeholder="https://.../image.jpg">
+      <label>Ссылка на видео (необязательно)</label>
+      <input type="url" id="inVideo" placeholder="https://...">
+      <div class="form-row">
+        <div><label>Город</label><select id="inCity"><option>Чебоксары</option><option>Новочебоксарск</option><option>Чувашия</option></select></div>
+        <div><label>Категория</label><select id="inCat"><option>Заброшки</option><option>Природа</option><option>Архитектура</option><option>Смотровая</option><option>Другое</option></select></div>
+      </div>
+      <div class="form-row">
+        <div><label>Охрана</label><select id="inGuard"><option>Нет</option><option>Да</option></select></div>
+        <div><label>Координаты</label><input type="text" id="inCoords" placeholder="56.146, 47.248"></div>
+      </div>
+      <label>Ссылка на сайт</label><input type="text" id="inLink" placeholder="https://...">
+      <button id="saveBtn" type="button"><i data-lucide="save"></i> Сохранить</button>
+      <div id="uploadStatus" style="font-size:12px; text-align:center; margin-top:5px; color:#00ffc8;"></div>
+    </div>
+  </div>
+
+  <div id="placesList"></div>
+</div>
+
+<!-- Кнопка Помощи (Футболка) -->
+<button class="help-btn" id="helpBtn" type="button">
+  <i data-lucide="shirt"></i>
+</button>
+
+<div class="help-modal hidden" id="helpModal">
+  <div class="help-content">
+    <h3>Точная ошибка</h3>
+    <p style="font-size:12px; margin-bottom:10px;">Скопируй текст ниже и отправь мне:</p>
+    <textarea id="errorLog" readonly></textarea>
+    <button type="button" onclick="document.getElementById('helpModal').classList.add('hidden')">Закрыть</button>
+  </div>
+</div>
+
+<script>
+// ============================================
+// КЛЮЧИ APPWRITE
+// ============================================
+const APPWRITE_ENDPOINT = 'https://fra.cloud.appwrite.io/v1';
+const APPWRITE_PROJECT_ID = '6af75290002021ce6c30';
+const DATABASE_ID = '6af752b800204637c982'; 
+const COLLECTION_ID = '6af754b70031b4620e57'; 
+
+const { Client, Databases, ID } = Appwrite;
+const client = new Client().setEndpoint(APPWRITE_ENDPOINT).setProject(APPWRITE_PROJECT_ID);
+const databases = new Databases(client);
+
+let map = null, markers = [];
+let places = [];
+let favorites = JSON.parse(localStorage.getItem('cheb_favs') || '[]');
+let likedPlaces = JSON.parse(localStorage.getItem('cheb_liked') || '[]');
+let currentCity = 'all', currentTab = 'popular';
+let lastError = 'Ошибок не было.';
+
+const statusEl = document.getElementById('status');
+
+function saveFavs() { localStorage.setItem('cheb_favs', JSON.stringify(favorites)); }
+function saveLikes() { localStorage.setItem('cheb_liked', JSON.stringify(likedPlaces)); }
+
+function initMap() {
+  try {
+    map = L.map('map').setView([56.1463, 47.2481], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
+  } catch(e) {}
+}
+
+async function loadData() {
+  try {
+    statusEl.textContent = 'Загрузка из Appwrite...';
+    const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID);
+    places = response.documents.map(doc => ({
+      ...doc,
+      id: doc.$id, 
+      likes: parseInt(doc.likes) || 0, 
+      rating_sum: parseInt(doc.rating_sum) || 0,
+      rating_count: parseInt(doc.rating_count) || 0,
+      is_banned: doc.is_banned === 'true' || doc.is_banned === true
+    }));
+    statusEl.style.display = 'none';
+  } catch(e) { 
+    console.error(e);
+    statusEl.textContent = 'Ошибка базы'; 
+    statusEl.style.color = '#ff0066';
+    lastError = e.message + '\n\nДетали: ' + JSON.stringify(e, null, 2);
+  }
+  render();
+}
+
+function render() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  
+  let filtered = places.filter(p => {
+    const matchSearch = (p.name || '').toLowerCase().includes(q) || (p.desc || '').toLowerCase().includes(q);
+    const matchCity = currentCity === 'all' || p.city === currentCity;
+    return matchSearch && matchCity && !p.is_banned;
+  });
+
+  if (currentTab === 'new') filtered.sort((a, b) => b.id - a.id); 
+  else if (currentTab === 'favorites') {
+    filtered = filtered.filter(p => favorites.includes(String(p.id)));
+    filtered.sort((a, b) => b.likes - a.likes);
+  } else filtered.sort((a, b) => b.likes - a.likes); 
+
+  if (map) {
+    markers.forEach(m => map.removeLayer(m));
+    markers = [];
+    filtered.forEach(p => {
+      if (p.coords && p.coords.includes(',')) {
+        const [lat, lng] = p.coords.split(',').map(Number);
+        if (!isNaN(lat) && !isNaN(lng)) {
+          const m = L.marker([lat, lng]).addTo(map).bindPopup(escapeHtml(p.name || ''));
+          markers.push(m);
+        }
+      }
+    });
+  }
+
+  const list = document.getElementById('placesList');
+  if (filtered.length === 0) {
+    list.innerHTML = '<div class="empty">Пусто. Добавь первое место!</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(p => {
+    const avgRating = p.rating_count > 0 ? (p.rating_sum / p.rating_count).toFixed(1) : '—';
+    const isFav = favorites.includes(String(p.id));
+    const isLiked = likedPlaces.includes(String(p.id));
+    
+    let photoUrl = '';
+    if (p.photos && Array.isArray(p.photos) && p.photos.length > 0) photoUrl = p.photos[0];
+    else if (p.photos && typeof p.photos === 'string') photoUrl = p.photos;
+
+    return `
+    <div class="place-card">
+      ${photoUrl ? `<div class="photo-container"><img src="${escapeHtml(photoUrl)}" class="photo-item" onerror="this.style.display='none'"></div>` : ''}
+      <div class="place-content">
+        <h3>${escapeHtml(p.name || 'Без названия')}</h3>
+        <div class="desc">${escapeHtml(p.desc || '')}</div>
+        <div class="badges">
+          <span class="badge b-city"><i data-lucide="map-pin"></i> ${escapeHtml(p.city || '')}</span>
+          ${p.category ? `<span class="badge b-cat"><i data-lucide="tag"></i> ${escapeHtml(p.category)}</span>` : ''}
+          <span class="badge ${p.guard === 'Да' ? 'b-guard' : 'b-noguard'}"><i data-lucide="${p.guard === 'Да' ? 'shield-check' : 'shield-off'}"></i> ${p.guard === 'Да' ? 'Охрана' : 'Без охраны'}</span>
+          <span class="badge b-stars"><i data-lucide="star"></i> ${avgRating}</span>
+        </div>
+        <div class="actions">
+          <button class="btn-like ${isLiked ? 'liked' : ''}" onclick="toggleLike('${p.id}')" type="button">
+            <i data-lucide="heart"></i> ${isLiked ? 'Убрать лайк' : p.likes + ' Лайков'}
+          </button>
+          <button class="btn-ban" onclick="banPlace('${p.id}')" type="button"><i data-lucide="ban"></i> Бан</button>
+          <button class="btn-fav" onclick="toggleFav('${p.id}')" type="button"><i data-lucide="star"></i> ${isFav ? 'Убрать' : 'В избранное'}</button>
+        </div>
+        ${p.video ? `<div style="margin-top:10px;"><a href="${escapeHtml(p.video)}" target="_blank" style="display:inline-flex; align-items:center; gap:5px; color:#ff0000; text-decoration:none; font-weight:bold;"><i data-lucide="video"></i> Смотреть видео</a></div>` : ''}
+        <div class="socials" style="margin-top:10px;">
+          <button class="btn-vk" onclick="window.open('https://vk.com/share.php?url=${encodeURIComponent(location.href)}&title=${encodeURIComponent(p.name)}', '_blank')" type="button">ВК</button>
+          <button class="btn-tg" onclick="window.open('https://t.me/share/url?url=${encodeURIComponent(location.href)}&text=${encodeURIComponent(p.name)}', '_blank')" type="button">TG</button>
+        </div>
+        <div class="comments">
+          <strong style="font-size:12px;color:#5a7a8a;">КОММЕНТАРИИ (${(p.comments || []).length})</strong>
+          ${(p.comments || []).map(c => `<div class="comment">${escapeHtml(c)}</div>`).join('')}
+          <div class="comment-form">
+            <input type="text" id="c_${p.id}" placeholder="Комментарий..." onkeydown="if(event.key==='Enter') addComment('${p.id}')">
+            <button onclick="addComment('${p.id}')" type="button"><i data-lucide="send"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+async function toggleLike(id) {
+  const p = places.find(x => x.id === id);
+  if (!p) return;
+  if (likedPlaces.includes(String(id))) {
+    likedPlaces = likedPlaces.filter(f => f !== String(id));
+    p.likes = Math.max(0, p.likes - 1);
+  } else {
+    likedPlaces.push(String(id));
+    p.likes += 1;
+  }
+  saveLikes();
+  try {
+    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { likes: String(p.likes) });
+  } catch(e) { lastError = e.message; console.error('Ошибка лайка', e); }
+  render();
+}
+
+async function banPlace(id) {
+  if (!confirm('Забанить?')) return;
+  try {
+    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { is_banned: 'true' });
+    places = places.filter(x => x.id !== id);
+  } catch(e) { lastError = e.message; console.error(e); }
+  render();
+}
+
+async function addComment(id) {
+  const inp = document.getElementById('c_' + id);
+  const text = inp.value.trim();
+  if (!text) return;
+  const p = places.find(x => x.id === id);
+  if (!p) return;
+  p.comments = p.comments || [];
+  p.comments.push(text);
+  try {
+    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { comments: p.comments });
+  } catch(e) { lastError = e.message; console.error('Ошибка комментария', e); }
+  render();
+}
+
+function toggleFav(id) {
+  if (favorites.includes(String(id))) favorites = favorites.filter(f => f !== String(id));
+  else favorites.push(String(id));
+  saveFavs();
+  render();
+}
+
+document.getElementById('toggleForm').addEventListener('click', function() {
+  const addForm = document.getElementById('addForm');
+  if (addForm.classList.contains('hidden')) {
+    addForm.classList.remove('hidden');
+    this.innerHTML = 'Скрыть форму';
+  } else {
+    addForm.classList.add('hidden');
+    this.innerHTML = 'Добавить новое место';
+  }
+});
+
+document.getElementById('saveBtn').onclick = async () => {
+  const name = document.getElementById('inName').value.trim();
+  const desc = document.getElementById('inDesc').value.trim();
+  if (!name || !desc) { alert('Заполни название и описание!'); return; }
+
+  const saveBtn = document.getElementById('saveBtn');
+  saveBtn.disabled = true;
+  saveBtn.textContent = 'Сохранение...';
+
+  let photoLink = document.getElementById('inPhotos').value.trim();
+  let video = document.getElementById('inVideo').value.trim();
+  let link = document.getElementById('inLink').value.trim();
+  if (link && !/^https?:\/\//i.test(link)) link = 'https://' + link;
+
+  const newPlace = {
+    name: name, desc: desc,
+    city: document.getElementById('inCity').value,
+    category: document.getElementById('inCat').value,
+    guard: document.getElementById('inGuard').value,
+    coords: document.getElementById('inCoords').value.trim(),
+    photos: photoLink ? [photoLink] : [], 
+    video: video, link: link,
+    likes: "0", rating_sum: "0", rating_count: "0",   
+    comments: [], is_banned: "false"   
+  };
+
+  try {
+    const doc = await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), newPlace);
+    places.push({
+      ...doc, id: doc.$id,
+      likes: 0, rating_sum: 0, rating_count: 0, is_banned: false
+    });
+    
+    ['inName','inDesc','inPhotos','inVideo','inCoords','inLink'].forEach(i => document.getElementById(i).value = '');
+    document.getElementById('addForm').classList.add('hidden');
+    document.getElementById('toggleForm').innerHTML = 'Добавить новое место';
+    render();
+  } catch(e) {
+    lastError = e.message + '\n\nДетали: ' + JSON.stringify(e, null, 2);
+    alert('Ошибка: ' + e.message);
+    console.error(e);
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.innerHTML = '<i data-lucide="save"></i> Сохранить';
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  }
+};
+
+document.getElementById('cityFilters').onclick = (e) => {
+  if (e.target.tagName !== 'BUTTON') return;
+  document.querySelectorAll('#cityFilters button').forEach(b => b.classList.remove('active'));
+  e.target.classList.add('active');
+  currentCity = e.target.dataset.city;
+  render();
+};
+
+document.getElementById('tabs').onclick = (e) => {
+  if (e.target.tagName !== 'BUTTON') return;
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.remove('active'));
+  e.target.classList.add('active');
+  currentTab = e.target.dataset.tab;
+  render();
+};
+
+document.getElementById('searchInput').addEventListener('input', render);
+
+// === КНОПКА ПОМОЩИ ===
+document.getElementById('helpBtn').onclick = () => {
+  document.getElementById('errorLog').value = lastError;
+  document.getElementById('helpModal').classList.remove('hidden');
+};
+
+function escapeHtml(s) { 
+  if (!s) return '';
+  return String(s).replace(/[&<>"']/g, function(m) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
+  });
+}
+
+initMap();
+loadData();
+</script>
+</body>
+</html>
