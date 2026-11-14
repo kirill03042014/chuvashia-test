@@ -197,16 +197,35 @@
 
 <div class="profile-modal hidden" id="profileModal">
   <div class="profile-content">
-    <h3 id="profileTitle">Вход в профиль</h3>
-    <div id="loginForm">
-      <input type="password" id="adminPassword" placeholder="Введите пароль">
+    <h3 id="profileTitle">Профиль</h3>
+    
+    <div class="tabs" id="authTabs">
+      <button class="active" data-tab="login">Вход</button>
+      <button data-tab="register">Регистрация</button>
+    </div>
+
+    <div id="loginSection">
+      <label>Ваш ник</label>
+      <input type="text" id="loginNickname" placeholder="Введите ник">
+      <label>Пароль</label>
+      <input type="password" id="loginPassword" placeholder="Введите пароль">
       <button id="loginBtn" type="button">Войти</button>
-      <button id="cancelLoginBtn" type="button" class="btn-toggle" style="margin-top: 10px;">Отмена</button>
     </div>
-    <div id="adminPanel" class="hidden">
-      <p style="text-align:center; color:#00ffc8; font-weight:bold; margin-bottom:15px;">Вы вошли как Администратор</p>
-      <button id="logoutBtn" type="button" style="border-color: #ff0066; color: #ff0066;">Выйти из профиля</button>
+
+    <div id="registerSection" class="hidden">
+      <label>Придумайте ник</label>
+      <input type="text" id="regNickname" placeholder="Уникальный ник">
+      <label>Придумайте пароль</label>
+      <input type="password" id="regPassword" placeholder="Пароль">
+      <button id="registerBtn" type="button">Зарегистрироваться</button>
     </div>
+
+    <div id="loggedInSection" class="hidden">
+      <p id="userGreeting" style="text-align:center; margin-bottom:15px; font-weight:bold; color:#00ffc8;"></p>
+      <button id="logoutBtn" type="button" style="border-color: #ff0066; color: #ff0066;">Выйти</button>
+    </div>
+
+    <button id="closeProfileBtn" type="button" class="btn-toggle" style="margin-top:15px;">Закрыть меню</button>
   </div>
 </div>
 
@@ -217,9 +236,9 @@
 const APPWRITE_ENDPOINT = 'https://fra.cloud.appwrite.io/v1';
 const APPWRITE_PROJECT_ID = '6af75290002021ce6c30';
 const DATABASE_ID = '6af752b800204637c982'; 
-const COLLECTION_ID = '6af754b70031b4620e57'; // <--- ТВОЙ ID
+const COLLECTION_ID = '6af754b70031b4620e57'; 
 
-const { Client, Databases, ID } = Appwrite;
+const { Client, Databases, ID, Query } = Appwrite;
 const client = new Client().setEndpoint(APPWRITE_ENDPOINT).setProject(APPWRITE_PROJECT_ID);
 const databases = new Databases(client);
 
@@ -231,7 +250,7 @@ let myRatings = JSON.parse(localStorage.getItem('cheb_my_ratings') || '{}');
 let currentCity = 'all', currentTab = 'popular';
 let lastError = 'Ошибок не было.';
 
-let isAdmin = false;
+let currentUser = JSON.parse(localStorage.getItem('cheb_current_user') || 'null');
 const ADMIN_PASSWORD = 'SmirnovKirill03@inbox.ry';
 let isLightTheme = localStorage.getItem('cheb_theme') === 'light';
 
@@ -257,51 +276,147 @@ document.getElementById('themeToggle').addEventListener('click', () => {
 });
 
 const profileModal = document.getElementById('profileModal');
-const loginForm = document.getElementById('loginForm');
-const adminPanel = document.getElementById('adminPanel');
+const loginSection = document.getElementById('loginSection');
+const registerSection = document.getElementById('registerSection');
+const loggedInSection = document.getElementById('loggedInSection');
+
+function updateProfileUI() {
+  if (currentUser) {
+    document.getElementById('authTabs').classList.add('hidden');
+    loginSection.classList.add('hidden');
+    registerSection.classList.add('hidden');
+    loggedInSection.classList.remove('hidden');
+    document.getElementById('userGreeting').textContent = `Привет, ${currentUser.nickname}! ${currentUser.is_admin === 'true' ? '(Админ)' : ''}`;
+  } else {
+    document.getElementById('authTabs').classList.remove('hidden');
+    loggedInSection.classList.add('hidden');
+    loginSection.classList.remove('hidden');
+    registerSection.classList.add('hidden');
+  }
+  render();
+}
 
 document.getElementById('profileBtn').addEventListener('click', () => {
   profileModal.classList.remove('hidden');
-  if (isAdmin) {
-    loginForm.classList.add('hidden');
-    adminPanel.classList.remove('hidden');
+  updateProfileUI();
+});
+
+document.getElementById('closeProfileBtn').addEventListener('click', () => {
+  profileModal.classList.add('hidden');
+});
+
+document.getElementById('authTabs').onclick = (e) => {
+  if (e.target.tagName !== 'BUTTON') return;
+  document.querySelectorAll('#authTabs button').forEach(b => b.classList.remove('active'));
+  e.target.classList.add('active');
+  
+  if (e.target.dataset.tab === 'login') {
+    loginSection.classList.remove('hidden');
+    registerSection.classList.add('hidden');
   } else {
-    loginForm.classList.remove('hidden');
-    adminPanel.classList.add('hidden');
+    loginSection.classList.add('hidden');
+    registerSection.classList.remove('hidden');
+  }
+};
+
+document.getElementById('loginBtn').addEventListener('click', async () => {
+  const nick = document.getElementById('loginNickname').value.trim();
+  const pass = document.getElementById('loginPassword').value;
+
+  if (!nick || !pass) { alert('Заполните все поля!'); return; }
+
+  if (pass === ADMIN_PASSWORD) {
+    currentUser = { nickname: 'Администратор', is_admin: 'true' };
+    localStorage.setItem('cheb_current_user', JSON.stringify(currentUser));
+    alert('Добро пожаловать, Администратор!');
+    document.getElementById('loginNickname').value = '';
+    document.getElementById('loginPassword').value = '';
+    updateProfileUI();
+    return;
+  }
+
+  try {
+    const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [
+      Query.equal('city', 'USER_ACCOUNT'), // Ищем только аккаунты
+      Query.equal('name', nick) // Имя пользователя храним в поле name
+    ]);
+
+    if (res.documents.length === 0) {
+      alert('Пользователь с таким ником не найден!');
+      return;
+    }
+
+    const user = res.documents[0];
+    if (user.desc !== pass) { // Пароль храним в поле desc
+      alert('Неверный пароль!');
+      return;
+    }
+
+    currentUser = { nickname: user.name, is_admin: user.guard, id: user.$id }; // guard = 'true' значит админ
+    localStorage.setItem('cheb_current_user', JSON.stringify(currentUser));
+    alert(`С возвращением, ${user.name}!`);
+    document.getElementById('loginNickname').value = '';
+    document.getElementById('loginPassword').value = '';
+    updateProfileUI();
+
+  } catch(e) {
+    alert('Ошибка входа: ' + e.message);
   }
 });
 
-document.getElementById('cancelLoginBtn').addEventListener('click', () => {
-  profileModal.classList.add('hidden');
-  document.getElementById('adminPassword').value = '';
-});
+document.getElementById('registerBtn').addEventListener('click', async () => {
+  const nick = document.getElementById('regNickname').value.trim();
+  const pass = document.getElementById('regPassword').value;
 
-document.getElementById('loginBtn').addEventListener('click', () => {
-  const pass = document.getElementById('adminPassword').value;
-  if (pass === ADMIN_PASSWORD) {
-    isAdmin = true;
-    localStorage.setItem('cheb_isAdmin', 'true');
-    alert('Добро пожаловать, Администратор!');
-    loginForm.classList.add('hidden');
-    adminPanel.classList.remove('hidden');
-    document.getElementById('adminPassword').value = '';
-    render();
-  } else {
-    alert('Неверный пароль!');
+  if (!nick || !pass) { alert('Заполните все поля!'); return; }
+  if (nick.length < 3) { alert('Ник должен быть не короче 3 символов!'); return; }
+
+  try {
+    const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [
+      Query.equal('city', 'USER_ACCOUNT'),
+      Query.equal('name', nick)
+    ]);
+
+    if (res.documents.length > 0) {
+      alert('Этот ник уже занят! Придумайте другой.');
+      return;
+    }
+
+    // Создаем "невидимого" пользователя
+    await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), {
+      name: nick,
+      desc: pass, // Пароль
+      city: 'USER_ACCOUNT', // Метка, по которой мы понимаем, что это аккаунт
+      category: 'user',
+      guard: 'false', // Не админ
+      is_banned: 'false',
+      likes: '0', rating_sum: '0', rating_count: '0',
+      comments: [], photos: []
+    });
+
+    currentUser = { nickname: nick, is_admin: 'false' };
+    localStorage.setItem('cheb_current_user', JSON.stringify(currentUser));
+    
+    alert('Регистрация успешна!');
+    document.getElementById('regNickname').value = '';
+    document.getElementById('regPassword').value = '';
+    updateProfileUI();
+
+  } catch(e) {
+    alert('Ошибка регистрации: ' + e.message);
   }
 });
 
 document.getElementById('logoutBtn').addEventListener('click', () => {
-  isAdmin = false;
-  localStorage.removeItem('cheb_isAdmin');
-  profileModal.classList.add('hidden');
-  render();
+  currentUser = null;
+  localStorage.removeItem('cheb_current_user');
+  alert('Вы вышли из профиля.');
+  updateProfileUI();
 });
 
-if (localStorage.getItem('cheb_isAdmin') === 'true') {
-  isAdmin = true;
-}
-
+// ============================================
+// ОСТАЛЬНОЙ КОД
+// ============================================
 function saveFavs() { localStorage.setItem('cheb_favs', JSON.stringify(favorites)); }
 function saveLikes() { localStorage.setItem('cheb_liked', JSON.stringify(likedPlaces)); }
 function saveMyRatings() { localStorage.setItem('cheb_my_ratings', JSON.stringify(myRatings)); }
@@ -317,7 +432,8 @@ async function loadData() {
   try {
     statusEl.textContent = 'Загрузка из Appwrite...';
     const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID);
-    places = response.documents.map(doc => ({
+    // Фильтруем места, исключая аккаунты (у них city === 'USER_ACCOUNT')
+    places = response.documents.filter(doc => doc.city !== 'USER_ACCOUNT').map(doc => ({
       ...doc,
       id: doc.$id, 
       likes: parseInt(doc.likes) || 0, 
@@ -369,6 +485,8 @@ function render() {
     list.innerHTML = '<div class="empty">Пусто. Добавь первое место!</div>';
     return;
   }
+
+  const isAdmin = currentUser && currentUser.is_admin === 'true';
 
   list.innerHTML = filtered.map(p => {
     const avgRating = p.rating_count > 0 ? (p.rating_sum / p.rating_count).toFixed(1) : '—';
@@ -491,7 +609,7 @@ async function toggleLike(id) {
 }
 
 async function banPlace(id) {
-  if (!isAdmin) return;
+  if (!currentUser || currentUser.is_admin !== 'true') return;
   if (!confirm('Забанить это место?')) return;
   try {
     await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { is_banned: 'true' });
@@ -515,7 +633,7 @@ async function addComment(id) {
 }
 
 async function deleteComment(id, index) {
-  if (!isAdmin) return;
+  if (!currentUser || currentUser.is_admin !== 'true') return;
   const p = places.find(x => x.id === id);
   if (!p || !p.comments) return;
   
@@ -633,4 +751,4 @@ initMap();
 loadData();
 </script>
 </body>
-</html>
+  </html>
