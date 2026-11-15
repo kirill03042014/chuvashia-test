@@ -53,9 +53,7 @@
     font-size: 16px;
     overflow: hidden;
     transition: background 0.4s, color 0.4s;
-    background-image:
-      radial-gradient(circle at 10% 20%, rgba(0, 255, 200, 0.2) 0%, transparent 40%),
-      radial-gradient(circle at 90% 80%, rgba(255, 0, 102, 0.2) 0%, transparent 40%);
+    background-image: radial-gradient(circle at 10% 20%, rgba(0, 255, 200, 0.2) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(255, 0, 102, 0.2) 0%, transparent 40%);
     background-attachment: fixed;
   }
 
@@ -128,7 +126,6 @@
   .comments { margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--glass-border); }
   .comment { background: var(--input-bg); padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; border: 1px solid var(--glass-border); }
   .comment > span { flex: 1; word-break: break-word; }
-  .comment-author { font-weight: bold; color: #00ffc8; margin-right: 5px; font-size: 12px; cursor: pointer; }
   .del-comment { width: auto; padding: 4px 8px; border: none; background: transparent; color: #ff0066; cursor: pointer; display: inline-flex; }
   .del-comment svg { width: 16px; height: 16px; }
   .comment-form { display: flex; gap: 8px; margin-top: 10px; }
@@ -162,19 +159,14 @@
   .form-row { display: flex; gap: 10px; }
   .form-row > * { flex: 1; }
 
-  /* Таб-кнопки внутри карточки места */
   .actions { display: flex; gap: 5px; margin-bottom: 10px; }
   .actions button { width: auto; padding: 5px 10px; font-size: 12px; }
-
-  /* Кнопка квестов в верхней панели */
   #questsBtn { display: none; }
 </style>
 </head>
 <body>
 
 <div class="swipe-container">
-
-  <!-- СТРАНИЦА 1: ГЛАВНАЯ -->
   <div class="page" id="page-main">
     <div class="container">
       <div class="top-bar">
@@ -218,7 +210,6 @@
     </div>
   </div>
 
-  <!-- СТРАНИЦА 2: КВЕСТЫ -->
   <div class="page" id="page-quests">
     <div class="container">
       <div class="top-bar">
@@ -233,7 +224,6 @@
       </div>
     </div>
   </div>
-
 </div>
 
 <!-- МОДАЛЬНЫЕ ОКНА -->
@@ -318,70 +308,48 @@
 </div>
 
 <script>
-/* ============================================================
-   КОНФИГУРАЦИЯ
-   ============================================================ */
 const APPWRITE_ENDPOINT   = 'https://fra.cloud.appwrite.io/v1';
 const APPWRITE_PROJECT_ID = '6af75290002021ce6c30';
 const DATABASE_ID         = '6af752b800204637c982';
 const COLLECTION_ID       = '6af754b70031b4620e57';
 
-/* ⚠️ ВНИМАНИЕ: пароль администратора оставлен на клиенте
-   ТОЛЬКО для совместимости с текущей архитектурой.
-   В продакшене его нужно вынести на сервер (Appwrite Function). */
+// ВНИМАНИЕ: Пароль админа в коде — небезопасно! В будущем вынесите его на сервер.
 const ADMIN_PASSWORD = 'SmirnovKirill03@inbox.ry';
 
 const { Client, Databases, ID, Query } = Appwrite;
 const client    = new Client().setEndpoint(APPWRITE_ENDPOINT).setProject(APPWRITE_PROJECT_ID);
 const databases = new Databases(client);
 
-/* ============================================================
-   СОСТОЯНИЕ
-   ============================================================ */
-let map           = null;
-let markers       = [];
-let places        = [];
-let currentTab    = 'popular';
-let searchQuery   = '';
-let soundEnabled  = localStorage.getItem('cheb_sound') !== 'false';
-let isLightTheme  = localStorage.getItem('cheb_theme') === 'light';
-let currentUser   = safeParse(localStorage.getItem('cheb_current_user'));
+let map = null;
+let markers = [];
+let places = [];
+let currentTab = 'popular';
+let searchQuery = '';
+let soundEnabled = localStorage.getItem('cheb_sound') !== 'false';
+let isLightTheme = localStorage.getItem('cheb_theme') === 'light';
+let currentUser = safeParse(localStorage.getItem('cheb_current_user'));
 let selectedUserForBan = null;
-let lastError     = 'Ошибок не было.';
+let lastError = 'Ошибок не было.';
 let editingPlaceId = null;
 
-/* Кэш кнопок DOM */
-const statusEl   = document.getElementById('status');
-const avatarBtn  = document.getElementById('avatarBtn');
+const statusEl = document.getElementById('status');
+const avatarBtn = document.getElementById('avatarBtn');
 const banlistBtn = document.getElementById('banlistBtn');
-const questsBtn  = document.getElementById('questsBtn');
+const questsBtn = document.getElementById('questsBtn');
 
-/* ============================================================
-   УТИЛИТЫ
-   ============================================================ */
-function safeParse(str) {
-  try { return JSON.parse(str); } catch { return null; }
-}
+function safeParse(str) { try { return JSON.parse(str); } catch { return null; } }
 
-/** Экранирование HTML — защита от XSS */
 function esc(s) {
   if (s === null || s === undefined) return '';
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
-/** Безопасный вызов lucide.createIcons() */
 function refreshIcons() {
   if (typeof lucide !== 'undefined' && lucide.createIcons) {
-    try { lucide.createIcons(); } catch (e) { /* noop */ }
+    try { lucide.createIcons(); } catch (e) {}
   }
 }
 
-/** Проверка — истёк ли бан */
 function isBanExpired(user) {
   if (!user || user.ban_type === 'forever') return false;
   if (user.ban_type !== 'day' && user.ban_type !== 'week') return false;
@@ -390,23 +358,15 @@ function isBanExpired(user) {
   return Date.now() >= until;
 }
 
-/** Пользователь сейчас забанен? */
 function isUserBannedNow(user) {
   if (!user) return false;
   if (user.ban_type === 'forever') return true;
-  if (user.ban_type === 'day' || user.ban_type === 'week') {
-    return !isBanExpired(user);
-  }
+  if (user.ban_type === 'day' || user.ban_type === 'week') return !isBanExpired(user);
   return user.is_banned === 'true';
 }
 
-function isAdmin() {
-  return !!(currentUser && currentUser.is_admin === 'true');
-}
+function isAdmin() { return !!(currentUser && currentUser.is_admin === 'true'); }
 
-/* ============================================================
-   UI: АВАТАР
-   ============================================================ */
 function updateAvatar() {
   if (currentUser) {
     avatarBtn.classList.remove('guest');
@@ -419,9 +379,6 @@ function updateAvatar() {
   }
 }
 
-/* ============================================================
-   ПРОВЕРКА АВТОРИЗАЦИИ ПЕРЕД ДЕЙСТВИЕМ
-   ============================================================ */
 function checkAuthBeforeAction(action) {
   if (!currentUser) {
     alert('Войдите в профиль, чтобы совершить это действие!');
@@ -435,26 +392,19 @@ function checkAuthBeforeAction(action) {
   action();
 }
 
-/* ============================================================
-   СВАЙПЫ
-   ============================================================ */
+/* СВАЙПЫ */
 let startX = 0, startY = 0, isSwiping = false, swipeFromScroller = false;
-
 document.addEventListener('touchstart', e => {
   const target = e.target;
   swipeFromScroller = !!(target.closest('.photo-container') || target.closest('input') || target.closest('textarea') || target.closest('select'));
-  startX = e.touches[0].clientX;
-  startY = e.touches[0].clientY;
-  isSwiping = true;
+  startX = e.touches[0].clientX; startY = e.touches[0].clientY; isSwiping = true;
 }, { passive: true });
-
 document.addEventListener('touchend', e => {
   if (!isSwiping || swipeFromScroller) { isSwiping = false; return; }
   const diffX = startX - e.changedTouches[0].clientX;
   const diffY = startY - e.changedTouches[0].clientY;
   if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 70) {
-    if (diffX > 0) goToQuests();
-    else goToMain();
+    if (diffX > 0) goToQuests(); else goToMain();
   }
   isSwiping = false;
 }, { passive: true });
@@ -467,13 +417,10 @@ function goToMain() {
   document.getElementById('page-main').style.transform = 'translateX(0)';
   document.getElementById('page-quests').style.transform = 'translateX(100vw)';
 }
-
 document.getElementById('backBtn').addEventListener('click', () => { goToMain(); playSound(); });
 questsBtn.addEventListener('click', () => { goToQuests(); playSound(); });
 
-/* ============================================================
-   ЗВУК
-   ============================================================ */
+/* ЗВУК */
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
 let audioCtx;
 function playSound() {
@@ -481,34 +428,26 @@ function playSound() {
   try {
     if (!audioCtx) audioCtx = new AudioCtx();
     if (audioCtx.state === 'suspended') audioCtx.resume();
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+    osc.type = 'sine'; osc.frequency.setValueAtTime(400, audioCtx.currentTime);
     osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.1);
     gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-    osc.connect(gain); gain.connect(audioCtx.destination);
-    osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-  } catch (e) { /* noop */ }
+    osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+  } catch (e) {}
 }
 document.addEventListener('click', (e) => { if (e.target.closest('button')) playSound(); });
 
-/* ============================================================
-   УСТАНОВКА ПРИЛОЖЕНИЯ
-   ============================================================ */
+/* УСТАНОВКА ПРИЛОЖЕНИЯ */
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
+  e.preventDefault(); deferredPrompt = e;
   if (!localStorage.getItem('cheb_app_installed')) document.getElementById('installBtn').style.display = 'flex';
 });
 document.getElementById('installBtn').addEventListener('click', async () => {
   if (deferredPrompt) {
-    deferredPrompt.prompt();
-    await deferredPrompt.userChoice;
-    deferredPrompt = null;
-    document.getElementById('installBtn').style.display = 'none';
+    deferredPrompt.prompt(); await deferredPrompt.userChoice;
+    deferredPrompt = null; document.getElementById('installBtn').style.display = 'none';
     localStorage.setItem('cheb_app_installed', 'true');
   }
 });
@@ -517,45 +456,57 @@ window.addEventListener('appinstalled', () => {
   localStorage.setItem('cheb_app_installed', 'true');
 });
 if (localStorage.getItem('cheb_app_installed')) document.getElementById('installBtn').style.display = 'none';
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch(() => { /* нет sw.js — не падаем */ });
-}
-
-/* ============================================================
-   КАРТА
-   ============================================================ */
+/* КАРТА */
 document.getElementById('mapBtn').addEventListener('click', () => {
   document.getElementById('mapModal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
   if (!map) {
     map = L.map('map').setView([56.1463, 47.2481], 12);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
   }
-  setTimeout(() => { map.invalidateSize(); updateMarkers(); }, 100);
+  setTimeout(() => { map.invalidateSize(); updateMarkers(); }, 150);
 });
 
 document.getElementById('closeMapBtn').addEventListener('click', () => {
   document.getElementById('mapModal').classList.add('hidden');
+  document.body.style.overflow = '';
 });
 
 function updateMarkers() {
   if (!map) return;
   markers.forEach(m => map.removeLayer(m));
   markers = [];
+  const bounds = [];
+
   places.forEach(p => {
-    if (p.is_archived === 'true') return;
-    if (p.is_banned === 'true') return;
-    if (!p.coords || !p.coords.includes(',')) return;
-    const [lat, lng] = p.coords.split(',').map(Number);
+    if (p.is_archived === 'true' || p.is_banned === 'true') return;
+    if (!p.coords || typeof p.coords !== 'string') return;
+
+    // Очищаем координаты от случайных символов
+    const cleanCoords = p.coords.replace(/\s/g, '').replace(/\./g, ',');
+    if (!cleanCoords.includes(',')) return;
+
+    const parts = cleanCoords.split(',');
+    if (parts.length !== 2) return;
+
+    const lat = parseFloat(parts[0]);
+    const lng = parseFloat(parts[1]);
     if (isNaN(lat) || isNaN(lng)) return;
+
     const m = L.marker([lat, lng]).addTo(map).bindPopup(esc(p.name || ''));
     markers.push(m);
+    bounds.push([lat, lng]);
   });
+
+  // Автоматически подстраиваем зум, чтобы показать ВСЕ маркеры
+  if (bounds.length > 0) {
+    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+  }
 }
 
-/* ============================================================
-   АВТОРИЗАЦИЯ
-   ============================================================ */
+/* АВТОРИЗАЦИЯ */
 avatarBtn.addEventListener('click', () => {
   document.getElementById('profileModal').classList.remove('hidden');
   if (currentUser) {
@@ -569,343 +520,166 @@ avatarBtn.addEventListener('click', () => {
     document.getElementById('loggedInSection').classList.add('hidden');
   }
 });
+document.getElementById('showRegisterLink').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('loginSection').classList.add('hidden'); document.getElementById('registerSection').classList.remove('hidden'); });
+document.getElementById('showLoginLink').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('loginSection').classList.remove('hidden'); document.getElementById('registerSection').classList.add('hidden'); });
+document.getElementById('closeProfileBtn').addEventListener('click', () => { document.getElementById('profileModal').classList.add('hidden'); });
 
-document.getElementById('showRegisterLink').addEventListener('click', (e) => {
-  e.preventDefault();
-  document.getElementById('loginSection').classList.add('hidden');
-  document.getElementById('registerSection').classList.remove('hidden');
-});
-document.getElementById('showLoginLink').addEventListener('click', (e) => {
-  e.preventDefault();
-  document.getElementById('loginSection').classList.remove('hidden');
-  document.getElementById('registerSection').classList.add('hidden');
-});
-document.getElementById('closeProfileBtn').addEventListener('click', () => {
-  document.getElementById('profileModal').classList.add('hidden');
-});
-
-/* ВХОД */
 document.getElementById('loginBtn').addEventListener('click', async () => {
   const nick = document.getElementById('loginNickname').value.trim();
   const pass = document.getElementById('loginPassword').value;
   if (!nick || !pass) return;
 
-  /* Админ-вход по спец-паролю */
   if (pass === ADMIN_PASSWORD) {
     currentUser = { nickname: 'Админ', is_admin: 'true', is_banned: 'false', ban_type: 'none', ban_until: '0', id: 'admin' };
     localStorage.setItem('cheb_current_user', JSON.stringify(currentUser));
-    updateAvatar();
-    document.getElementById('profileModal').classList.add('hidden');
-    alert('Добро пожаловать, Админ!');
-    render();
-    return;
+    updateAvatar(); document.getElementById('profileModal').classList.add('hidden');
+    alert('Добро пожаловать, Админ!'); render(); return;
   }
 
   try {
-    const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [
-      Query.equal('city', 'USER_ACCOUNT'),
-      Query.equal('name', nick),
-      Query.limit(1)
-    ]);
+    const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.equal('city', 'USER_ACCOUNT'), Query.equal('name', nick), Query.limit(1)]);
     if (res.documents.length === 0) { alert('Пользователь не найден!'); return; }
     const user = res.documents[0];
     if (user.desc !== pass) { alert('Неверный пароль!'); return; }
-
-    /* Проверка бана — учитываем ban_until */
     if (user.ban_type === 'forever') { alert('Вы забанены навсегда!'); return; }
     if (user.ban_type === 'day' || user.ban_type === 'week') {
       const until = Number(user.ban_until || 0);
-      if (Date.now() < until) {
-        alert('Вы забанены до ' + new Date(until).toLocaleString());
-        return;
-      }
-      /* Бан истёк — можно снимать флаг в БД (необязательно) */
+      if (Date.now() < until) { alert('Вы забанены до ' + new Date(until).toLocaleString()); return; }
     }
 
-    currentUser = {
-      nickname:  user.name,
-      is_admin:  'false',
-      id:        user.$id,
-      is_banned: user.is_banned || 'false',
-      ban_type:  user.ban_type  || 'none',
-      ban_until: user.ban_until || '0'
-    };
+    currentUser = { nickname: user.name, is_admin: 'false', id: user.$id, is_banned: user.is_banned || 'false', ban_type: user.ban_type || 'none', ban_until: user.ban_until || '0' };
     localStorage.setItem('cheb_current_user', JSON.stringify(currentUser));
-    updateAvatar();
-    document.getElementById('profileModal').classList.add('hidden');
-    alert('С возвращением, ' + user.name);
-    render();
-  } catch (e) {
-    lastError = e.message || String(e);
-    alert('Ошибка входа');
-  }
+    updateAvatar(); document.getElementById('profileModal').classList.add('hidden');
+    alert('С возвращением, ' + user.name); render();
+  } catch (e) { lastError = e.message || String(e); alert('Ошибка входа'); }
 });
 
-/* РЕГИСТРАЦИЯ */
 document.getElementById('registerBtn').addEventListener('click', async () => {
   const nick = document.getElementById('regNickname').value.trim();
   const pass = document.getElementById('regPassword').value;
   if (!nick || !pass) return;
-  if (nick.length > 30) { alert('Ник слишком длинный (макс. 30)'); return; }
-
-  /* Защита от повторной регистрации на устройстве */
-  if (localStorage.getItem('cheb_device_id')) {
-    alert('На этом устройстве уже есть аккаунт!');
-    return;
-  }
+  if (nick.length > 30) { alert('Ник слишком длинный'); return; }
+  if (localStorage.getItem('cheb_device_id')) { alert('На этом устройстве уже есть аккаунт!'); return; }
   if (pass === ADMIN_PASSWORD) { alert('Этот пароль занят!'); return; }
 
   try {
-    const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [
-      Query.equal('city', 'USER_ACCOUNT'),
-      Query.equal('name', nick),
-      Query.limit(1)
-    ]);
+    const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.equal('city', 'USER_ACCOUNT'), Query.equal('name', nick), Query.limit(1)]);
     if (res.documents.length > 0) { alert('Ник занят!'); return; }
 
     const newUser = await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), {
-      name: nick,
-      desc: pass,
-      city: 'USER_ACCOUNT',
-      category: 'user',
-      guard: 'false',
-      is_banned: 'false',
-      ban_type: 'none',
-      ban_until: '0'
+      name: nick, desc: pass, city: 'USER_ACCOUNT', category: 'user', guard: 'false', is_banned: 'false', ban_type: 'none', ban_until: '0'
     });
-
+    
     localStorage.setItem('cheb_device_id', ID.unique());
-    currentUser = {
-      nickname: nick,
-      is_admin: 'false',
-      id: newUser.$id,
-      is_banned: 'false',
-      ban_type: 'none',
-      ban_until: '0'
-    };
+    currentUser = { nickname: nick, is_admin: 'false', id: newUser.$id, is_banned: 'false', ban_type: 'none', ban_until: '0' };
     localStorage.setItem('cheb_current_user', JSON.stringify(currentUser));
-    updateAvatar();
-    document.getElementById('profileModal').classList.add('hidden');
-    alert('Успешная регистрация!');
-    render();
-  } catch (e) {
-    lastError = e.message || String(e);
-    alert('Ошибка регистрации');
-  }
+    updateAvatar(); document.getElementById('profileModal').classList.add('hidden');
+    alert('Успешная регистрация!'); render();
+  } catch (e) { lastError = e.message || String(e); alert('Ошибка регистрации'); }
 });
 
 document.getElementById('logoutBtn').addEventListener('click', () => {
-  currentUser = null;
-  localStorage.removeItem('cheb_current_user');
-  updateAvatar();
-  document.getElementById('profileModal').classList.add('hidden');
-  render();
+  currentUser = null; localStorage.removeItem('cheb_current_user');
+  updateAvatar(); document.getElementById('profileModal').classList.add('hidden'); render();
 });
 
-/* ============================================================
-   МОДЕРАЦИЯ
-   ============================================================ */
+/* МОДЕРАЦИЯ */
 function openUserInfo(nickname, userId) {
-  if (currentUser && currentUser.id === userId) {
-    alert('Вы не можете забанить самого себя!');
-    return;
-  }
+  if (currentUser && currentUser.id === userId) { alert('Вы не можете забанить самого себя!'); return; }
   selectedUserForBan = userId;
   document.getElementById('infoNickname').innerText = nickname || 'Неизвестный';
-  if (isAdmin() && userId && userId !== '0' && userId !== 'admin') {
-    document.getElementById('adminBanControls').classList.remove('hidden');
-  } else {
-    document.getElementById('adminBanControls').classList.add('hidden');
-  }
+  if (isAdmin() && userId && userId !== '0' && userId !== 'admin') document.getElementById('adminBanControls').classList.remove('hidden');
+  else document.getElementById('adminBanControls').classList.add('hidden');
   document.getElementById('userInfoModal').classList.remove('hidden');
 }
-document.getElementById('closeUserInfoBtn').addEventListener('click', () => {
-  document.getElementById('userInfoModal').classList.add('hidden');
-});
+document.getElementById('closeUserInfoBtn').addEventListener('click', () => { document.getElementById('userInfoModal').classList.add('hidden'); });
 
 async function banUser(type) {
   if (!isAdmin() || !selectedUserForBan) return;
   let banUntil = '0';
-  if (type === 'day')  banUntil = String(Date.now() + 86400000);
+  if (type === 'day') banUntil = String(Date.now() + 86400000);
   if (type === 'week') banUntil = String(Date.now() + 604800000);
-
   try {
-    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, selectedUserForBan, {
-      is_banned: 'true',
-      ban_type: type,
-      ban_until: banUntil
-    });
-    alert('Пользователь забанен!');
-    document.getElementById('userInfoModal').classList.add('hidden');
-    render();
-  } catch (e) {
-    lastError = e.message || String(e);
-    alert('Ошибка бана: ' + e.message);
-  }
+    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, selectedUserForBan, { is_banned: 'true', ban_type: type, ban_until: banUntil });
+    alert('Пользователь забанен!'); document.getElementById('userInfoModal').classList.add('hidden'); render();
+  } catch (e) { lastError = e.message || String(e); alert('Ошибка бана: ' + e.message); }
 }
 
 banlistBtn.addEventListener('click', async () => {
   if (!isAdmin()) return;
   document.getElementById('banlistModal').classList.remove('hidden');
-  const container = document.getElementById('banlistItems');
-  container.innerHTML = 'Загрузка...';
-
+  const container = document.getElementById('banlistItems'); container.innerHTML = 'Загрузка...';
   try {
-    const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [
-      Query.equal('city', 'USER_ACCOUNT'),
-      Query.limit(100)
-    ]);
-    const banned = res.documents.filter(u =>
-      u.ban_type === 'forever' ||
-      ((u.ban_type === 'day' || u.ban_type === 'week') && Date.now() < Number(u.ban_until || 0))
-    );
-    if (banned.length === 0) {
-      container.innerHTML = '<p style="text-align:center; color:var(--text-desc);">Нет забаненных</p>';
-    } else {
-      container.innerHTML = banned.map(u => `
-        <div class="user-card">
-          <span>${esc(u.name)}</span>
-          <button onclick="unbanUser('${esc(u.$id)}')" style="border-color:#00ffc8; color:#00ffc8;">Разбанить</button>
-        </div>`).join('');
-    }
-  } catch (e) {
-    lastError = e.message || String(e);
-    container.innerHTML = 'Ошибка загрузки';
-  }
+    const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.equal('city', 'USER_ACCOUNT'), Query.limit(100)]);
+    const banned = res.documents.filter(u => u.ban_type === 'forever' || ((u.ban_type === 'day' || u.ban_type === 'week') && Date.now() < Number(u.ban_until || 0)));
+    if (banned.length === 0) container.innerHTML = '<p style="text-align:center; color:var(--text-desc);">Нет забаненных</p>';
+    else container.innerHTML = banned.map(u => `<div class="user-card"><span>${esc(u.name)}</span><button onclick="unbanUser('${esc(u.$id)}')" style="border-color:#00ffc8; color:#00ffc8;">Разбанить</button></div>`).join('');
+  } catch (e) { lastError = e.message || String(e); container.innerHTML = 'Ошибка загрузки'; }
 });
-document.getElementById('closeBanlistBtn').addEventListener('click', () => {
-  document.getElementById('banlistModal').classList.add('hidden');
-});
+document.getElementById('closeBanlistBtn').addEventListener('click', () => { document.getElementById('banlistModal').classList.add('hidden'); });
 
 async function unbanUser(userId) {
   if (!isAdmin()) return;
   try {
-    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, userId, {
-      is_banned: 'false',
-      ban_type: 'none',
-      ban_until: '0'
-    });
-    alert('Разбанен!');
-    banlistBtn.click();
-  } catch (e) {
-    lastError = e.message || String(e);
-    alert('Ошибка');
-  }
+    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, userId, { is_banned: 'false', ban_type: 'none', ban_until: '0' });
+    alert('Разбанен!'); banlistBtn.click();
+  } catch (e) { lastError = e.message || String(e); alert('Ошибка'); }
 }
 
-/* ============================================================
-   НАСТРОЙКИ
-   ============================================================ */
-document.getElementById('settingsBtn').addEventListener('click', () => {
-  document.getElementById('settingsModal').classList.remove('hidden');
-});
-document.getElementById('closeSettingsBtn').addEventListener('click', () => {
-  document.getElementById('settingsModal').classList.add('hidden');
-});
+/* НАСТРОЙКИ */
+document.getElementById('settingsBtn').addEventListener('click', () => { document.getElementById('settingsModal').classList.remove('hidden'); });
+document.getElementById('closeSettingsBtn').addEventListener('click', () => { document.getElementById('settingsModal').classList.add('hidden'); });
 document.getElementById('glassSlider').addEventListener('input', (e) => {
   const v = e.target.value;
   document.documentElement.style.setProperty('--glass-opacity', v);
   localStorage.setItem('cheb_glass_opacity', v);
 });
-document.getElementById('soundOnBtn').addEventListener('click', () => {
-  soundEnabled = true;
-  localStorage.setItem('cheb_sound', 'true');
-  playSound();
-});
-document.getElementById('soundOffBtn').addEventListener('click', () => {
-  soundEnabled = false;
-  localStorage.setItem('cheb_sound', 'false');
-});
+document.getElementById('soundOnBtn').addEventListener('click', () => { soundEnabled = true; localStorage.setItem('cheb_sound', 'true'); playSound(); });
+document.getElementById('soundOffBtn').addEventListener('click', () => { soundEnabled = false; localStorage.setItem('cheb_sound', 'false'); });
 
 document.getElementById('themeToggle').addEventListener('click', () => {
   isLightTheme = !isLightTheme;
   if (isLightTheme) {
-    document.body.classList.add('light-theme');
-    document.getElementById('themeToggle').innerHTML = '<i data-lucide="sun"></i>';
-    localStorage.setItem('cheb_theme', 'light');
+    document.body.classList.add('light-theme'); document.getElementById('themeToggle').innerHTML = '<i data-lucide="sun"></i>'; localStorage.setItem('cheb_theme', 'light');
   } else {
-    document.body.classList.remove('light-theme');
-    document.getElementById('themeToggle').innerHTML = '<i data-lucide="moon"></i>';
-    localStorage.setItem('cheb_theme', 'dark');
+    document.body.classList.remove('light-theme'); document.getElementById('themeToggle').innerHTML = '<i data-lucide="moon"></i>'; localStorage.setItem('cheb_theme', 'dark');
   }
-  refreshIcons();
-  playSound();
+  refreshIcons(); playSound();
 });
 
-/* ============================================================
-   ОШИБКИ
-   ============================================================ */
+/* ОШИБКИ */
 document.getElementById('helpBtn').addEventListener('click', () => {
-  document.getElementById('errorLog').value = lastError;
-  document.getElementById('helpModal').classList.remove('hidden');
+  document.getElementById('errorLog').value = lastError; document.getElementById('helpModal').classList.remove('hidden');
 });
-document.getElementById('closeHelpBtn').addEventListener('click', () => {
-  document.getElementById('helpModal').classList.add('hidden');
-});
+document.getElementById('closeHelpBtn').addEventListener('click', () => { document.getElementById('helpModal').classList.add('hidden'); });
 
-/* ============================================================
-   ВКЛАДКИ / ПОИСК
-   ============================================================ */
+/* ВКЛАДКИ / ПОИСК */
 document.getElementById('tabs').addEventListener('click', (e) => {
-  const btn = e.target.closest('button');
-  if (!btn) return;
+  const btn = e.target.closest('button'); if (!btn) return;
   document.querySelectorAll('#tabs button').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  currentTab = btn.dataset.tab || 'popular';
-  render();
+  btn.classList.add('active'); currentTab = btn.dataset.tab || 'popular'; render();
 });
+document.getElementById('searchInput').addEventListener('input', (e) => { searchQuery = e.target.value.trim().toLowerCase(); render(); });
 
-document.getElementById('searchInput').addEventListener('input', (e) => {
-  searchQuery = e.target.value.trim().toLowerCase();
-  render();
-});
-
-/* ============================================================
-   ЗАГРУЗКА ДАННЫХ
-   ============================================================ */
+/* ЗАГРУЗКА ДАННЫХ */
 async function loadData() {
   try {
-    const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [
-      Query.limit(100)
-    ]);
-    places = response.documents
-      .filter(doc => doc.city !== 'USER_ACCOUNT')
-      .map(doc => ({
-        ...doc,
-        id: doc.$id,
-        comments: Array.isArray(doc.comments) ? doc.comments : []
-      }));
+    const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.limit(100)]);
+    places = response.documents.filter(doc => doc.city !== 'USER_ACCOUNT').map(doc => ({
+      ...doc, id: doc.$id, comments: Array.isArray(doc.comments) ? doc.comments : []
+    }));
     statusEl.style.display = 'none';
-  } catch (e) {
-    statusEl.textContent = 'Ошибка базы';
-    statusEl.className = 'status error';
-    lastError = e.message || String(e);
-  }
-  render();
-  updateMarkers();
+  } catch (e) { statusEl.textContent = 'Ошибка базы'; statusEl.className = 'status error'; lastError = e.message || String(e); }
+  render(); updateMarkers();
 }
 
-/* ============================================================
-   РЕНДЕР
-   ============================================================ */
+/* РЕНДЕР */
 function getFilteredPlaces() {
   let list = places.filter(p => p.is_archived !== 'true' && p.is_banned !== 'true');
-
-  /* Поиск */
-  if (searchQuery) {
-    list = list.filter(p => (p.name || '').toLowerCase().includes(searchQuery));
-  }
-
-  /* Вкладки */
+  if (searchQuery) list = list.filter(p => (p.name || '').toLowerCase().includes(searchQuery));
   if (currentTab === 'new') {
-    /* Сортируем по $createdAt (убывание) */
-    list = [...list].sort((a, b) => {
-      const da = new Date(a.$createdAt || 0).getTime();
-      const db = new Date(b.$createdAt || 0).getTime();
-      return db - da;
-    });
+    list = [...list].sort((a, b) => new Date(b.$createdAt || 0) - new Date(a.$createdAt || 0));
   } else {
-    /* Популярное — по лайкам, затем по рейтингу, затем по дате */
     list = [...list].sort((a, b) => {
       const la = Number(a.likes || 0), lb = Number(b.likes || 0);
       if (lb !== la) return lb - la;
@@ -914,21 +688,14 @@ function getFilteredPlaces() {
       return new Date(b.$createdAt || 0) - new Date(a.$createdAt || 0);
     });
   }
-
   return list;
 }
 
 function render() {
-  const listEl = document.getElementById('placesList');
-  if (!listEl) return;
-
+  const listEl = document.getElementById('placesList'); if (!listEl) return;
   const filtered = getFilteredPlaces();
 
-  if (filtered.length === 0) {
-    listEl.innerHTML = '<div class="empty">Пока ничего нет</div>';
-    refreshIcons();
-    return;
-  }
+  if (filtered.length === 0) { listEl.innerHTML = '<div class="empty">Пока ничего нет</div>'; refreshIcons(); return; }
 
   listEl.innerHTML = filtered.map(p => {
     let photoUrl = '';
@@ -937,19 +704,15 @@ function render() {
 
     const canEdit = isAdmin() || (currentUser && p.author_id && p.author_id === currentUser.id);
 
+    // ИСПРАВЛЕНИЕ КОММЕНТАРИЕВ: работаем с массивом строк
     const commentsHtml = (p.comments || []).map((c, idx) => {
-      const cText = (typeof c === 'string') ? c : (c && c.text) || '';
-      const cAuthor = (typeof c === 'object' && c && c.author) ? c.author : (p.author || 'Гость');
+      const cText = typeof c === 'string' ? c : (c.text || 'Ошибка');
       const canDel = isAdmin() || (currentUser && p.author_id === currentUser.id);
-      return `
-        <div class="comment">
-          <span><b class="comment-author">${esc(cAuthor)}:</b> ${esc(cText)}</span>
-          ${canDel ? `<button class="del-comment" onclick="deleteComment('${esc(p.id)}', ${idx})" title="Удалить"><i data-lucide="trash-2"></i></button>` : ''}
-        </div>`;
+      return `<div class="comment"><span>${esc(cText)}</span>${canDel ? `<button class="del-comment" onclick="deleteComment('${esc(p.id)}', ${idx})" title="Удалить"><i data-lucide="trash-2"></i></button>` : ''}</div>`;
     }).join('');
 
     return `
-    <div class="place-card">
+    <div class="place-card" data-place-id="${esc(p.id)}">
       ${photoUrl ? `<div class="photo-container"><img src="${esc(photoUrl)}" class="photo-item" onerror="this.parentElement.style.display='none'"></div>` : ''}
       <div class="place-content">
         <h3>${esc(p.name)}</h3>
@@ -958,31 +721,23 @@ function render() {
         </div>
         <div class="desc">${esc(p.desc || '')}</div>
 
-        ${canEdit ? `
-        <div class="actions">
-          <button class="btn-toggle" onclick="editPlace('${esc(p.id)}')">✏️ Ред.</button>
-          <button class="btn-toggle" onclick="deletePlace('${esc(p.id)}')" style="color:#ff0066; border-color:#ff0066;">🗑 Удалить</button>
-        </div>` : ''}
+        ${canEdit ? `<div class="actions"><button class="btn-toggle" onclick="editPlace('${esc(p.id)}')">✏️ Ред.</button><button class="btn-toggle" onclick="deletePlace('${esc(p.id)}')" style="color:#ff0066; border-color:#ff0066;">🗑 Удалить</button></div>` : ''}
 
         <div class="comments">
           <strong style="font-size:12px;color:var(--text-desc);">КОММЕНТАРИИ (${(p.comments || []).length})</strong>
           ${commentsHtml || '<div style="color:var(--text-desc); font-size:13px; margin-top:5px;">Пока нет комментариев</div>'}
           <div class="comment-form">
-            <input type="text" id="c_${esc(p.id)}" placeholder="Комментарий..." maxlength="500"
-                   onkeydown="if(event.key==='Enter'){event.preventDefault();addComment('${esc(p.id)}')}">
+            <input type="text" id="c_${esc(p.id)}" placeholder="Комментарий..." maxlength="500" onkeydown="if(event.key==='Enter'){event.preventDefault();addComment('${esc(p.id)}')}">
             <button onclick="addComment('${esc(p.id)}')"><i data-lucide="send"></i></button>
           </div>
         </div>
       </div>
     </div>`;
   }).join('');
-
   refreshIcons();
 }
 
-/* ============================================================
-   ДОБАВЛЕНИЕ / РЕДАКТИРОВАНИЕ МЕСТА
-   ============================================================ */
+/* ДОБАВЛЕНИЕ / РЕДАКТИРОВАНИЕ */
 function resetAddForm() {
   editingPlaceId = null;
   document.getElementById('inName').value = '';
@@ -996,8 +751,7 @@ function resetAddForm() {
 }
 
 function editPlace(id) {
-  const p = places.find(x => x.id === id);
-  if (!p) return;
+  const p = places.find(x => x.id === id); if (!p) return;
   editingPlaceId = id;
   document.getElementById('inName').value = p.name || '';
   document.getElementById('inDesc').value = p.desc || '';
@@ -1008,165 +762,95 @@ function editPlace(id) {
   document.getElementById('addForm').classList.remove('hidden');
   document.getElementById('toggleForm').innerHTML = '<i data-lucide="x"></i> Отменить редактирование';
   document.getElementById('saveBtn').innerHTML = '<i data-lucide="save"></i> Обновить';
-  refreshIcons();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  refreshIcons(); window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 document.getElementById('toggleForm').addEventListener('click', () => {
   const form = document.getElementById('addForm');
   if (form.classList.contains('hidden')) {
-    form.classList.remove('hidden');
-    resetAddForm();
-    form.classList.remove('hidden'); /* resetAddForm не скрывает — на всякий случай */
+    form.classList.remove('hidden'); resetAddForm(); form.classList.remove('hidden');
   } else {
-    form.classList.add('hidden');
-    resetAddForm();
+    form.classList.add('hidden'); resetAddForm();
   }
 });
 
 document.getElementById('saveBtn').addEventListener('click', () => {
   checkAuthBeforeAction(async () => {
-    const name  = document.getElementById('inName').value.trim();
-    const desc  = document.getElementById('inDesc').value.trim();
+    const name = document.getElementById('inName').value.trim();
+    const desc = document.getElementById('inDesc').value.trim();
     if (!name || !desc) return alert('Заполните поля!');
-
     const photoLink = document.getElementById('inPhotos').value.trim();
-    const coords    = document.getElementById('inCoords').value.trim();
+    const coords = document.getElementById('inCoords').value.trim();
 
-    /* Валидация координат */
     if (coords) {
       const parts = coords.split(',');
       if (parts.length !== 2) return alert('Координаты должны быть в формате "широта, долгота"');
       const lat = parseFloat(parts[0]), lng = parseFloat(parts[1]);
-      if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-        return alert('Некорректные координаты');
-      }
+      if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) return alert('Некорректные координаты');
     }
 
-    const data = {
-      name: name,
-      desc: desc,
-      city: document.getElementById('inCity').value,
-      coords: coords,
-      photos: photoLink ? [photoLink] : [],
-      author: currentUser.nickname,
-      author_id: currentUser.id || '0',
-      is_archived: 'false'
-    };
+    const data = { name, desc, city: document.getElementById('inCity').value, coords, photos: photoLink ? [photoLink] : [], author: currentUser.nickname, author_id: currentUser.id || '0', is_archived: 'false' };
 
     try {
       if (editingPlaceId) {
         await databases.updateDocument(DATABASE_ID, COLLECTION_ID, editingPlaceId, data);
       } else {
-        data.likes = '0';
-        data.rating_sum = '0';
-        data.rating_count = '0';
-        data.comments = [];
-        data.is_banned = 'false';
+        data.likes = '0'; data.rating_sum = '0'; data.rating_count = '0'; data.comments = []; data.is_banned = 'false';
         await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), data);
       }
-      document.getElementById('addForm').classList.add('hidden');
-      resetAddForm();
-      loadData();
-    } catch (e) {
-      lastError = e.message || String(e);
-      alert('Ошибка: ' + e.message);
-    }
+      document.getElementById('addForm').classList.add('hidden'); resetAddForm(); loadData();
+    } catch (e) { lastError = e.message || String(e); alert('Ошибка: ' + e.message); }
   });
 });
 
-/* Удаление места */
 async function deletePlace(id) {
   if (!confirm('Удалить это место?')) return;
   checkAuthBeforeAction(async () => {
-    const p = places.find(x => x.id === id);
-    if (!p) return;
+    const p = places.find(x => x.id === id); if (!p) return;
     const canEdit = isAdmin() || (currentUser && p.author_id === currentUser.id);
     if (!canEdit) { alert('Нет прав'); return; }
-
-    try {
-      await databases.deleteDocument(DATABASE_ID, COLLECTION_ID, id);
-      loadData();
-    } catch (e) {
-      lastError = e.message || String(e);
-      alert('Ошибка удаления: ' + e.message);
-    }
+    try { await databases.deleteDocument(DATABASE_ID, COLLECTION_ID, id); loadData(); } catch (e) { lastError = e.message || String(e); alert('Ошибка удаления: ' + e.message); }
   });
 }
 
-/* ============================================================
-   КОММЕНТАРИИ
-   ============================================================ */
+/* КОММЕНТАРИИ */
 async function addComment(id) {
   checkAuthBeforeAction(async () => {
-    const inp = document.getElementById('c_' + id);
-    if (!inp) return;
-    const text = inp.value.trim();
-    if (!text) return;
-
-    const p = places.find(x => x.id === id);
-    if (!p) return;
+    const inp = document.getElementById('c_' + id); if (!inp) return;
+    const text = inp.value.trim(); if (!text) return;
+    const p = places.find(x => x.id === id); if (!p) return;
 
     const comments = Array.isArray(p.comments) ? [...p.comments] : [];
-    /* Храним как объект: { text, author, author_id, date } — для корректного отображения */
-    comments.push({
-      text: text,
-      author: currentUser.nickname,
-      author_id: currentUser.id || '0',
-      date: Date.now()
-    });
+    // Добавляем как строку, чтобы Appwrite не выдавал ошибку структуры
+    comments.push(`${currentUser.nickname}: ${text}`);
 
     try {
-      /* ⚠️ НЕ трогаем author_id места — иначе сломаются права на редактирование */
-      await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { comments: comments });
-      p.comments = comments;
-      inp.value = '';
-      render();
-    } catch (e) {
-      lastError = e.message || String(e);
-      alert('Ошибка комментария: ' + e.message);
-    }
+      await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { comments });
+      p.comments = comments; inp.value = ''; render();
+    } catch (e) { lastError = e.message || String(e); alert('Ошибка комментария: ' + e.message); }
   });
 }
 
 async function deleteComment(id, index) {
-  const p = places.find(x => x.id === id);
-  if (!p) return;
+  const p = places.find(x => x.id === id); if (!p) return;
   const canDel = isAdmin() || (currentUser && p.author_id === currentUser.id);
   if (!canDel) { alert('Нет прав'); return; }
-
   const comments = Array.isArray(p.comments) ? [...p.comments] : [];
   comments.splice(index, 1);
-
   try {
-    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { comments: comments });
-    p.comments = comments;
-    render();
-  } catch (e) {
-    lastError = e.message || String(e);
-    alert('Ошибка удаления комментария: ' + e.message);
-  }
+    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { comments });
+    p.comments = comments; render();
+  } catch (e) { lastError = e.message || String(e); alert('Ошибка удаления комментария: ' + e.message); }
 }
 
-/* ============================================================
-   ИНИЦИАЛИЗАЦИЯ
-   ============================================================ */
-if (isLightTheme) {
-  document.body.classList.add('light-theme');
-  document.getElementById('themeToggle').innerHTML = '<i data-lucide="sun"></i>';
-}
-
+/* ИНИЦИАЛИЗАЦИЯ */
+if (isLightTheme) { document.body.classList.add('light-theme'); document.getElementById('themeToggle').innerHTML = '<i data-lucide="sun"></i>'; }
 const savedOpacity = localStorage.getItem('cheb_glass_opacity') || '0.6';
 document.documentElement.style.setProperty('--glass-opacity', savedOpacity);
 document.getElementById('glassSlider').value = savedOpacity;
-
-/* Кнопка квестов — показываем, если есть поддержка тач-свайпа или для удобства всегда на десктопе */
 questsBtn.style.display = 'flex';
-
 updateAvatar();
 loadData();
-
-/* Обновляем иконки после загрузки lucide */
 window.addEventListener('load', () => refreshIcons());
 </script>
 </body>
