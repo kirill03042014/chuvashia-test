@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 <title>КРУТЫЕ МЕСТА ЧУВАШИИ</title>
 
 <link rel="icon" type="image/svg+xml" href="icon.svg">
@@ -17,13 +17,13 @@
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Rubik:wght@400;500;700&display=swap');
-  
+
   :root {
     --bg-body: #05070a;
     --text-main: #e2e8f0;
     --text-title: #ffffff;
     --text-desc: #94a3b8;
-    --glass-opacity: 0.6; 
+    --glass-opacity: 0.6;
     --glass-blur: 40px;
     --glass-bg: rgba(20, 25, 35, var(--glass-opacity));
     --glass-border: rgba(255, 255, 255, 0.25);
@@ -45,29 +45,41 @@
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  
-  body { 
-    font-family: 'Rubik', sans-serif; 
-    background: var(--bg-body); 
-    color: var(--text-main); 
-    font-size: 16px; 
-    transition: background 0.4s, color 0.4s; 
-    background-image: 
+
+  body {
+    font-family: 'Rubik', sans-serif;
+    background: var(--bg-body);
+    color: var(--text-main);
+    font-size: 16px;
+    overflow: hidden;
+    transition: background 0.4s, color 0.4s;
+    background-image:
       radial-gradient(circle at 10% 20%, rgba(0, 255, 200, 0.2) 0%, transparent 40%),
       radial-gradient(circle at 90% 80%, rgba(255, 0, 102, 0.2) 0%, transparent 40%);
     background-attachment: fixed;
-    padding-bottom: 80px;
   }
-  
-  .container { max-width: 920px; margin: 0 auto; padding: 20px 15px; }
-  
+
+  .swipe-container { display: flex; width: 100vw; height: 100vh; overflow: hidden; position: relative; }
+  .page {
+    width: 100vw; height: 100vh; overflow-y: auto; padding: 20px 15px 80px;
+    transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+    position: absolute; top: 0; left: 0;
+    background: var(--bg-body);
+    background-image: radial-gradient(circle at 10% 20%, rgba(0, 255, 200, 0.2) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(255, 0, 102, 0.2) 0%, transparent 40%);
+    background-attachment: fixed;
+  }
+  #page-main { transform: translateX(0); z-index: 2; }
+  #page-quests { transform: translateX(100vw); z-index: 1; }
+
+  .container { max-width: 920px; margin: 0 auto; position: relative; }
+
   .top-bar { display: flex; justify-content: flex-start; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
-  
-  .icon-btn { 
-    background: var(--glass-bg); border: 1px solid var(--glass-border); 
-    color: var(--text-main); width: 45px; height: 45px; 
-    display: flex; align-items: center; justify-content: center; 
-    cursor: pointer; border-radius: 50%; 
+
+  .icon-btn {
+    background: var(--glass-bg); border: 1px solid var(--glass-border);
+    color: var(--text-main); width: 45px; height: 45px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; border-radius: 50%;
     backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
     box-shadow: inset 0 1px 0 var(--glass-highlight), 0 4px 15px rgba(0,0,0,0.3);
     transition: all 0.3s;
@@ -75,63 +87,65 @@
   .icon-btn:hover { background: var(--input-bg); }
   .icon-btn svg { width: 22px; height: 22px; }
 
-  .avatar { 
-    width: 45px; height: 45px; border-radius: 50%; background: #00ffc8; color: #0a0c10; 
-    display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; 
+  .avatar {
+    width: 45px; height: 45px; border-radius: 50%; background: #00ffc8; color: #0a0c10;
+    display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px;
     cursor: pointer; border: 2px solid #fff; box-shadow: 0 0 15px rgba(0,255,200,0.6); margin-left: auto;
   }
   .avatar.guest { background: #475569; color: #fff; border-color: #94a3b8; box-shadow: none; }
 
   h1 { font-family: 'Oswald', sans-serif; font-size: 2.4em; text-transform: uppercase; text-align: center; color: var(--text-title); text-shadow: 0 0 20px rgba(0,255,200,0.4); margin-bottom: 5px; letter-spacing: 1px; }
   .subtitle { text-align: center; font-size: 12px; text-transform: uppercase; letter-spacing: 3px; color: var(--text-desc); margin-bottom: 25px; }
-  
-  .panel, .place-card, .tabs button, .help-content, .profile-content, .settings-content, .about-content, .user-card, .map-modal-content { 
+
+  .panel, .place-card, .tabs button, .help-content, .profile-content, .settings-content, .about-content, .user-card, .map-modal-content, .quest-card {
     background: var(--glass-bg); border: 1px solid var(--glass-border); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
     box-shadow: inset 0 1px 0 var(--glass-highlight), 0 10px 40px rgba(0,0,0,0.4);
     transition: background 0.4s, border 0.4s; border-radius: 20px;
   }
   .panel { padding: 15px; margin-bottom: 15px; }
-  
+
   input, textarea, select { font-family: inherit; font-size: 15px; width: 100%; padding: 14px; border: 1px solid var(--glass-border); border-radius: 12px; margin-bottom: 10px; background: var(--input-bg); color: var(--text-main); -webkit-appearance: none; transition: all 0.3s; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
   input:focus, textarea:focus, select:focus { outline: none; border-color: #00ffc8; box-shadow: 0 0 15px rgba(0,255,200,0.3); }
   textarea { resize: vertical; min-height: 70px; }
-  
+
   button { background: var(--btn-bg); color: #00ffc8; border: 1px solid rgba(0,255,200,0.4); border-radius: 12px; font-weight: 600; font-family: 'Oswald', sans-serif; text-transform: uppercase; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; width: 100%; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: inset 0 1px 0 rgba(255,255,255,0.1); }
   button:active { transform: scale(0.96); }
   button svg { width: 18px; height: 18px; }
-  
+
   .btn-toggle { background: transparent; color: var(--text-desc); border: 1px dashed var(--glass-border); }
   label { font-family: 'Oswald', sans-serif; font-size: 11px; text-transform: uppercase; color: var(--text-desc); display: block; margin-bottom: 6px; letter-spacing: 1px; }
-  
+
   .place-card { border-left: 4px solid #00ffc8; margin-bottom: 20px; overflow: hidden; }
   .photo-container { width: 100%; height: 220px; background: #000; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; border-bottom: 1px solid var(--glass-border); }
   .photo-container::-webkit-scrollbar { display: none; }
   .photo-item { flex: 0 0 100%; scroll-snap-align: start; height: 100%; object-fit: cover; }
   .place-content { padding: 20px; }
   .place-card h3 { font-family: 'Oswald', sans-serif; font-size: 1.5em; text-transform: uppercase; color: var(--text-title); margin-bottom: 5px; }
-  
+
   .author-badge { display: inline-block; background: rgba(0,255,200,0.1); color: #00ffc8; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-bottom: 10px; cursor: pointer; border: 1px solid rgba(0,255,200,0.3); }
-  .desc { color: var(--text-desc); font-size: 15px; margin-bottom: 15px; line-height: 1.5; }
-  
+  .desc { color: var(--text-desc); font-size: 15px; margin-bottom: 15px; line-height: 1.5; word-break: break-word; }
+
   .comments { margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--glass-border); }
-  .comment { background: var(--input-bg); padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--glass-border); }
+  .comment { background: var(--input-bg); padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; border: 1px solid var(--glass-border); }
+  .comment > span { flex: 1; word-break: break-word; }
   .comment-author { font-weight: bold; color: #00ffc8; margin-right: 5px; font-size: 12px; cursor: pointer; }
+  .del-comment { width: auto; padding: 4px 8px; border: none; background: transparent; color: #ff0066; cursor: pointer; display: inline-flex; }
+  .del-comment svg { width: 16px; height: 16px; }
   .comment-form { display: flex; gap: 8px; margin-top: 10px; }
   .comment-form input { margin: 0; padding: 12px; }
   .comment-form button { width: auto; padding: 12px 20px; margin: 0; }
-  
+
   .empty { text-align: center; padding: 40px; color: var(--text-desc); text-transform: uppercase; font-family: 'Oswald'; font-size: 1.2em; letter-spacing: 2px; }
   .hidden { display: none !important; }
-  
-  .status { text-align: center; font-family: 'Oswald'; font-size: 13px; padding: 10px; margin-bottom: 15px; border-radius: 8px; text-transform: uppercase; backdrop-filter: blur(5px); }
-  .status.ok { color: #00ffc8; background: rgba(0,255,200,0.1); } 
-  .status.error { color: #ff0066; background: rgba(255,0,102,0.1); }
 
-  /* МОДАЛЬНЫЕ ОКНА */
+  .status { text-align: center; font-family: 'Oswald'; font-size: 13px; padding: 10px; margin-bottom: 15px; border-radius: 8px; text-transform: uppercase; backdrop-filter: blur(5px); }
+  .status.ok { color: #00ffc8; background: rgba(0,255,200,0.1); }
+  .status.error { color: #ff0066; background: rgba(255,0,102,0.1); }
+  .status.loading { color: var(--text-desc); background: rgba(255,255,255,0.05); }
+
   .help-modal, .profile-modal, .settings-modal, .about-modal, .banlist-modal, .user-info-modal, .map-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1001; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
   .help-content, .profile-content, .settings-content, .about-content, .banlist-content, .user-info-content { padding: 25px; max-width: 450px; width: 100%; color: var(--text-main); }
-  
-  /* КАРТА НА ВЕСЬ ЭКРАН */
+
   .map-modal-content { width: 100%; height: 100%; padding: 0; overflow: hidden; position: relative; display: flex; flex-direction: column; }
   #map { flex-grow: 1; width: 100%; border-radius: 20px; z-index: 1; }
   .map-close-btn { position: absolute; top: 15px; right: 15px; z-index: 1000; width: 50px; height: 50px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 50%; color: var(--text-main); display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: var(--glass-blur); box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
@@ -144,51 +158,82 @@
 
   .help-btn { position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; border-radius: 50%; background: #ff0066; color: #fff; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 32px rgba(255,0,102,0.5); z-index: 1000; cursor: pointer; backdrop-filter: blur(5px); }
   .help-btn svg { width: 28px; height: 28px; }
-  
+
   .form-row { display: flex; gap: 10px; }
   .form-row > * { flex: 1; }
+
+  /* Таб-кнопки внутри карточки места */
+  .actions { display: flex; gap: 5px; margin-bottom: 10px; }
+  .actions button { width: auto; padding: 5px 10px; font-size: 12px; }
+
+  /* Кнопка квестов в верхней панели */
+  #questsBtn { display: none; }
 </style>
 </head>
 <body>
 
-<div class="container">
-  <div class="top-bar">
-    <button class="icon-btn" id="mapBtn" title="Открыть карту"><i data-lucide="map"></i></button>
-    <button class="icon-btn" id="installBtn" title="Установить приложение" style="display:none;"><i data-lucide="download"></i></button>
-    <button class="icon-btn" id="settingsBtn" title="Настройки"><i data-lucide="settings"></i></button>
-    <button class="icon-btn" id="themeToggle" title="Сменить тему"><i data-lucide="moon"></i></button>
-    <button class="icon-btn" id="banlistBtn" title="Забаненные" style="display:none;"><i data-lucide="shield-alert"></i></button>
-    
-    <div class="avatar guest" id="avatarBtn">?</div>
-  </div>
+<div class="swipe-container">
 
-  <h1>Крутые места Чувашии</h1>
-  <div class="subtitle">Чебоксары · Новочебоксарск · Чувашия</div>
+  <!-- СТРАНИЦА 1: ГЛАВНАЯ -->
+  <div class="page" id="page-main">
+    <div class="container">
+      <div class="top-bar">
+        <button class="icon-btn" id="mapBtn" title="Открыть карту"><i data-lucide="map"></i></button>
+        <button class="icon-btn" id="installBtn" title="Установить приложение" style="display:none;"><i data-lucide="download"></i></button>
+        <button class="icon-btn" id="settingsBtn" title="Настройки"><i data-lucide="settings"></i></button>
+        <button class="icon-btn" id="themeToggle" title="Сменить тему"><i data-lucide="moon"></i></button>
+        <button class="icon-btn" id="banlistBtn" title="Забаненные" style="display:none;"><i data-lucide="shield-alert"></i></button>
+        <button class="icon-btn" id="questsBtn" title="Квесты"><i data-lucide="target"></i></button>
 
-  <div id="status" class="status loading">Загрузка...</div>
-  <div class="tabs" id="tabs">
-    <button class="active" data-tab="popular"><i data-lucide="flame"></i> Популярное</button>
-    <button data-tab="new"><i data-lucide="sparkles"></i> Новое</button>
-  </div>
-  <div class="panel">
-    <input type="text" id="searchInput" placeholder="Поиск по названию...">
-  </div>
-
-  <div class="panel">
-    <button class="btn-toggle" id="toggleForm" type="button"><i data-lucide="plus-circle"></i> Добавить место</button>
-    <div id="addForm" class="hidden" style="margin-top:15px;">
-      <label>Название *</label><input type="text" id="inName" placeholder="Название">
-      <label>Описание *</label><textarea id="inDesc" placeholder="Описание"></textarea>
-      <label>Ссылка на фото</label><input type="url" id="inPhotos" placeholder="https://.../image.jpg">
-      <div class="form-row">
-        <div><label>Город</label><select id="inCity"><option>Чебоксары</option><option>Новочебоксарск</option><option>Чувашия</option></select></div>
-        <div><label>Координаты</label><input type="text" id="inCoords" placeholder="56.146, 47.248"></div>
+        <div class="avatar guest" id="avatarBtn">?</div>
       </div>
-      <button id="saveBtn" type="button"><i data-lucide="save"></i> Сохранить</button>
+
+      <h1>Крутые места Чувашии</h1>
+      <div class="subtitle">Чебоксары · Новочебоксарск · Чувашия</div>
+
+      <div id="status" class="status loading">Загрузка...</div>
+      <div class="tabs" id="tabs" style="display:flex; gap:8px; margin-bottom:15px;">
+        <button class="active" data-tab="popular" style="flex:1; border-radius:12px; padding:10px;"><i data-lucide="flame"></i> Популярное</button>
+        <button data-tab="new" style="flex:1; border-radius:12px; padding:10px;"><i data-lucide="sparkles"></i> Новое</button>
+      </div>
+      <div class="panel">
+        <input type="text" id="searchInput" placeholder="Поиск по названию..." autocomplete="off">
+      </div>
+
+      <div class="panel">
+        <button class="btn-toggle" id="toggleForm" type="button"><i data-lucide="plus-circle"></i> Добавить место</button>
+        <div id="addForm" class="hidden" style="margin-top:15px;">
+          <label>Название *</label><input type="text" id="inName" placeholder="Название" maxlength="100">
+          <label>Описание *</label><textarea id="inDesc" placeholder="Описание" maxlength="2000"></textarea>
+          <label>Ссылка на фото</label><input type="url" id="inPhotos" placeholder="https://.../image.jpg">
+          <div class="form-row">
+            <div><label>Город</label><select id="inCity"><option>Чебоксары</option><option>Новочебоксарск</option><option>Чувашия</option></select></div>
+            <div><label>Координаты</label><input type="text" id="inCoords" placeholder="56.146, 47.248"></div>
+          </div>
+          <button id="saveBtn" type="button"><i data-lucide="save"></i> Сохранить</button>
+        </div>
+      </div>
+
+      <div id="placesList"></div>
     </div>
   </div>
 
-  <div id="placesList"></div>
+  <!-- СТРАНИЦА 2: КВЕСТЫ -->
+  <div class="page" id="page-quests">
+    <div class="container">
+      <div class="top-bar">
+        <button class="icon-btn" id="backBtn" title="Назад"><i data-lucide="arrow-right"></i></button>
+      </div>
+      <h1>Квесты</h1>
+      <div class="subtitle">Проверь свои силы</div>
+      <div class="quest-card panel" style="border-left: 4px solid #ffc800;">
+        <div style="font-family: 'Oswald'; font-size: 1.2em; color: #ffc800; margin-bottom: 10px;">Найди заброшку</div>
+        <p style="color: var(--text-desc); margin-bottom: 15px;">Найди старое здание и сделай фото.</p>
+        <button class="btn-toggle" onclick="checkAuthBeforeAction(() => alert('Квест начат!'))">Начать</button>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <!-- МОДАЛЬНЫЕ ОКНА -->
@@ -210,14 +255,14 @@
   <div class="profile-content">
     <h3 id="profileTitle">Вход</h3>
     <div id="loginSection">
-      <input type="text" id="loginNickname" placeholder="Ник">
-      <input type="password" id="loginPassword" placeholder="Пароль">
+      <input type="text" id="loginNickname" placeholder="Ник" autocomplete="username">
+      <input type="password" id="loginPassword" placeholder="Пароль" autocomplete="current-password">
       <button id="loginBtn" type="button">Войти</button>
       <p style="text-align:center; margin-top:15px; font-size:12px; color:var(--text-desc);">Нет аккаунта? <a href="#" id="showRegisterLink" style="color:#00ffc8;">Регистрация</a></p>
     </div>
     <div id="registerSection" class="hidden">
-      <input type="text" id="regNickname" placeholder="Придумайте ник">
-      <input type="password" id="regPassword" placeholder="Придумайте пароль">
+      <input type="text" id="regNickname" placeholder="Придумайте ник" maxlength="30" autocomplete="username">
+      <input type="password" id="regPassword" placeholder="Придумайте пароль" autocomplete="new-password">
       <button id="registerBtn" type="button">Зарегистрироваться</button>
       <p style="text-align:center; margin-top:15px; font-size:12px; color:var(--text-desc);">Уже есть аккаунт? <a href="#" id="showLoginLink" style="color:#00ffc8;">Войти</a></p>
     </div>
@@ -253,7 +298,6 @@
   </div>
 </div>
 
-<!-- ОКНО КАРТЫ НА ВЕСЬ ЭКРАН -->
 <div class="map-modal hidden" id="mapModal">
   <div class="map-modal-content">
     <div id="map"></div>
@@ -274,38 +318,100 @@
 </div>
 
 <script>
-const APPWRITE_ENDPOINT = 'https://fra.cloud.appwrite.io/v1';
+/* ============================================================
+   КОНФИГУРАЦИЯ
+   ============================================================ */
+const APPWRITE_ENDPOINT   = 'https://fra.cloud.appwrite.io/v1';
 const APPWRITE_PROJECT_ID = '6af75290002021ce6c30';
-const DATABASE_ID = '6af752b800204637c982'; 
-const COLLECTION_ID = '6af754b70031b4620e57'; 
+const DATABASE_ID         = '6af752b800204637c982';
+const COLLECTION_ID       = '6af754b70031b4620e57';
 
-const { Client, Databases, ID, Query } = Appwrite;
-const client = new Client().setEndpoint(APPWRITE_ENDPOINT).setProject(APPWRITE_PROJECT_ID);
-const databases = new Databases(client);
-
+/* ⚠️ ВНИМАНИЕ: пароль администратора оставлен на клиенте
+   ТОЛЬКО для совместимости с текущей архитектурой.
+   В продакшене его нужно вынести на сервер (Appwrite Function). */
 const ADMIN_PASSWORD = 'SmirnovKirill03@inbox.ry';
 
-let map = null;
-let markers = [];
-let places = [];
-let soundEnabled = localStorage.getItem('cheb_sound') !== 'false';
-let isLightTheme = localStorage.getItem('cheb_theme') === 'light';
-let currentUser = JSON.parse(localStorage.getItem('cheb_current_user') || 'null');
-let selectedUserForBan = null; 
-let lastError = 'Ошибок не было.';
-let editingPlaceId = null; 
+const { Client, Databases, ID, Query } = Appwrite;
+const client    = new Client().setEndpoint(APPWRITE_ENDPOINT).setProject(APPWRITE_PROJECT_ID);
+const databases = new Databases(client);
 
-const statusEl = document.getElementById('status');
-const avatarBtn = document.getElementById('avatarBtn');
+/* ============================================================
+   СОСТОЯНИЕ
+   ============================================================ */
+let map           = null;
+let markers       = [];
+let places        = [];
+let currentTab    = 'popular';
+let searchQuery   = '';
+let soundEnabled  = localStorage.getItem('cheb_sound') !== 'false';
+let isLightTheme  = localStorage.getItem('cheb_theme') === 'light';
+let currentUser   = safeParse(localStorage.getItem('cheb_current_user'));
+let selectedUserForBan = null;
+let lastError     = 'Ошибок не было.';
+let editingPlaceId = null;
+
+/* Кэш кнопок DOM */
+const statusEl   = document.getElementById('status');
+const avatarBtn  = document.getElementById('avatarBtn');
 const banlistBtn = document.getElementById('banlistBtn');
+const questsBtn  = document.getElementById('questsBtn');
 
-function isAdmin() { return currentUser && currentUser.is_admin === 'true'; }
+/* ============================================================
+   УТИЛИТЫ
+   ============================================================ */
+function safeParse(str) {
+  try { return JSON.parse(str); } catch { return null; }
+}
 
+/** Экранирование HTML — защита от XSS */
+function esc(s) {
+  if (s === null || s === undefined) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/** Безопасный вызов lucide.createIcons() */
+function refreshIcons() {
+  if (typeof lucide !== 'undefined' && lucide.createIcons) {
+    try { lucide.createIcons(); } catch (e) { /* noop */ }
+  }
+}
+
+/** Проверка — истёк ли бан */
+function isBanExpired(user) {
+  if (!user || user.ban_type === 'forever') return false;
+  if (user.ban_type !== 'day' && user.ban_type !== 'week') return false;
+  const until = Number(user.ban_until || 0);
+  if (!until) return false;
+  return Date.now() >= until;
+}
+
+/** Пользователь сейчас забанен? */
+function isUserBannedNow(user) {
+  if (!user) return false;
+  if (user.ban_type === 'forever') return true;
+  if (user.ban_type === 'day' || user.ban_type === 'week') {
+    return !isBanExpired(user);
+  }
+  return user.is_banned === 'true';
+}
+
+function isAdmin() {
+  return !!(currentUser && currentUser.is_admin === 'true');
+}
+
+/* ============================================================
+   UI: АВАТАР
+   ============================================================ */
 function updateAvatar() {
   if (currentUser) {
     avatarBtn.classList.remove('guest');
-    avatarBtn.innerText = currentUser.nickname.charAt(0).toUpperCase();
-    if (isAdmin()) banlistBtn.style.display = 'flex';
+    avatarBtn.innerText = (currentUser.nickname || '?').charAt(0).toUpperCase();
+    banlistBtn.style.display = isAdmin() ? 'flex' : 'none';
   } else {
     avatarBtn.classList.add('guest');
     avatarBtn.innerText = '?';
@@ -313,37 +419,84 @@ function updateAvatar() {
   }
 }
 
+/* ============================================================
+   ПРОВЕРКА АВТОРИЗАЦИИ ПЕРЕД ДЕЙСТВИЕМ
+   ============================================================ */
 function checkAuthBeforeAction(action) {
   if (!currentUser) {
     alert('Войдите в профиль, чтобы совершить это действие!');
     document.getElementById('profileModal').classList.remove('hidden');
     return;
   }
-  if (currentUser.is_banned === 'true' || currentUser.ban_type === 'forever') {
+  if (isUserBannedNow(currentUser)) {
     alert('Вы забанены и не можете совершать действия.');
     return;
   }
   action();
 }
 
-// === ЗВУК ===
-const AudioContext = window.AudioContext || window.webkitAudioContext;
+/* ============================================================
+   СВАЙПЫ
+   ============================================================ */
+let startX = 0, startY = 0, isSwiping = false, swipeFromScroller = false;
+
+document.addEventListener('touchstart', e => {
+  const target = e.target;
+  swipeFromScroller = !!(target.closest('.photo-container') || target.closest('input') || target.closest('textarea') || target.closest('select'));
+  startX = e.touches[0].clientX;
+  startY = e.touches[0].clientY;
+  isSwiping = true;
+}, { passive: true });
+
+document.addEventListener('touchend', e => {
+  if (!isSwiping || swipeFromScroller) { isSwiping = false; return; }
+  const diffX = startX - e.changedTouches[0].clientX;
+  const diffY = startY - e.changedTouches[0].clientY;
+  if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 70) {
+    if (diffX > 0) goToQuests();
+    else goToMain();
+  }
+  isSwiping = false;
+}, { passive: true });
+
+function goToQuests() {
+  document.getElementById('page-main').style.transform = 'translateX(-100vw)';
+  document.getElementById('page-quests').style.transform = 'translateX(0)';
+}
+function goToMain() {
+  document.getElementById('page-main').style.transform = 'translateX(0)';
+  document.getElementById('page-quests').style.transform = 'translateX(100vw)';
+}
+
+document.getElementById('backBtn').addEventListener('click', () => { goToMain(); playSound(); });
+questsBtn.addEventListener('click', () => { goToQuests(); playSound(); });
+
+/* ============================================================
+   ЗВУК
+   ============================================================ */
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
 let audioCtx;
 function playSound() {
   if (!soundEnabled) return;
-  if (!audioCtx) audioCtx = new AudioContext();
-  if (audioCtx.state === 'suspended') audioCtx.resume();
-  const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-  osc.type = 'sine';
-  osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-  osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.1);
-  gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-  osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+  try {
+    if (!audioCtx) audioCtx = new AudioCtx();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.1);
+    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + 0.1);
+  } catch (e) { /* noop */ }
 }
 document.addEventListener('click', (e) => { if (e.target.closest('button')) playSound(); });
 
-// === УСТАНОВКА ПРИЛОЖЕНИЯ ===
+/* ============================================================
+   УСТАНОВКА ПРИЛОЖЕНИЯ
+   ============================================================ */
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
@@ -364,9 +517,14 @@ window.addEventListener('appinstalled', () => {
   localStorage.setItem('cheb_app_installed', 'true');
 });
 if (localStorage.getItem('cheb_app_installed')) document.getElementById('installBtn').style.display = 'none';
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
 
-// === КАРТА ===
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => { /* нет sw.js — не падаем */ });
+}
+
+/* ============================================================
+   КАРТА
+   ============================================================ */
 document.getElementById('mapBtn').addEventListener('click', () => {
   document.getElementById('mapModal').classList.remove('hidden');
   if (!map) {
@@ -385,307 +543,631 @@ function updateMarkers() {
   markers.forEach(m => map.removeLayer(m));
   markers = [];
   places.forEach(p => {
-    if (p.coords && p.coords.includes(',')) {
-      const [lat, lng] = p.coords.split(',').map(Number);
-      if (!isNaN(lat) && !isNaN(lng)) {
-        const m = L.marker([lat, lng]).addTo(map).bindPopup(p.name || '');
-        markers.push(m);
-      }
-    }
+    if (p.is_archived === 'true') return;
+    if (p.is_banned === 'true') return;
+    if (!p.coords || !p.coords.includes(',')) return;
+    const [lat, lng] = p.coords.split(',').map(Number);
+    if (isNaN(lat) || isNaN(lng)) return;
+    const m = L.marker([lat, lng]).addTo(map).bindPopup(esc(p.name || ''));
+    markers.push(m);
   });
 }
 
-// === АВТОРИЗАЦИЯ ===
-document.getElementById('avatarBtn').addEventListener('click', () => {
+/* ============================================================
+   АВТОРИЗАЦИЯ
+   ============================================================ */
+avatarBtn.addEventListener('click', () => {
   document.getElementById('profileModal').classList.remove('hidden');
   if (currentUser) {
     document.getElementById('loginSection').classList.add('hidden');
     document.getElementById('registerSection').classList.add('hidden');
     document.getElementById('loggedInSection').classList.remove('hidden');
-    document.getElementById('userGreeting').innerText = "Привет, " + currentUser.nickname;
+    document.getElementById('userGreeting').innerText = 'Привет, ' + (currentUser.nickname || '');
   } else {
     document.getElementById('loginSection').classList.remove('hidden');
     document.getElementById('registerSection').classList.add('hidden');
     document.getElementById('loggedInSection').classList.add('hidden');
   }
 });
-document.getElementById('showRegisterLink').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('loginSection').classList.add('hidden'); document.getElementById('registerSection').classList.remove('hidden'); });
-document.getElementById('showLoginLink').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('loginSection').classList.remove('hidden'); document.getElementById('registerSection').classList.add('hidden'); });
-document.getElementById('closeProfileBtn').addEventListener('click', () => { document.getElementById('profileModal').classList.add('hidden'); });
 
-// ВХОД
+document.getElementById('showRegisterLink').addEventListener('click', (e) => {
+  e.preventDefault();
+  document.getElementById('loginSection').classList.add('hidden');
+  document.getElementById('registerSection').classList.remove('hidden');
+});
+document.getElementById('showLoginLink').addEventListener('click', (e) => {
+  e.preventDefault();
+  document.getElementById('loginSection').classList.remove('hidden');
+  document.getElementById('registerSection').classList.add('hidden');
+});
+document.getElementById('closeProfileBtn').addEventListener('click', () => {
+  document.getElementById('profileModal').classList.add('hidden');
+});
+
+/* ВХОД */
 document.getElementById('loginBtn').addEventListener('click', async () => {
   const nick = document.getElementById('loginNickname').value.trim();
   const pass = document.getElementById('loginPassword').value;
   if (!nick || !pass) return;
 
+  /* Админ-вход по спец-паролю */
   if (pass === ADMIN_PASSWORD) {
-    currentUser = { nickname: 'Админ', is_admin: 'true', is_banned: 'false', id: 'admin' };
+    currentUser = { nickname: 'Админ', is_admin: 'true', is_banned: 'false', ban_type: 'none', ban_until: '0', id: 'admin' };
     localStorage.setItem('cheb_current_user', JSON.stringify(currentUser));
-    updateAvatar(); document.getElementById('profileModal').classList.add('hidden');
-    alert('Добро пожаловать, Админ!'); render(); return;
+    updateAvatar();
+    document.getElementById('profileModal').classList.add('hidden');
+    alert('Добро пожаловать, Админ!');
+    render();
+    return;
   }
 
   try {
-    const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.equal('city', 'USER_ACCOUNT'), Query.equal('name', nick)]);
+    const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [
+      Query.equal('city', 'USER_ACCOUNT'),
+      Query.equal('name', nick),
+      Query.limit(1)
+    ]);
     if (res.documents.length === 0) { alert('Пользователь не найден!'); return; }
     const user = res.documents[0];
     if (user.desc !== pass) { alert('Неверный пароль!'); return; }
+
+    /* Проверка бана — учитываем ban_until */
     if (user.ban_type === 'forever') { alert('Вы забанены навсегда!'); return; }
-    
-    currentUser = { nickname: user.name, is_admin: 'false', id: user.$id, is_banned: user.is_banned || 'false', ban_type: user.ban_type || 'none' };
+    if (user.ban_type === 'day' || user.ban_type === 'week') {
+      const until = Number(user.ban_until || 0);
+      if (Date.now() < until) {
+        alert('Вы забанены до ' + new Date(until).toLocaleString());
+        return;
+      }
+      /* Бан истёк — можно снимать флаг в БД (необязательно) */
+    }
+
+    currentUser = {
+      nickname:  user.name,
+      is_admin:  'false',
+      id:        user.$id,
+      is_banned: user.is_banned || 'false',
+      ban_type:  user.ban_type  || 'none',
+      ban_until: user.ban_until || '0'
+    };
     localStorage.setItem('cheb_current_user', JSON.stringify(currentUser));
-    updateAvatar(); document.getElementById('profileModal').classList.add('hidden');
-    alert('С возвращением, ' + user.name); render();
-  } catch(e) { alert('Ошибка входа'); }
+    updateAvatar();
+    document.getElementById('profileModal').classList.add('hidden');
+    alert('С возвращением, ' + user.name);
+    render();
+  } catch (e) {
+    lastError = e.message || String(e);
+    alert('Ошибка входа');
+  }
 });
 
-// РЕГИСТРАЦИЯ
+/* РЕГИСТРАЦИЯ */
 document.getElementById('registerBtn').addEventListener('click', async () => {
   const nick = document.getElementById('regNickname').value.trim();
   const pass = document.getElementById('regPassword').value;
   if (!nick || !pass) return;
+  if (nick.length > 30) { alert('Ник слишком длинный (макс. 30)'); return; }
 
-  const deviceId = localStorage.getItem('cheb_device_id');
-  if (deviceId) { alert('На этом устройстве уже есть аккаунт!'); return; }
+  /* Защита от повторной регистрации на устройстве */
+  if (localStorage.getItem('cheb_device_id')) {
+    alert('На этом устройстве уже есть аккаунт!');
+    return;
+  }
   if (pass === ADMIN_PASSWORD) { alert('Этот пароль занят!'); return; }
 
   try {
-    const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.equal('city', 'USER_ACCOUNT'), Query.equal('name', nick)]);
+    const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [
+      Query.equal('city', 'USER_ACCOUNT'),
+      Query.equal('name', nick),
+      Query.limit(1)
+    ]);
     if (res.documents.length > 0) { alert('Ник занят!'); return; }
 
     const newUser = await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), {
-      name: nick, desc: pass, city: 'USER_ACCOUNT', category: 'user', guard: 'false', is_banned: 'false', ban_type: 'none', ban_until: '0'
+      name: nick,
+      desc: pass,
+      city: 'USER_ACCOUNT',
+      category: 'user',
+      guard: 'false',
+      is_banned: 'false',
+      ban_type: 'none',
+      ban_until: '0'
     });
-    
+
     localStorage.setItem('cheb_device_id', ID.unique());
-    currentUser = { nickname: nick, is_admin: 'false', id: newUser.$id, is_banned: 'false', ban_type: 'none' };
+    currentUser = {
+      nickname: nick,
+      is_admin: 'false',
+      id: newUser.$id,
+      is_banned: 'false',
+      ban_type: 'none',
+      ban_until: '0'
+    };
     localStorage.setItem('cheb_current_user', JSON.stringify(currentUser));
-    updateAvatar(); document.getElementById('profileModal').classList.add('hidden');
-    alert('Успешная регистрация!'); render();
-  } catch(e) { alert('Ошибка регистрации'); }
+    updateAvatar();
+    document.getElementById('profileModal').classList.add('hidden');
+    alert('Успешная регистрация!');
+    render();
+  } catch (e) {
+    lastError = e.message || String(e);
+    alert('Ошибка регистрации');
+  }
 });
 
 document.getElementById('logoutBtn').addEventListener('click', () => {
-  currentUser = null; localStorage.removeItem('cheb_current_user');
-  updateAvatar(); document.getElementById('profileModal').classList.add('hidden'); render();
+  currentUser = null;
+  localStorage.removeItem('cheb_current_user');
+  updateAvatar();
+  document.getElementById('profileModal').classList.add('hidden');
+  render();
 });
 
-// === МОДЕРАЦИЯ ===
+/* ============================================================
+   МОДЕРАЦИЯ
+   ============================================================ */
 function openUserInfo(nickname, userId) {
   if (currentUser && currentUser.id === userId) {
     alert('Вы не можете забанить самого себя!');
     return;
   }
   selectedUserForBan = userId;
-  document.getElementById('infoNickname').innerText = nickname;
-  if (isAdmin() && userId && userId !== '0') document.getElementById('adminBanControls').classList.remove('hidden');
-  else document.getElementById('adminBanControls').classList.add('hidden');
+  document.getElementById('infoNickname').innerText = nickname || 'Неизвестный';
+  if (isAdmin() && userId && userId !== '0' && userId !== 'admin') {
+    document.getElementById('adminBanControls').classList.remove('hidden');
+  } else {
+    document.getElementById('adminBanControls').classList.add('hidden');
+  }
   document.getElementById('userInfoModal').classList.remove('hidden');
 }
-document.getElementById('closeUserInfoBtn').addEventListener('click', () => { document.getElementById('userInfoModal').classList.add('hidden'); });
+document.getElementById('closeUserInfoBtn').addEventListener('click', () => {
+  document.getElementById('userInfoModal').classList.add('hidden');
+});
 
 async function banUser(type) {
   if (!isAdmin() || !selectedUserForBan) return;
   let banUntil = '0';
-  if (type === 'day') banUntil = Date.now() + 86400000;
-  if (type === 'week') banUntil = Date.now() + 604800000;
+  if (type === 'day')  banUntil = String(Date.now() + 86400000);
+  if (type === 'week') banUntil = String(Date.now() + 604800000);
 
   try {
-    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, selectedUserForBan, { is_banned: 'true', ban_type: type, ban_until: String(banUntil) });
-    alert('Пользователь забанен!'); document.getElementById('userInfoModal').classList.add('hidden'); render();
-  } catch(e) { alert('Ошибка бана: ' + e.message); }
+    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, selectedUserForBan, {
+      is_banned: 'true',
+      ban_type: type,
+      ban_until: banUntil
+    });
+    alert('Пользователь забанен!');
+    document.getElementById('userInfoModal').classList.add('hidden');
+    render();
+  } catch (e) {
+    lastError = e.message || String(e);
+    alert('Ошибка бана: ' + e.message);
+  }
 }
 
-document.getElementById('banlistBtn').addEventListener('click', async () => {
+banlistBtn.addEventListener('click', async () => {
   if (!isAdmin()) return;
   document.getElementById('banlistModal').classList.remove('hidden');
-  const container = document.getElementById('banlistItems'); container.innerHTML = 'Загрузка...';
-  
+  const container = document.getElementById('banlistItems');
+  container.innerHTML = 'Загрузка...';
+
   try {
-    const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.equal('city', 'USER_ACCOUNT')]);
-    const banned = res.documents.filter(u => u.ban_type === 'forever');
-    if (banned.length === 0) container.innerHTML = '<p style="text-align:center; color:var(--text-desc);">Нет забаненных</p>';
-    else container.innerHTML = banned.map(u => `<div class="user-card"><span>${u.name}</span><button onclick="unbanUser('${u.$id}')" style="border-color:#00ffc8; color:#00ffc8;">Разбанить</button></div>`).join('');
-  } catch(e) { container.innerHTML = 'Ошибка загрузки'; }
+    const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [
+      Query.equal('city', 'USER_ACCOUNT'),
+      Query.limit(100)
+    ]);
+    const banned = res.documents.filter(u =>
+      u.ban_type === 'forever' ||
+      ((u.ban_type === 'day' || u.ban_type === 'week') && Date.now() < Number(u.ban_until || 0))
+    );
+    if (banned.length === 0) {
+      container.innerHTML = '<p style="text-align:center; color:var(--text-desc);">Нет забаненных</p>';
+    } else {
+      container.innerHTML = banned.map(u => `
+        <div class="user-card">
+          <span>${esc(u.name)}</span>
+          <button onclick="unbanUser('${esc(u.$id)}')" style="border-color:#00ffc8; color:#00ffc8;">Разбанить</button>
+        </div>`).join('');
+    }
+  } catch (e) {
+    lastError = e.message || String(e);
+    container.innerHTML = 'Ошибка загрузки';
+  }
 });
-document.getElementById('closeBanlistBtn').addEventListener('click', () => { document.getElementById('banlistModal').classList.add('hidden'); });
+document.getElementById('closeBanlistBtn').addEventListener('click', () => {
+  document.getElementById('banlistModal').classList.add('hidden');
+});
 
 async function unbanUser(userId) {
   if (!isAdmin()) return;
   try {
-    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, userId, { is_banned: 'false', ban_type: 'none', ban_until: '0' });
-    alert('Разбанен!'); document.getElementById('banlistBtn').click();
-  } catch(e) { alert('Ошибка'); }
+    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, userId, {
+      is_banned: 'false',
+      ban_type: 'none',
+      ban_until: '0'
+    });
+    alert('Разбанен!');
+    banlistBtn.click();
+  } catch (e) {
+    lastError = e.message || String(e);
+    alert('Ошибка');
+  }
 }
 
-// === НАСТРОЙКИ ===
-document.getElementById('settingsBtn').addEventListener('click', () => document.getElementById('settingsModal').classList.remove('hidden'));
-document.getElementById('closeSettingsBtn').addEventListener('click', () => document.getElementById('settingsModal').classList.add('hidden'));
-document.getElementById('glassSlider').addEventListener('input', (e) => { document.documentElement.style.setProperty('--glass-opacity', e.target.value); localStorage.setItem('cheb_glass_opacity', e.target.value); });
-document.getElementById('soundOnBtn').addEventListener('click', () => { soundEnabled = true; localStorage.setItem('cheb_sound', 'true'); playSound(); });
-document.getElementById('soundOffBtn').addEventListener('click', () => { soundEnabled = false; localStorage.setItem('cheb_sound', 'false'); });
-document.getElementById('themeToggle').addEventListener('click', () => {
-  isLightTheme = !isLightTheme;
-  if (isLightTheme) { document.body.classList.add('light-theme'); document.getElementById('themeToggle').innerHTML = '<i data-lucide="sun"></i>'; localStorage.setItem('cheb_theme', 'light'); }
-  else { document.body.classList.remove('light-theme'); document.getElementById('themeToggle').innerHTML = '<i data-lucide="moon"></i>'; localStorage.setItem('cheb_theme', 'dark'); }
-  lucide.createIcons(); playSound();
+/* ============================================================
+   НАСТРОЙКИ
+   ============================================================ */
+document.getElementById('settingsBtn').addEventListener('click', () => {
+  document.getElementById('settingsModal').classList.remove('hidden');
+});
+document.getElementById('closeSettingsBtn').addEventListener('click', () => {
+  document.getElementById('settingsModal').classList.add('hidden');
+});
+document.getElementById('glassSlider').addEventListener('input', (e) => {
+  const v = e.target.value;
+  document.documentElement.style.setProperty('--glass-opacity', v);
+  localStorage.setItem('cheb_glass_opacity', v);
+});
+document.getElementById('soundOnBtn').addEventListener('click', () => {
+  soundEnabled = true;
+  localStorage.setItem('cheb_sound', 'true');
+  playSound();
+});
+document.getElementById('soundOffBtn').addEventListener('click', () => {
+  soundEnabled = false;
+  localStorage.setItem('cheb_sound', 'false');
 });
 
-// === ОШИБКИ ===
+document.getElementById('themeToggle').addEventListener('click', () => {
+  isLightTheme = !isLightTheme;
+  if (isLightTheme) {
+    document.body.classList.add('light-theme');
+    document.getElementById('themeToggle').innerHTML = '<i data-lucide="sun"></i>';
+    localStorage.setItem('cheb_theme', 'light');
+  } else {
+    document.body.classList.remove('light-theme');
+    document.getElementById('themeToggle').innerHTML = '<i data-lucide="moon"></i>';
+    localStorage.setItem('cheb_theme', 'dark');
+  }
+  refreshIcons();
+  playSound();
+});
+
+/* ============================================================
+   ОШИБКИ
+   ============================================================ */
 document.getElementById('helpBtn').addEventListener('click', () => {
   document.getElementById('errorLog').value = lastError;
   document.getElementById('helpModal').classList.remove('hidden');
 });
-document.getElementById('closeHelpBtn').addEventListener('click', () => document.getElementById('helpModal').classList.add('hidden'));
+document.getElementById('closeHelpBtn').addEventListener('click', () => {
+  document.getElementById('helpModal').classList.add('hidden');
+});
 
-// === ВКЛАДКИ ===
-document.getElementById('tabs').onclick = (e) => {
+/* ============================================================
+   ВКЛАДКИ / ПОИСК
+   ============================================================ */
+document.getElementById('tabs').addEventListener('click', (e) => {
   const btn = e.target.closest('button');
   if (!btn) return;
   document.querySelectorAll('#tabs button').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  currentTab = btn.dataset.tab || 'popular';
   render();
-};
+});
 
-// === ЗАГРУЗКА И РЕНДЕР ===
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  searchQuery = e.target.value.trim().toLowerCase();
+  render();
+});
+
+/* ============================================================
+   ЗАГРУЗКА ДАННЫХ
+   ============================================================ */
 async function loadData() {
   try {
-    const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID);
-    places = response.documents.filter(doc => doc.city !== 'USER_ACCOUNT').map(doc => ({ ...doc, id: doc.$id }));
-    document.getElementById('status').style.display = 'none';
-  } catch(e) { 
-    document.getElementById('status').textContent = 'Ошибка базы'; document.getElementById('status').style.color = '#ff0066';
-    lastError = e.message;
+    const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [
+      Query.limit(100)
+    ]);
+    places = response.documents
+      .filter(doc => doc.city !== 'USER_ACCOUNT')
+      .map(doc => ({
+        ...doc,
+        id: doc.$id,
+        comments: Array.isArray(doc.comments) ? doc.comments : []
+      }));
+    statusEl.style.display = 'none';
+  } catch (e) {
+    statusEl.textContent = 'Ошибка базы';
+    statusEl.className = 'status error';
+    lastError = e.message || String(e);
   }
   render();
   updateMarkers();
 }
 
+/* ============================================================
+   РЕНДЕР
+   ============================================================ */
+function getFilteredPlaces() {
+  let list = places.filter(p => p.is_archived !== 'true' && p.is_banned !== 'true');
+
+  /* Поиск */
+  if (searchQuery) {
+    list = list.filter(p => (p.name || '').toLowerCase().includes(searchQuery));
+  }
+
+  /* Вкладки */
+  if (currentTab === 'new') {
+    /* Сортируем по $createdAt (убывание) */
+    list = [...list].sort((a, b) => {
+      const da = new Date(a.$createdAt || 0).getTime();
+      const db = new Date(b.$createdAt || 0).getTime();
+      return db - da;
+    });
+  } else {
+    /* Популярное — по лайкам, затем по рейтингу, затем по дате */
+    list = [...list].sort((a, b) => {
+      const la = Number(a.likes || 0), lb = Number(b.likes || 0);
+      if (lb !== la) return lb - la;
+      const ra = Number(a.rating_sum || 0), rb = Number(b.rating_sum || 0);
+      if (rb !== ra) return rb - ra;
+      return new Date(b.$createdAt || 0) - new Date(a.$createdAt || 0);
+    });
+  }
+
+  return list;
+}
+
 function render() {
-  const list = document.getElementById('placesList');
-  if (!list) return;
+  const listEl = document.getElementById('placesList');
+  if (!listEl) return;
 
-  const activeTab = document.querySelector('#tabs button.active').dataset.tab;
-  let filtered = places.filter(p => p.is_archived !== 'true');
+  const filtered = getFilteredPlaces();
 
-  list.innerHTML = filtered.map(p => {
+  if (filtered.length === 0) {
+    listEl.innerHTML = '<div class="empty">Пока ничего нет</div>';
+    refreshIcons();
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(p => {
     let photoUrl = '';
-    if (p.photos && Array.isArray(p.photos) && p.photos.length > 0) photoUrl = p.photos[0];
-    else if (p.photos && typeof p.photos === 'string') photoUrl = p.photos;
+    if (Array.isArray(p.photos) && p.photos.length > 0) photoUrl = p.photos[0];
+    else if (typeof p.photos === 'string' && p.photos) photoUrl = p.photos;
 
-    const canEdit = isAdmin() || (currentUser && p.author_id === currentUser.id);
+    const canEdit = isAdmin() || (currentUser && p.author_id && p.author_id === currentUser.id);
+
+    const commentsHtml = (p.comments || []).map((c, idx) => {
+      const cText = (typeof c === 'string') ? c : (c && c.text) || '';
+      const cAuthor = (typeof c === 'object' && c && c.author) ? c.author : (p.author || 'Гость');
+      const canDel = isAdmin() || (currentUser && p.author_id === currentUser.id);
+      return `
+        <div class="comment">
+          <span><b class="comment-author">${esc(cAuthor)}:</b> ${esc(cText)}</span>
+          ${canDel ? `<button class="del-comment" onclick="deleteComment('${esc(p.id)}', ${idx})" title="Удалить"><i data-lucide="trash-2"></i></button>` : ''}
+        </div>`;
+    }).join('');
 
     return `
     <div class="place-card">
-      ${photoUrl ? `<div class="photo-container"><img src="${photoUrl}" class="photo-item" onerror="this.style.display='none'"></div>` : ''}
+      ${photoUrl ? `<div class="photo-container"><img src="${esc(photoUrl)}" class="photo-item" onerror="this.parentElement.style.display='none'"></div>` : ''}
       <div class="place-content">
-        <h3>${p.name}</h3>
-        <div class="author-badge" onclick="openUserInfo('${p.author || 'Неизвестный'}', '${p.author_id || '0'}')">Добавил: ${p.author || 'Неизвестный'}</div>
-        <div class="desc">${p.desc || ''}</div>
-        
-        <div class="actions" style="display:${canEdit ? 'flex' : 'none'}; margin-bottom:10px; gap:5px;">
-          <button class="btn-toggle" onclick="editPlace('${p.id}')" style="width:auto; padding:5px 10px; font-size:12px;">✏️ Ред.</button>
+        <h3>${esc(p.name)}</h3>
+        <div class="author-badge" onclick="openUserInfo('${esc(p.author || 'Неизвестный').replace(/'/g, "\\'")}', '${esc(p.author_id || '0')}')">
+          Добавил: ${esc(p.author || 'Неизвестный')}
         </div>
+        <div class="desc">${esc(p.desc || '')}</div>
+
+        ${canEdit ? `
+        <div class="actions">
+          <button class="btn-toggle" onclick="editPlace('${esc(p.id)}')">✏️ Ред.</button>
+          <button class="btn-toggle" onclick="deletePlace('${esc(p.id)}')" style="color:#ff0066; border-color:#ff0066;">🗑 Удалить</button>
+        </div>` : ''}
 
         <div class="comments">
           <strong style="font-size:12px;color:var(--text-desc);">КОММЕНТАРИИ (${(p.comments || []).length})</strong>
-          ${(p.comments || []).map(c => `<div class="comment"><span><b style="color:#00ffc8;">${p.author || 'Гость'}:</b> ${c}</span></div>`).join('')}
+          ${commentsHtml || '<div style="color:var(--text-desc); font-size:13px; margin-top:5px;">Пока нет комментариев</div>'}
           <div class="comment-form">
-            <input type="text" id="c_${p.id}" placeholder="Комментарий..." onkeydown="if(event.key==='Enter') addComment('${p.id}')">
-            <button onclick="addComment('${p.id}')"><i data-lucide="send"></i></button>
+            <input type="text" id="c_${esc(p.id)}" placeholder="Комментарий..." maxlength="500"
+                   onkeydown="if(event.key==='Enter'){event.preventDefault();addComment('${esc(p.id)}')}">
+            <button onclick="addComment('${esc(p.id)}')"><i data-lucide="send"></i></button>
           </div>
         </div>
       </div>
     </div>`;
   }).join('');
-  
-  if (typeof lucide !== 'undefined') lucide.createIcons();
+
+  refreshIcons();
 }
 
-// === ДОБАВЛЕНИЕ / РЕДАКТИРОВАНИЕ / КОММЕНТАРИИ ===
+/* ============================================================
+   ДОБАВЛЕНИЕ / РЕДАКТИРОВАНИЕ МЕСТА
+   ============================================================ */
+function resetAddForm() {
+  editingPlaceId = null;
+  document.getElementById('inName').value = '';
+  document.getElementById('inDesc').value = '';
+  document.getElementById('inPhotos').value = '';
+  document.getElementById('inCoords').value = '';
+  document.getElementById('inCity').value = 'Чебоксары';
+  document.getElementById('saveBtn').innerHTML = '<i data-lucide="save"></i> Сохранить';
+  document.getElementById('toggleForm').innerHTML = '<i data-lucide="plus-circle"></i> Добавить место';
+  refreshIcons();
+}
+
 function editPlace(id) {
   const p = places.find(x => x.id === id);
   if (!p) return;
   editingPlaceId = id;
   document.getElementById('inName').value = p.name || '';
   document.getElementById('inDesc').value = p.desc || '';
-  document.getElementById('inPhotos').value = p.photos ? (Array.isArray(p.photos) ? p.photos[0] : p.photos) : '';
+  document.getElementById('inPhotos').value = Array.isArray(p.photos) ? (p.photos[0] || '') : (p.photos || '');
   document.getElementById('inCoords').value = p.coords || '';
+  document.getElementById('inCity').value = ['Чебоксары','Новочебоксарск','Чувашия'].includes(p.city) ? p.city : 'Чебоксары';
+
   document.getElementById('addForm').classList.remove('hidden');
-  document.getElementById('toggleForm').innerText = 'Редактирование...';
-  document.getElementById('saveBtn').innerHTML = 'Обновить';
-  window.scrollTo(0,0);
+  document.getElementById('toggleForm').innerHTML = '<i data-lucide="x"></i> Отменить редактирование';
+  document.getElementById('saveBtn').innerHTML = '<i data-lucide="save"></i> Обновить';
+  refreshIcons();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 document.getElementById('toggleForm').addEventListener('click', () => {
   const form = document.getElementById('addForm');
   if (form.classList.contains('hidden')) {
     form.classList.remove('hidden');
-    editingPlaceId = null;
-    document.getElementById('saveBtn').innerHTML = '<i data-lucide="save"></i> Сохранить';
-    lucide.createIcons();
+    resetAddForm();
+    form.classList.remove('hidden'); /* resetAddForm не скрывает — на всякий случай */
   } else {
     form.classList.add('hidden');
-    document.getElementById('toggleForm').innerText = 'Добавить место';
+    resetAddForm();
   }
 });
 
 document.getElementById('saveBtn').addEventListener('click', () => {
   checkAuthBeforeAction(async () => {
-    const name = document.getElementById('inName').value.trim();
-    const desc = document.getElementById('inDesc').value.trim();
+    const name  = document.getElementById('inName').value.trim();
+    const desc  = document.getElementById('inDesc').value.trim();
     if (!name || !desc) return alert('Заполните поля!');
-    
+
     const photoLink = document.getElementById('inPhotos').value.trim();
-    
+    const coords    = document.getElementById('inCoords').value.trim();
+
+    /* Валидация координат */
+    if (coords) {
+      const parts = coords.split(',');
+      if (parts.length !== 2) return alert('Координаты должны быть в формате "широта, долгота"');
+      const lat = parseFloat(parts[0]), lng = parseFloat(parts[1]);
+      if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+        return alert('Некорректные координаты');
+      }
+    }
+
     const data = {
-      name: name, desc: desc,
+      name: name,
+      desc: desc,
       city: document.getElementById('inCity').value,
-      coords: document.getElementById('inCoords').value.trim(),
+      coords: coords,
       photos: photoLink ? [photoLink] : [],
       author: currentUser.nickname,
-      author_id: currentUser.id || '0'
+      author_id: currentUser.id || '0',
+      is_archived: 'false'
     };
 
     try {
       if (editingPlaceId) {
         await databases.updateDocument(DATABASE_ID, COLLECTION_ID, editingPlaceId, data);
       } else {
-        data.likes = "0"; data.rating_sum = "0"; data.rating_count = "0"; data.comments = []; data.is_banned = "false"; data.is_archived = "false";
+        data.likes = '0';
+        data.rating_sum = '0';
+        data.rating_count = '0';
+        data.comments = [];
+        data.is_banned = 'false';
         await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), data);
       }
       document.getElementById('addForm').classList.add('hidden');
-      document.getElementById('toggleForm').innerText = 'Добавить место';
+      resetAddForm();
       loadData();
-    } catch(e) { alert('Ошибка: ' + e.message); }
+    } catch (e) {
+      lastError = e.message || String(e);
+      alert('Ошибка: ' + e.message);
+    }
   });
 });
 
-async function addComment(id) {
+/* Удаление места */
+async function deletePlace(id) {
+  if (!confirm('Удалить это место?')) return;
   checkAuthBeforeAction(async () => {
-    const inp = document.getElementById('c_' + id);
-    const text = inp.value.trim();
-    if (!text) return;
     const p = places.find(x => x.id === id);
     if (!p) return;
-    p.comments = p.comments || [];
-    p.comments.push(text);
+    const canEdit = isAdmin() || (currentUser && p.author_id === currentUser.id);
+    if (!canEdit) { alert('Нет прав'); return; }
+
     try {
-      await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { comments: p.comments });
-      render();
-    } catch(e) { alert('Ошибка комментария: ' + e.message); }
+      await databases.deleteDocument(DATABASE_ID, COLLECTION_ID, id);
+      loadData();
+    } catch (e) {
+      lastError = e.message || String(e);
+      alert('Ошибка удаления: ' + e.message);
+    }
   });
 }
 
-// === ИНИЦИАЛИЗАЦИЯ ===
-if (isLightTheme) document.body.classList.add('light-theme');
+/* ============================================================
+   КОММЕНТАРИИ
+   ============================================================ */
+async function addComment(id) {
+  checkAuthBeforeAction(async () => {
+    const inp = document.getElementById('c_' + id);
+    if (!inp) return;
+    const text = inp.value.trim();
+    if (!text) return;
+
+    const p = places.find(x => x.id === id);
+    if (!p) return;
+
+    const comments = Array.isArray(p.comments) ? [...p.comments] : [];
+    /* Храним как объект: { text, author, author_id, date } — для корректного отображения */
+    comments.push({
+      text: text,
+      author: currentUser.nickname,
+      author_id: currentUser.id || '0',
+      date: Date.now()
+    });
+
+    try {
+      /* ⚠️ НЕ трогаем author_id места — иначе сломаются права на редактирование */
+      await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { comments: comments });
+      p.comments = comments;
+      inp.value = '';
+      render();
+    } catch (e) {
+      lastError = e.message || String(e);
+      alert('Ошибка комментария: ' + e.message);
+    }
+  });
+}
+
+async function deleteComment(id, index) {
+  const p = places.find(x => x.id === id);
+  if (!p) return;
+  const canDel = isAdmin() || (currentUser && p.author_id === currentUser.id);
+  if (!canDel) { alert('Нет прав'); return; }
+
+  const comments = Array.isArray(p.comments) ? [...p.comments] : [];
+  comments.splice(index, 1);
+
+  try {
+    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { comments: comments });
+    p.comments = comments;
+    render();
+  } catch (e) {
+    lastError = e.message || String(e);
+    alert('Ошибка удаления комментария: ' + e.message);
+  }
+}
+
+/* ============================================================
+   ИНИЦИАЛИЗАЦИЯ
+   ============================================================ */
+if (isLightTheme) {
+  document.body.classList.add('light-theme');
+  document.getElementById('themeToggle').innerHTML = '<i data-lucide="sun"></i>';
+}
+
 const savedOpacity = localStorage.getItem('cheb_glass_opacity') || '0.6';
 document.documentElement.style.setProperty('--glass-opacity', savedOpacity);
 document.getElementById('glassSlider').value = savedOpacity;
 
+/* Кнопка квестов — показываем, если есть поддержка тач-свайпа или для удобства всегда на десктопе */
+questsBtn.style.display = 'flex';
+
 updateAvatar();
 loadData();
+
+/* Обновляем иконки после загрузки lucide */
+window.addEventListener('load', () => refreshIcons());
 </script>
 </body>
 </html>
