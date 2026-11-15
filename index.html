@@ -19,31 +19,33 @@
   @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@400;600;700&family=Rubik:wght@400;500;700&display=swap');
   
   :root {
-    --bg-body: #0a0c10;
-    --text-main: #c8d0d8;
-    --text-title: #e8f0f8;
-    --text-desc: #8a9aaa;
+    --bg-body: #05070a;
+    --text-main: #e2e8f0;
+    --text-title: #ffffff;
+    --text-desc: #94a3b8;
     
-    /* УСИЛЕННЫЙ ЭФФЕКТ СТЕКЛА */
-    --glass-opacity: 0.45; 
-    --glass-blur: 25px;
+    /* КРАСИВЫЙ LIQUID GLASS */
+    --glass-opacity: 0.55; 
+    --glass-blur: 40px;
     
-    --glass-bg: rgba(18, 22, 28, var(--glass-opacity));
-    --glass-border: rgba(255, 255, 255, 0.15);
-    --input-bg: rgba(10, 12, 16, 0.7);
-    --btn-bg: rgba(26, 32, 40, 0.7);
+    --glass-bg: rgba(20, 25, 35, var(--glass-opacity));
+    --glass-border: rgba(255, 255, 255, 0.18);
+    --glass-highlight: rgba(255, 255, 255, 0.12);
+    --input-bg: rgba(0, 0, 0, 0.35);
+    --btn-bg: rgba(30, 40, 50, 0.5);
   }
 
   body.light-theme {
-    --bg-body: #eef2f6;
-    --text-main: #2c3e50;
-    --text-title: #1a202c;
-    --text-desc: #64748b;
+    --bg-body: #e2e8f0;
+    --text-main: #1e293b;
+    --text-title: #0f172a;
+    --text-desc: #475569;
     
     --glass-bg: rgba(255, 255, 255, var(--glass-opacity));
     --glass-border: rgba(0, 0, 0, 0.15);
-    --input-bg: rgba(255, 255, 255, 0.8);
-    --btn-bg: rgba(255, 255, 255, 0.8);
+    --glass-highlight: rgba(255, 255, 255, 0.8);
+    --input-bg: rgba(255, 255, 255, 0.6);
+    --btn-bg: rgba(255, 255, 255, 0.9);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -53,122 +55,79 @@
     background: var(--bg-body); 
     color: var(--text-main); 
     font-size: 16px; 
-    padding: 20px 15px 80px; 
+    overflow: hidden;
     transition: background 0.4s, color 0.4s; 
-    background-image: radial-gradient(circle at 50% 0%, rgba(0,255,200,0.15) 0%, transparent 60%);
+    background-image: 
+      radial-gradient(circle at 10% 20%, rgba(0, 255, 200, 0.2) 0%, transparent 40%),
+      radial-gradient(circle at 90% 80%, rgba(255, 0, 102, 0.2) 0%, transparent 40%);
     background-attachment: fixed;
   }
   
+  .swipe-container { display: flex; width: 100vw; height: 100vh; overflow: hidden; position: relative; }
+  .page { width: 100vw; height: 100vh; overflow-y: auto; padding: 20px 15px 80px; transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1); position: absolute; top: 0; left: 0; background: var(--bg-body); background-image: radial-gradient(circle at 10% 20%, rgba(0, 255, 200, 0.2) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(255, 0, 102, 0.2) 0%, transparent 40%); background-attachment: fixed; }
+  #page-main { transform: translateX(0); z-index: 2; }
+  #page-quests { transform: translateX(100vw); z-index: 1; }
+
   .container { max-width: 920px; margin: 0 auto; position: relative; }
   
-  .top-bar { 
-    display: flex; justify-content: flex-start; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;
-  }
+  /* ШАПКА */
+  .top-bar { display: flex; justify-content: flex-start; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
   
   .icon-btn { 
     background: var(--glass-bg); border: 1px solid var(--glass-border); 
     color: var(--text-main); width: 45px; height: 45px; 
     display: flex; align-items: center; justify-content: center; 
-    cursor: pointer; border-radius: 50%; backdrop-filter: var(--glass-blur);
+    cursor: pointer; border-radius: 50%; 
+    backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+    box-shadow: inset 0 1px 0 var(--glass-highlight), 0 4px 15px rgba(0,0,0,0.2);
     transition: all 0.3s;
   }
   .icon-btn:hover { background: var(--input-bg); }
   .icon-btn svg { width: 22px; height: 22px; }
 
-  #installBtn {
-    display: none; background: #00ffc8; color: #0a0c10; border: 1px solid #fff;
-    box-shadow: 0 0 15px rgba(0,255,200,0.5); animation: pulse 2s infinite;
+  .avatar { 
+    width: 45px; height: 45px; border-radius: 50%; background: #00ffc8; color: #0a0c10; 
+    display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; 
+    cursor: pointer; border: 2px solid #fff; box-shadow: 0 0 10px rgba(0,255,200,0.5); margin-left: auto;
   }
-  @keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(0,255,200, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(0,255,200, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(0,255,200, 0); }
-  }
+  .avatar.guest { background: #475569; color: #fff; border-color: #94a3b8; box-shadow: none; }
 
-  h1 { font-family: 'Oswald', sans-serif; font-size: 2.4em; text-transform: uppercase; text-align: center; color: var(--text-title); text-shadow: 0 0 15px rgba(0,255,200,0.3); margin-bottom: 5px; letter-spacing: 1px; }
+  h1 { font-family: 'Oswald', sans-serif; font-size: 2.4em; text-transform: uppercase; text-align: center; color: var(--text-title); text-shadow: 0 0 20px rgba(0,255,200,0.4); margin-bottom: 5px; letter-spacing: 1px; }
   .subtitle { text-align: center; font-size: 12px; text-transform: uppercase; letter-spacing: 3px; color: var(--text-desc); margin-bottom: 25px; }
   
-  .panel { 
-    background: var(--glass-bg); 
-    border: 1px solid var(--glass-border); 
-    border-radius: 12px; 
-    padding: 15px; 
-    margin-bottom: 15px; 
-    backdrop-filter: var(--glass-blur); 
-    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-    transition: background 0.4s, border 0.4s;
+  /* СТЕКЛО */
+  .panel, .place-card, .tabs button, .help-content, .profile-content, .settings-content, .about-content, .quest-card, .user-card { 
+    background: var(--glass-bg); border: 1px solid var(--glass-border); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+    box-shadow: inset 0 1px 0 var(--glass-highlight), 0 10px 40px rgba(0,0,0,0.3);
+    transition: background 0.4s, border 0.4s; border-radius: 20px;
   }
+  .panel { padding: 15px; margin-bottom: 15px; }
   
-  input, textarea, select { 
-    font-family: inherit; font-size: 15px; width: 100%; padding: 14px; 
-    border: 1px solid var(--glass-border); border-radius: 8px; 
-    margin-bottom: 10px; background: var(--input-bg); color: var(--text-main); 
-    -webkit-appearance: none; transition: all 0.3s;
-  }
-  input:focus, textarea:focus, select:focus { outline: none; border-color: #00ffc8; box-shadow: 0 0 10px rgba(0,255,200,0.3); }
+  input, textarea, select { font-family: inherit; font-size: 15px; width: 100%; padding: 14px; border: 1px solid var(--glass-border); border-radius: 12px; margin-bottom: 10px; background: var(--input-bg); color: var(--text-main); -webkit-appearance: none; transition: all 0.3s; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+  input:focus, textarea:focus, select:focus { outline: none; border-color: #00ffc8; box-shadow: 0 0 15px rgba(0,255,200,0.3); }
   textarea { resize: vertical; min-height: 70px; }
   
-  button { 
-    background: var(--btn-bg); color: #00ffc8; 
-    border: 1px solid rgba(0,255,200,0.5); border-radius: 8px; 
-    font-weight: 600; font-family: 'Oswald', sans-serif; 
-    text-transform: uppercase; cursor: pointer; transition: all 0.2s; 
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px; 
-    padding: 12px; width: 100%;
-  }
-  button:active { transform: scale(0.97); }
+  button { background: var(--btn-bg); color: #00ffc8; border: 1px solid rgba(0,255,200,0.4); border-radius: 12px; font-weight: 600; font-family: 'Oswald', sans-serif; text-transform: uppercase; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; width: 100%; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); box-shadow: inset 0 1px 0 rgba(255,255,255,0.1); }
+  button:active { transform: scale(0.96); }
   button svg { width: 18px; height: 18px; }
   
   .btn-toggle { background: transparent; color: var(--text-desc); border: 1px dashed var(--glass-border); }
-  .form-row { display: flex; gap: 10px; }
-  .form-row > * { flex: 1; }
   label { font-family: 'Oswald', sans-serif; font-size: 11px; text-transform: uppercase; color: var(--text-desc); display: block; margin-bottom: 6px; letter-spacing: 1px; }
   
-  .place-card { 
-    background: var(--glass-bg); 
-    border: 1px solid var(--glass-border); 
-    border-left: 4px solid #00ffc8; 
-    border-radius: 12px; 
-    margin-bottom: 20px; 
-    overflow: hidden; 
-    backdrop-filter: var(--glass-blur);
-    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
-    transition: background 0.4s, border 0.4s;
-  }
-  .photo-container { width: 100%; height: 220px; background: #000; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; border-bottom: 1px solid var(--glass-border); }
-  .photo-container::-webkit-scrollbar { display: none; }
-  .photo-item { flex: 0 0 100%; scroll-snap-align: start; height: 100%; object-fit: cover; }
+  .place-card { border-left: 4px solid #00ffc8; margin-bottom: 20px; overflow: hidden; }
   .place-content { padding: 20px; }
   .place-card h3 { font-family: 'Oswald', sans-serif; font-size: 1.5em; text-transform: uppercase; color: var(--text-title); margin-bottom: 8px; }
   .desc { color: var(--text-desc); font-size: 15px; margin-bottom: 15px; line-height: 1.5; }
   
-  .badges { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
-  .badge { font-family: 'Oswald', sans-serif; font-size: 10px; padding: 5px 10px; border-radius: 4px; text-transform: uppercase; display: flex; align-items: center; gap: 5px; backdrop-filter: blur(5px); }
-  .badge svg { width: 14px; height: 14px; }
-  .b-city { background: rgba(100,200,255,0.15); color: #64c8ff; border: 1px solid rgba(100,200,255,0.3); }
-  .b-cat { background: rgba(128,128,128,0.15); color: var(--text-main); border: 1px solid var(--glass-border); }
-  .b-guard { background: rgba(0,255,200,0.15); color: #00ffc8; border: 1px solid rgba(0,255,200,0.3); }
-  .b-noguard { background: rgba(255,0,102,0.15); color: #ff0066; border: 1px solid rgba(255,0,102,0.3); }
-  .b-stars { background: rgba(255,200,0,0.15); color: #ffc800; border: 1px solid rgba(255,200,0,0.3); }
-  
   .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 15px; }
   .actions button { width: auto; padding: 10px 16px; font-size: 13px; margin: 0; }
-  .btn-like { border-color: #ffc800; color: #ffc800; } 
-  .btn-like.liked { background: #ffc800; color: var(--bg-body); border-color: #ffc800; }
   .btn-ban { border-color: #ff0066; color: #ff0066; display: none; }
-  .btn-fav { border-color: #00ffc8; color: #00ffc8; }
   
-  .socials { display: flex; gap: 8px; margin-top: 15px; }
-  .socials button { width: auto; padding: 10px 16px; font-size: 12px; border-color: var(--glass-border); color: var(--text-main); }
-  
-  #map { height: 350px; width: 100%; border-radius: 12px; margin-bottom: 15px; border: 1px solid var(--glass-border); box-shadow: 0 8px 32px rgba(0,0,0,0.15); z-index: 1; }
-  
-  .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
-  .tabs button { flex: 1; background: var(--glass-bg); border: 1px solid var(--glass-border); color: var(--text-desc); padding: 12px; font-size: 14px; border-radius: 8px; backdrop-filter: var(--glass-blur); }
-  .tabs button.active { background: #00ffc8; color: #0a0c10; border-color: #00ffc8; box-shadow: 0 4px 15px rgba(0,255,200,0.3); }
+  #map { height: 350px; width: 100%; border-radius: 20px; margin-bottom: 15px; border: 1px solid var(--glass-border); box-shadow: 0 8px 32px rgba(0,0,0,0.3); z-index: 1; }
   
   .comments { margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--glass-border); }
   .comment { background: var(--input-bg); padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--glass-border); }
+  .comment-author { font-weight: bold; color: #00ffc8; margin-right: 5px; font-size: 12px; cursor: pointer; }
   .del-comment { width: auto; padding: 4px 8px; border: none; background: transparent; color: #ff0066; cursor: pointer; display: none; }
   .del-comment svg { width: 16px; height: 16px; }
   .comment-form { display: flex; gap: 8px; margin-top: 10px; }
@@ -181,202 +140,146 @@
   .status { text-align: center; font-family: 'Oswald'; font-size: 13px; padding: 10px; margin-bottom: 15px; border-radius: 8px; text-transform: uppercase; backdrop-filter: blur(5px); }
   .status.ok { color: #00ffc8; background: rgba(0,255,200,0.1); } 
   .status.error { color: #ff0066; background: rgba(255,0,102,0.1); }
-  
-  .city-filters { display: flex; gap: 8px; flex-wrap: wrap; }
-  .city-filters button { width: auto; padding: 8px 16px; font-size: 12px; background: transparent; border-color: var(--glass-border); color: var(--text-desc); border-radius: 20px; }
-  .city-filters button.active { background: #00ffc8; color: #000; border-color: #00ffc8; }
 
-  .help-btn { position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; border-radius: 50%; background: #ff0066; color: #fff; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 32px rgba(255,0,102,0.4); z-index: 1000; cursor: pointer; backdrop-filter: blur(5px); }
-  .help-btn svg { width: 28px; height: 28px; }
-  
-  .help-modal, .profile-modal, .settings-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1001; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(10px); }
-  .help-content, .profile-content, .settings-content { background: var(--glass-bg); border: 1px solid var(--glass-border); padding: 25px; border-radius: 16px; max-width: 450px; width: 100%; color: var(--text-main); backdrop-filter: var(--glass-blur); box-shadow: 0 20px 50px rgba(0,0,0,0.3); }
-  .help-content h3, .profile-content h3, .settings-content h3 { color: var(--text-title); margin-bottom: 20px; text-align: center; font-family: 'Oswald'; text-transform: uppercase; letter-spacing: 1px; }
+  .help-modal, .profile-modal, .settings-modal, .about-modal, .banlist-modal, .user-info-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1001; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+  .help-content, .profile-content, .settings-content, .about-content, .banlist-content, .user-info-content { padding: 25px; max-width: 450px; width: 100%; color: var(--text-main); }
+  h3 { color: var(--text-title); margin-bottom: 20px; text-align: center; font-family: 'Oswald'; text-transform: uppercase; letter-spacing: 1px; }
   .help-content textarea { width: 100%; height: 150px; margin-bottom: 15px; background: var(--input-bg); color: var(--text-main); border: 1px solid var(--glass-border); padding: 12px; font-size: 12px; border-radius: 8px; }
 
-  .rating-stars { display: flex; gap: 6px; margin: 15px 0; align-items: center; }
-  .star-btn { background: transparent; border: none; color: #555; cursor: pointer; padding: 0; width: auto; margin: 0; transition: transform 0.1s; }
-  .star-btn:active { transform: scale(1.3); }
-  .star-btn svg { width: 24px; height: 24px; fill: currentColor; filter: drop-shadow(0 0 5px rgba(0,0,0,0.5)); }
-  .star-btn.active { color: #ffc800; filter: drop-shadow(0 0 8px rgba(255,200,0,0.6)); }
-  .rating-text { font-size: 13px; color: var(--text-desc); margin-left: 12px; }
-
-  input[type=range] {
-    -webkit-appearance: none; width: 100%; background: transparent; padding: 0; margin: 15px 0; border: none;
-  }
-  input[type=range]::-webkit-slider-runnable-track {
-    width: 100%; height: 8px; cursor: pointer; background: var(--glass-border); border-radius: 4px;
-  }
-  input[type=range]::-webkit-slider-thumb {
-    height: 24px; width: 24px; border-radius: 50%; background: #00ffc8;
-    cursor: pointer; -webkit-appearance: none; margin-top: -8px;
-    box-shadow: 0 0 10px rgba(0,255,200,0.5);
-  }
-
-  @media (max-width: 600px) {
-    .form-row { flex-direction: column; gap: 0; }
-    .actions { flex-direction: column; }
-    .actions button { width: 100%; }
-    .socials { flex-direction: row; }
-    .socials button { flex: 1; }
-  }
+  .user-card { padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+  .user-card button { width: auto; padding: 6px 12px; font-size: 12px; }
 </style>
 </head>
 <body>
 
-<div class="container">
-  <div class="top-bar">
-    <button class="icon-btn" id="installBtn" title="Установить приложение"><i data-lucide="download"></i></button>
-    <button class="icon-btn" id="settingsBtn" title="Настройки"><i data-lucide="settings"></i></button>
-    <button class="icon-btn" id="themeToggle" title="Сменить тему"><i data-lucide="moon"></i></button>
-    <button class="icon-btn" id="profileBtn" title="Профиль"><i data-lucide="user"></i></button>
-  </div>
+<div class="swipe-container">
+  
+  <!-- СТРАНИЦА 1: ГЛАВНАЯ -->
+  <div class="page" id="page-main">
+    <div class="container">
+      <div class="top-bar">
+        <button class="icon-btn" id="installBtn" title="Установить приложение"><i data-lucide="download"></i></button>
+        <button class="icon-btn" id="settingsBtn" title="Настройки"><i data-lucide="settings"></i></button>
+        <button class="icon-btn" id="themeToggle" title="Сменить тему"><i data-lucide="moon"></i></button>
+        <button class="icon-btn" id="banlistBtn" title="Забаненные" style="display:none;"><i data-lucide="shield-alert"></i></button>
+        
+        <div class="avatar guest" id="avatarBtn">?</div>
+      </div>
 
-  <h1>Крутые места Чувашии</h1>
-  <div class="subtitle">Чебоксары · Новочебоксарск · Чувашия</div>
-  <div id="status" class="status loading">Загрузка...</div>
+      <h1>Крутые места Чувашии</h1>
+      <div class="subtitle">Чебоксары · Новочебоксарск · Чувашия</div>
 
-  <div class="tabs" id="tabs">
-    <button class="active" data-tab="popular"><i data-lucide="flame"></i> Популярное</button>
-    <button data-tab="new"><i data-lucide="sparkles"></i> Новое</button>
-    <button data-tab="favorites"><i data-lucide="star"></i> Избранное</button>
-  </div>
+      <div id="status" class="status loading">Загрузка...</div>
+      <div class="tabs" id="tabs">
+        <button class="active" data-tab="popular"><i data-lucide="flame"></i> Популярное</button>
+        <button data-tab="new"><i data-lucide="sparkles"></i> Новое</button>
+      </div>
+      <div class="panel">
+        <input type="text" id="searchInput" placeholder="Поиск по названию...">
+      </div>
+      <div id="map"></div>
 
-  <div class="panel">
-    <div class="city-filters" id="cityFilters">
-      <button class="active" data-city="all">Все</button>
-      <button data-city="Чебоксары">Чебоксары</button>
-      <button data-city="Новочебоксарск">Новочебоксарск</button>
-      <button data-city="Чувашия">Чувашия</button>
+      <div class="panel">
+        <button class="btn-toggle" id="toggleForm" type="button"><i data-lucide="plus-circle"></i> Добавить место</button>
+        <div id="addForm" class="hidden" style="margin-top:15px;">
+          <label>Название *</label><input type="text" id="inName" placeholder="Название">
+          <label>Описание *</label><textarea id="inDesc" placeholder="Описание"></textarea>
+          <label>Ссылка на фото</label><input type="url" id="inPhotos" placeholder="https://.../image.jpg">
+          <div class="form-row">
+            <div><label>Город</label><select id="inCity"><option>Чебоксары</option><option>Новочебоксарск</option><option>Чувашия</option></select></div>
+            <div><label>Координаты</label><input type="text" id="inCoords" placeholder="56.146, 47.248"></div>
+          </div>
+          <button id="saveBtn" type="button"><i data-lucide="save"></i> Сохранить</button>
+        </div>
+      </div>
+
+      <div id="placesList"></div>
     </div>
   </div>
 
-  <div class="panel">
-    <input type="text" id="searchInput" placeholder="Поиск по названию или описанию...">
-  </div>
-
-  <div id="map"></div>
-
-  <div class="panel">
-    <button class="btn-toggle" id="toggleForm" type="button"><i data-lucide="plus-circle"></i> Добавить новое место</button>
-    <div id="addForm" class="hidden" style="margin-top:15px;">
-      <label>Название *</label><input type="text" id="inName" placeholder="Название">
-      <label>Описание *</label><textarea id="inDesc" placeholder="Описание"></textarea>
-      <label>Ссылка на фото (необязательно)</label>
-      <input type="url" id="inPhotos" placeholder="https://.../image.jpg">
-      <label>Ссылка на видео (необязательно)</label>
-      <input type="url" id="inVideo" placeholder="https://...">
-      <div class="form-row">
-        <div><label>Город</label><select id="inCity"><option>Чебоксары</option><option>Новочебоксарск</option><option>Чувашия</option></select></div>
-        <div><label>Категория</label><select id="inCat"><option>Заброшки</option><option>Природа</option><option>Архитектура</option><option>Смотровая</option><option>Другое</option></select></div>
+  <!-- СТРАНИЦА 2: КВЕСТЫ -->
+  <div class="page" id="page-quests">
+    <div class="container">
+      <div class="top-bar">
+        <button class="icon-btn" id="backBtn" title="Назад"><i data-lucide="arrow-right"></i></button>
       </div>
-      <div class="form-row">
-        <div><label>Охрана</label><select id="inGuard"><option>Нет</option><option>Да</option></select></div>
-        <div><label>Координаты</label><input type="text" id="inCoords" placeholder="56.146, 47.248"></div>
+      <h1>Квесты</h1>
+      <div class="subtitle">Проверь свои силы</div>
+      <div class="quest-card panel" style="border-left: 4px solid #ffc800;">
+        <div style="font-family: 'Oswald'; font-size: 1.2em; color: #ffc800; margin-bottom: 10px;">Найди заброшку</div>
+        <p style="color: var(--text-desc); margin-bottom: 15px;">Найди старое здание и сделай фото.</p>
+        <button class="btn-toggle" onclick="checkAuthBeforeAction(() => alert('Квест начат!'))">Начать</button>
       </div>
-      <label>Ссылка на сайт</label><input type="text" id="inLink" placeholder="https://...">
-      <button id="saveBtn" type="button"><i data-lucide="save"></i> Сохранить</button>
-      <div id="uploadStatus" style="font-size:12px; text-align:center; margin-top:5px; color:#00ffc8;"></div>
     </div>
   </div>
 
-  <div id="placesList"></div>
 </div>
 
-<button class="help-btn" id="helpBtn" type="button">
-  <i data-lucide="shirt"></i>
-</button>
-
-<div class="help-modal hidden" id="helpModal">
-  <div class="help-content">
-    <h3>Точная ошибка</h3>
-    <p style="font-size:13px; margin-bottom:15px;">Скопируй текст ниже и отправь разработчику:</p>
-    <textarea id="errorLog" readonly></textarea>
-    <button id="closeHelpBtn" type="button">Закрыть</button>
-  </div>
-</div>
-
+<!-- МОДАЛЬНЫЕ ОКНА -->
 <div class="settings-modal hidden" id="settingsModal">
   <div class="settings-content">
-    <h3>Настройки вида</h3>
-    <label>Прозрачность панелей (Стекло)</label>
-    <input type="range" id="glassSlider" min="0.1" max="1" step="0.05" value="0.45">
-    <p style="text-align:center; font-size:12px; color:var(--text-desc); margin-bottom: 20px;">Двигай ползунок, чтобы настроить эффект размытия.</p>
-    <button id="closeSettingsBtn" type="button" class="btn-toggle">Закрыть</button>
+    <h3>Настройки</h3>
+    <label>Прозрачность стекла</label>
+    <input type="range" id="glassSlider" min="0.1" max="0.95" step="0.05" value="0.55">
+    <label style="margin-top:15px;">Звук</label>
+    <div style="display:flex; gap:10px;">
+      <button id="soundOnBtn" class="btn-toggle" style="flex:1; border-color:#00ffc8;">Вкл</button>
+      <button id="soundOffBtn" class="btn-toggle" style="flex:1; border-color:#ff0066; color:#ff0066;">Выкл</button>
+    </div>
+    <button id="closeSettingsBtn" type="button" class="btn-toggle" style="margin-top:20px;">Закрыть</button>
   </div>
 </div>
 
 <div class="profile-modal hidden" id="profileModal">
   <div class="profile-content">
-    <h3 id="profileTitle">Профиль</h3>
-    
-    <div class="tabs" id="authTabs">
-      <button class="active" data-tab="login">Вход</button>
-      <button data-tab="register">Регистрация</button>
-    </div>
-
+    <h3 id="profileTitle">Вход</h3>
     <div id="loginSection">
-      <label>Ваш ник</label>
-      <input type="text" id="loginNickname" placeholder="Введите ник">
-      <label>Пароль</label>
-      <input type="password" id="loginPassword" placeholder="Введите пароль">
+      <input type="text" id="loginNickname" placeholder="Ник">
+      <input type="password" id="loginPassword" placeholder="Пароль">
       <button id="loginBtn" type="button">Войти</button>
+      <p style="text-align:center; margin-top:15px; font-size:12px; color:var(--text-desc);">Нет аккаунта? <a href="#" id="showRegisterLink" style="color:#00ffc8;">Регистрация</a></p>
     </div>
-
     <div id="registerSection" class="hidden">
-      <label>Придумайте ник</label>
-      <input type="text" id="regNickname" placeholder="Уникальный ник">
-      <label>Придумайте пароль</label>
-      <input type="password" id="regPassword" placeholder="Пароль">
+      <input type="text" id="regNickname" placeholder="Придумайте ник">
+      <input type="password" id="regPassword" placeholder="Придумайте пароль">
       <button id="registerBtn" type="button">Зарегистрироваться</button>
+      <p style="text-align:center; margin-top:15px; font-size:12px; color:var(--text-desc);">Уже есть аккаунт? <a href="#" id="showLoginLink" style="color:#00ffc8;">Войти</a></p>
     </div>
-
     <div id="loggedInSection" class="hidden">
-      <p id="userGreeting" style="text-align:center; margin-bottom:20px; font-weight:bold; color:#00ffc8; font-size: 1.1em;"></p>
+      <p id="userGreeting" style="text-align:center; margin-bottom:20px; font-weight:bold; color:#00ffc8;"></p>
       <button id="logoutBtn" type="button" style="border-color: #ff0066; color: #ff0066;">Выйти</button>
     </div>
+    <button id="closeProfileBtn" type="button" class="btn-toggle" style="margin-top:20px;">Закрыть</button>
+  </div>
+</div>
 
-    <button id="closeProfileBtn" type="button" class="btn-toggle" style="margin-top:20px;">Закрыть меню</button>
+<div class="user-info-modal hidden" id="userInfoModal">
+  <div class="user-info-content">
+    <h3 id="infoNickname">Ник</h3>
+    <p id="infoStatus" style="text-align:center; margin-bottom:20px;"></p>
+    <div id="adminBanControls" class="hidden">
+      <p style="text-align:center; margin-bottom:10px; font-size:14px; color:#ff0066;">Модерация:</p>
+      <div style="display:flex; flex-direction:column; gap:5px;">
+        <button onclick="banUser('day')" class="btn-toggle" style="color:#ffc800; border-color:#ffc800;">Забанить на 1 день</button>
+        <button onclick="banUser('week')" class="btn-toggle" style="color:#ff9900; border-color:#ff9900;">Забанить на 1 неделю</button>
+        <button onclick="banUser('forever')" class="btn-toggle" style="color:#ff0066; border-color:#ff0066;">Забанить навсегда</button>
+      </div>
+    </div>
+    <button id="closeUserInfoBtn" type="button" class="btn-toggle" style="margin-top:20px;">Закрыть</button>
+  </div>
+</div>
+
+<div class="banlist-modal hidden" id="banlistModal">
+  <div class="banlist-content">
+    <h3>Забаненные</h3>
+    <div id="banlistItems" style="max-height: 300px; overflow-y: auto;"></div>
+    <button id="closeBanlistBtn" type="button" class="btn-toggle" style="margin-top:20px;">Закрыть</button>
   </div>
 </div>
 
 <script>
 // ============================================
-// ЗВУК НАЖАТИЯ (СИНТЕЗАТОР)
-// ============================================
-const AudioContext = window.AudioContext || window.webkitAudioContext;
-let audioCtx;
-
-function playClickSound() {
-  if (!audioCtx) audioCtx = new AudioContext();
-  if (audioCtx.state === 'suspended') audioCtx.resume();
-  
-  const oscillator = audioCtx.createOscillator();
-  const gainNode = audioCtx.createGain();
-  
-  oscillator.type = 'sine';
-  oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
-  oscillator.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.05);
-  
-  gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
-  gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
-  
-  oscillator.connect(gainNode);
-  gainNode.connect(audioCtx.destination);
-  
-  oscillator.start();
-  oscillator.stop(audioCtx.currentTime + 0.05);
-}
-
-// Вешаем звук на все кнопки
-document.addEventListener('click', (e) => {
-  if (e.target.closest('button') || e.target.closest('.icon-btn') || e.target.closest('.star-btn')) {
-    playClickSound();
-  }
-});
-
-// ============================================
-// КЛЮЧИ APPWRITE
+// НАСТРОЙКИ APPWRITE
 // ============================================
 const APPWRITE_ENDPOINT = 'https://fra.cloud.appwrite.io/v1';
 const APPWRITE_PROJECT_ID = '6af75290002021ce6c30';
@@ -387,557 +290,311 @@ const { Client, Databases, ID, Query } = Appwrite;
 const client = new Client().setEndpoint(APPWRITE_ENDPOINT).setProject(APPWRITE_PROJECT_ID);
 const databases = new Databases(client);
 
-let map = null, markers = [];
-let places = [];
-let favorites = JSON.parse(localStorage.getItem('cheb_favs') || '[]');
-let likedPlaces = JSON.parse(localStorage.getItem('cheb_liked') || '[]');
-let myRatings = JSON.parse(localStorage.getItem('cheb_my_ratings') || '{}');
-let currentCity = 'all', currentTab = 'popular';
-let lastError = 'Ошибок не было.';
-
-let currentUser = JSON.parse(localStorage.getItem('cheb_current_user') || 'null');
 const ADMIN_PASSWORD = 'SmirnovKirill03@inbox.ry';
+
+let places = [];
+let soundEnabled = localStorage.getItem('cheb_sound') !== 'false';
 let isLightTheme = localStorage.getItem('cheb_theme') === 'light';
+let currentUser = JSON.parse(localStorage.getItem('cheb_current_user') || 'null');
+let selectedUserForBan = null; 
 
 const statusEl = document.getElementById('status');
+const avatarBtn = document.getElementById('avatarBtn');
+const banlistBtn = document.getElementById('banlistBtn');
 
-// === НАСТРОЙКИ (ПРОЗРАЧНОСТЬ) ===
-const savedOpacity = localStorage.getItem('cheb_glass_opacity') || '0.45';
-document.documentElement.style.setProperty('--glass-opacity', savedOpacity);
-document.getElementById('glassSlider').value = savedOpacity;
+// === ФУНКЦИИ ПРОВЕРКИ ===
+function isAdmin() { return currentUser && currentUser.is_admin === 'true'; }
 
-document.getElementById('settingsBtn').addEventListener('click', () => {
-  document.getElementById('settingsModal').classList.remove('hidden');
-});
-
-document.getElementById('closeSettingsBtn').addEventListener('click', () => {
-  document.getElementById('settingsModal').classList.add('hidden');
-});
-
-document.getElementById('glassSlider').addEventListener('input', (e) => {
-  const val = e.target.value;
-  document.documentElement.style.setProperty('--glass-opacity', val);
-  localStorage.setItem('cheb_glass_opacity', val);
-});
-
-// === УСТАНОВКА PWA ===
-let deferredPrompt;
-const installBtn = document.getElementById('installBtn');
-
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  installBtn.style.display = 'flex';
-});
-
-installBtn.addEventListener('click', async () => {
-  installBtn.style.display = 'none';
-  if (deferredPrompt) {
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    deferredPrompt = null;
-  }
-});
-
-window.addEventListener('appinstalled', () => {
-  installBtn.style.display = 'none';
-});
-
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
-}
-
-// === ТЕМА ===
-if (isLightTheme) {
-  document.body.classList.add('light-theme');
-  document.getElementById('themeToggle').innerHTML = '<i data-lucide="sun"></i>';
-}
-
-document.getElementById('themeToggle').addEventListener('click', () => {
-  isLightTheme = !isLightTheme;
-  if (isLightTheme) {
-    document.body.classList.add('light-theme');
-    document.getElementById('themeToggle').innerHTML = '<i data-lucide="sun"></i>';
-    localStorage.setItem('cheb_theme', 'light');
-  } else {
-    document.body.classList.remove('light-theme');
-    document.getElementById('themeToggle').innerHTML = '<i data-lucide="moon"></i>';
-    localStorage.setItem('cheb_theme', 'dark');
-  }
-  lucide.createIcons();
-});
-
-// === ПРОФИЛЬ ===
-const profileModal = document.getElementById('profileModal');
-const loginSection = document.getElementById('loginSection');
-const registerSection = document.getElementById('registerSection');
-const loggedInSection = document.getElementById('loggedInSection');
-
-function updateProfileUI() {
+function updateAvatar() {
   if (currentUser) {
-    document.getElementById('authTabs').classList.add('hidden');
-    loginSection.classList.add('hidden');
-    registerSection.classList.add('hidden');
-    loggedInSection.classList.remove('hidden');
-    document.getElementById('userGreeting').textContent = `Привет, ${currentUser.nickname}! ${currentUser.is_admin === 'true' ? '(Админ)' : ''}`;
+    avatarBtn.classList.remove('guest');
+    avatarBtn.innerText = currentUser.nickname.charAt(0).toUpperCase();
+    if (isAdmin()) banlistBtn.style.display = 'flex';
   } else {
-    document.getElementById('authTabs').classList.remove('hidden');
-    loggedInSection.classList.add('hidden');
-    loginSection.classList.remove('hidden');
-    registerSection.classList.add('hidden');
+    avatarBtn.classList.add('guest');
+    avatarBtn.innerText = '?';
+    banlistBtn.style.display = 'none';
   }
-  render();
 }
 
-document.getElementById('profileBtn').addEventListener('click', () => {
-  profileModal.classList.remove('hidden');
-  updateProfileUI();
+// ФУНКЦИЯ ПРОВЕРКИ ПЕРЕД ДЕЙСТВИЕМ
+function checkAuthBeforeAction(action) {
+  if (!currentUser) {
+    alert('Войдите в профиль, чтобы совершить это действие!');
+    document.getElementById('profileModal').classList.remove('hidden');
+    return;
+  }
+  if (currentUser.is_banned === 'true' || currentUser.ban_type === 'forever') {
+    alert('Вы забанены и не можете совершать действия.');
+    return;
+  }
+  action();
+}
+
+// === СВАЙПЫ ===
+let startX = 0, startY = 0, isSwiping = false;
+document.addEventListener('touchstart', e => { startX = e.touches[0].clientX; startY = e.touches[0].clientY; isSwiping = true; }, { passive: true });
+document.addEventListener('touchend', e => {
+  if (!isSwiping) return;
+  const diffX = startX - e.changedTouches[0].clientX;
+  const diffY = startY - e.changedTouches[0].clientY;
+  if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 70) {
+    if (diffX > 0) { document.getElementById('page-main').style.transform = 'translateX(-100vw)'; document.getElementById('page-quests').style.transform = 'translateX(0)'; }
+    else { document.getElementById('page-main').style.transform = 'translateX(0)'; document.getElementById('page-quests').style.transform = 'translateX(100vw)'; }
+  }
+  isSwiping = false;
+}, { passive: true });
+
+document.getElementById('backBtn').addEventListener('click', () => {
+  document.getElementById('page-main').style.transform = 'translateX(0)';
+  document.getElementById('page-quests').style.transform = 'translateX(100vw)';
+  playSound('click');
+});
+
+// === ЗВУК ===
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+function playSound(type) {
+  if (!soundEnabled) return;
+  if (!audioCtx) audioCtx = new AudioContext();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+  if (type === 'click') { osc.type = 'triangle'; osc.frequency.setValueAtTime(200, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1); }
+  gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
+  osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+}
+
+document.addEventListener('click', (e) => {
+  if (e.target.closest('button')) playSound('click');
+});
+
+// === АВТОРИЗАЦИЯ ===
+document.getElementById('avatarBtn').addEventListener('click', () => {
+  document.getElementById('profileModal').classList.remove('hidden');
+  if (currentUser) {
+    document.getElementById('loginSection').classList.add('hidden');
+    document.getElementById('registerSection').classList.add('hidden');
+    document.getElementById('loggedInSection').classList.remove('hidden');
+    document.getElementById('userGreeting').innerText = "Привет, " + currentUser.nickname;
+  } else {
+    document.getElementById('loginSection').classList.remove('hidden');
+    document.getElementById('registerSection').classList.add('hidden');
+    document.getElementById('loggedInSection').classList.add('hidden');
+  }
+});
+
+document.getElementById('showRegisterLink').addEventListener('click', (e) => {
+  e.preventDefault();
+  document.getElementById('loginSection').classList.add('hidden');
+  document.getElementById('registerSection').classList.remove('hidden');
+});
+
+document.getElementById('showLoginLink').addEventListener('click', (e) => {
+  e.preventDefault();
+  document.getElementById('loginSection').classList.remove('hidden');
+  document.getElementById('registerSection').classList.add('hidden');
 });
 
 document.getElementById('closeProfileBtn').addEventListener('click', () => {
-  profileModal.classList.add('hidden');
+  document.getElementById('profileModal').classList.add('hidden');
 });
 
-document.getElementById('authTabs').onclick = (e) => {
-  if (e.target.tagName !== 'BUTTON') return;
-  document.querySelectorAll('#authTabs button').forEach(b => b.classList.remove('active'));
-  e.target.classList.add('active');
-  
-  if (e.target.dataset.tab === 'login') {
-    loginSection.classList.remove('hidden');
-    registerSection.classList.add('hidden');
-  } else {
-    loginSection.classList.add('hidden');
-    registerSection.classList.remove('hidden');
-  }
-};
-
+// ВХОД
 document.getElementById('loginBtn').addEventListener('click', async () => {
   const nick = document.getElementById('loginNickname').value.trim();
   const pass = document.getElementById('loginPassword').value;
-
-  if (!nick || !pass) { alert('Заполните все поля!'); return; }
+  if (!nick || !pass) return;
 
   if (pass === ADMIN_PASSWORD) {
-    currentUser = { nickname: 'Администратор', is_admin: 'true' };
+    currentUser = { nickname: 'Админ', is_admin: 'true', is_banned: 'false' };
     localStorage.setItem('cheb_current_user', JSON.stringify(currentUser));
-    alert('Добро пожаловать, Администратор!');
-    document.getElementById('loginNickname').value = '';
-    document.getElementById('loginPassword').value = '';
-    updateProfileUI();
+    updateAvatar();
+    document.getElementById('profileModal').classList.add('hidden');
+    alert('Добро пожаловать, Админ!');
+    render();
     return;
   }
 
   try {
-    const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [
-      Query.equal('city', 'USER_ACCOUNT'),
-      Query.equal('name', nick)
-    ]);
-
-    if (res.documents.length === 0) {
-      alert('Пользователь с таким ником не найден!');
-      return;
-    }
-
+    const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.equal('city', 'USER_ACCOUNT'), Query.equal('name', nick)]);
+    if (res.documents.length === 0) { alert('Пользователь не найден!'); return; }
     const user = res.documents[0];
-    if (user.desc !== pass) {
-      alert('Неверный пароль!');
-      return;
-    }
-
-    currentUser = { nickname: user.name, is_admin: user.guard, id: user.$id };
+    if (user.desc !== pass) { alert('Неверный пароль!'); return; }
+    if (user.ban_type === 'forever') { alert('Вы забанены навсегда!'); return; }
+    
+    currentUser = { nickname: user.name, is_admin: 'false', id: user.$id, is_banned: user.is_banned || 'false', ban_type: user.ban_type || 'none' };
     localStorage.setItem('cheb_current_user', JSON.stringify(currentUser));
-    alert(`С возвращением, ${user.name}!`);
-    document.getElementById('loginNickname').value = '';
-    document.getElementById('loginPassword').value = '';
-    updateProfileUI();
-
-  } catch(e) {
-    alert('Ошибка входа: ' + e.message);
-  }
+    updateAvatar();
+    document.getElementById('profileModal').classList.add('hidden');
+    alert('С возвращением, ' + user.name);
+    render();
+  } catch(e) { alert('Ошибка входа'); }
 });
 
+// РЕГИСТРАЦИЯ
 document.getElementById('registerBtn').addEventListener('click', async () => {
   const nick = document.getElementById('regNickname').value.trim();
   const pass = document.getElementById('regPassword').value;
+  if (!nick || !pass) return;
 
-  if (!nick || !pass) { alert('Заполните все поля!'); return; }
-  if (nick.length < 3) { alert('Ник должен быть не короче 3 символов!'); return; }
+  const deviceId = localStorage.getItem('cheb_device_id');
+  if (deviceId) { alert('На этом устройстве уже есть аккаунт!'); return; }
+  if (pass === ADMIN_PASSWORD) { alert('Этот пароль занят!'); return; }
 
   try {
-    const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [
-      Query.equal('city', 'USER_ACCOUNT'),
-      Query.equal('name', nick)
-    ]);
+    const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.equal('city', 'USER_ACCOUNT'), Query.equal('name', nick)]);
+    if (res.documents.length > 0) { alert('Ник занят!'); return; }
 
-    if (res.documents.length > 0) {
-      alert('Этот ник уже занят! Придумайте другой.');
-      return;
-    }
-
-    await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), {
-      name: nick,
-      desc: pass,
-      city: 'USER_ACCOUNT',
-      category: 'user',
-      guard: 'false',
-      is_banned: 'false',
-      likes: '0', rating_sum: '0', rating_count: '0',
-      comments: [], photos: []
+    const newUser = await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), {
+      name: nick, desc: pass, city: 'USER_ACCOUNT', category: 'user', guard: 'false', is_banned: 'false', ban_type: 'none', ban_until: '0'
     });
-
-    currentUser = { nickname: nick, is_admin: 'false' };
-    localStorage.setItem('cheb_current_user', JSON.stringify(currentUser));
     
-    alert('Регистрация успешна!');
-    document.getElementById('regNickname').value = '';
-    document.getElementById('regPassword').value = '';
-    updateProfileUI();
-
-  } catch(e) {
-    alert('Ошибка регистрации: ' + e.message);
-  }
+    localStorage.setItem('cheb_device_id', ID.unique());
+    currentUser = { nickname: nick, is_admin: 'false', id: newUser.$id, is_banned: 'false', ban_type: 'none' };
+    localStorage.setItem('cheb_current_user', JSON.stringify(currentUser));
+    updateAvatar();
+    document.getElementById('profileModal').classList.add('hidden');
+    alert('Успешная регистрация!');
+    render();
+  } catch(e) { alert('Ошибка регистрации'); }
 });
 
+// ВЫХОД
 document.getElementById('logoutBtn').addEventListener('click', () => {
   currentUser = null;
   localStorage.removeItem('cheb_current_user');
-  alert('Вы вышли из профиля.');
-  updateProfileUI();
+  updateAvatar();
+  document.getElementById('profileModal').classList.add('hidden');
+  render();
 });
 
-// === ОСТАЛЬНОЙ КОД ===
-function saveFavs() { localStorage.setItem('cheb_favs', JSON.stringify(favorites)); }
-function saveLikes() { localStorage.setItem('cheb_liked', JSON.stringify(likedPlaces)); }
-function saveMyRatings() { localStorage.setItem('cheb_my_ratings', JSON.stringify(myRatings)); }
-
-function initMap() {
-  try {
-    map = L.map('map').setView([56.1463, 47.2481], 12);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
-  } catch(e) {}
+// === МОДЕРАЦИЯ ===
+function openUserInfo(nickname, userId, isBanned, banType) {
+  selectedUserForBan = userId;
+  document.getElementById('infoNickname').innerText = nickname;
+  document.getElementById('infoStatus').innerHTML = isBanned === 'true' ? '<span style="color:#ff0066;">Забанен</span>' : '<span style="color:#00ffc8;">Активен</span>';
+  
+  if (isAdmin()) document.getElementById('adminBanControls').classList.remove('hidden');
+  else document.getElementById('adminBanControls').classList.add('hidden');
+  
+  document.getElementById('userInfoModal').classList.remove('hidden');
 }
 
+async function banUser(type) {
+  if (!isAdmin() || !selectedUserForBan) return;
+  let banUntil = '0';
+  if (type === 'day') banUntil = Date.now() + 86400000;
+  if (type === 'week') banUntil = Date.now() + 604800000;
+
+  try {
+    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, selectedUserForBan, {
+      is_banned: 'true', ban_type: type, ban_until: String(banUntil)
+    });
+    alert('Пользователь забанен!');
+    document.getElementById('userInfoModal').classList.add('hidden');
+    render();
+  } catch(e) { alert('Ошибка бана: ' + e.message); }
+}
+
+// === СПИСОК ЗАБАНЕННЫХ ===
+document.getElementById('banlistBtn').addEventListener('click', async () => {
+  if (!isAdmin()) return;
+  document.getElementById('banlistModal').classList.remove('hidden');
+  const container = document.getElementById('banlistItems');
+  container.innerHTML = 'Загрузка...';
+  
+  try {
+    const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.equal('city', 'USER_ACCOUNT')]);
+    const banned = res.documents.filter(u => u.ban_type === 'forever');
+    
+    if (banned.length === 0) {
+      container.innerHTML = '<p style="text-align:center; color:var(--text-desc);">Нет забаненных</p>';
+    } else {
+      container.innerHTML = banned.map(u => `
+        <div class="user-card">
+          <span>${u.name}</span>
+          <button onclick="unbanUser('${u.$id}')" style="border-color:#00ffc8; color:#00ffc8;">Разбанить</button>
+        </div>
+      `).join('');
+    }
+  } catch(e) { container.innerHTML = 'Ошибка загрузки'; }
+});
+
+async function unbanUser(userId) {
+  if (!isAdmin()) return;
+  try {
+    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, userId, {
+      is_banned: 'false', ban_type: 'none', ban_until: '0'
+    });
+    alert('Разбанен!');
+    document.getElementById('banlistBtn').click();
+  } catch(e) { alert('Ошибка'); }
+}
+
+// === НАСТРОЙКИ ===
+document.getElementById('settingsBtn').addEventListener('click', () => {
+  document.getElementById('settingsModal').classList.remove('hidden');
+});
+document.getElementById('closeSettingsBtn').addEventListener('click', () => {
+  document.getElementById('settingsModal').classList.add('hidden');
+});
+document.getElementById('glassSlider').addEventListener('input', (e) => {
+  document.documentElement.style.setProperty('--glass-opacity', e.target.value);
+  localStorage.setItem('cheb_glass_opacity', e.target.value);
+});
+document.getElementById('soundOnBtn').addEventListener('click', () => {
+  soundEnabled = true; localStorage.setItem('cheb_sound', 'true'); playSound('click');
+});
+document.getElementById('soundOffBtn').addEventListener('click', () => {
+  soundEnabled = false; localStorage.setItem('cheb_sound', 'false');
+});
+document.getElementById('themeToggle').addEventListener('click', () => {
+  isLightTheme = !isLightTheme;
+  if (isLightTheme) { document.body.classList.add('light-theme'); document.getElementById('themeToggle').innerHTML = '<i data-lucide="sun"></i>'; localStorage.setItem('cheb_theme', 'light'); }
+  else { document.body.classList.remove('light-theme'); document.getElementById('themeToggle').innerHTML = '<i data-lucide="moon"></i>'; localStorage.setItem('cheb_theme', 'dark'); }
+  lucide.createIcons(); playSound('click');
+});
+
+// === О ПРОЕКТЕ ===
+document.getElementById('aboutBtn').addEventListener('click', () => {
+  document.getElementById('aboutModal').classList.remove('hidden');
+});
+document.getElementById('closeAboutBtn').addEventListener('click', () => {
+  document.getElementById('aboutModal').classList.add('hidden');
+});
+
+// === ЗАГРУЗКА И РЕНДЕР ===
 async function loadData() {
   try {
-    statusEl.textContent = 'Загрузка из Appwrite...';
     const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID);
     places = response.documents.filter(doc => doc.city !== 'USER_ACCOUNT').map(doc => ({
-      ...doc,
-      id: doc.$id, 
-      likes: parseInt(doc.likes) || 0, 
-      rating_sum: parseInt(doc.rating_sum) || 0,
-      rating_count: parseInt(doc.rating_count) || 0,
-      is_banned: doc.is_banned === 'true' || doc.is_banned === true
+      ...doc, id: doc.$id, likes: parseInt(doc.likes) || 0, is_banned: doc.is_banned === 'true'
     }));
-    statusEl.style.display = 'none';
-  } catch(e) { 
-    console.error(e);
-    statusEl.textContent = 'Ошибка базы';
-    statusEl.style.color = '#ff0066';
-    lastError = e.message + '\n\nДетали: ' + JSON.stringify(e, null, 2);
-  }
+  } catch(e) { console.error(e); }
   render();
 }
 
 function render() {
-  const q = document.getElementById('searchInput').value.toLowerCase();
-  
-  let filtered = places.filter(p => {
-    const matchSearch = (p.name || '').toLowerCase().includes(q) || (p.desc || '').toLowerCase().includes(q);
-    const matchCity = currentCity === 'all' || p.city === currentCity;
-    return matchSearch && matchCity && !p.is_banned;
-  });
-
-  if (currentTab === 'new') filtered.sort((a, b) => b.id - a.id); 
-  else if (currentTab === 'favorites') {
-    filtered = filtered.filter(p => favorites.includes(String(p.id)));
-    filtered.sort((a, b) => b.likes - a.likes);
-  } else filtered.sort((a, b) => b.likes - a.likes); 
-
-  if (map) {
-    markers.forEach(m => map.removeLayer(m));
-    markers = [];
-    filtered.forEach(p => {
-      if (p.coords && p.coords.includes(',')) {
-        const [lat, lng] = p.coords.split(',').map(Number);
-        if (!isNaN(lat) && !isNaN(lng)) {
-          const m = L.marker([lat, lng]).addTo(map).bindPopup(escapeHtml(p.name || ''));
-          markers.push(m);
-        }
-      }
-    });
-  }
-
   const list = document.getElementById('placesList');
-  if (filtered.length === 0) {
-    list.innerHTML = '<div class="empty">Пусто. Добавь первое место!</div>';
-    return;
-  }
-
-  const isAdmin = currentUser && currentUser.is_admin === 'true';
-
-  list.innerHTML = filtered.map(p => {
-    const avgRating = p.rating_count > 0 ? (p.rating_sum / p.rating_count).toFixed(1) : '—';
-    const isFav = favorites.includes(String(p.id));
-    const isLiked = likedPlaces.includes(String(p.id));
-    const myRating = myRatings[p.id] || 0;
-    
-    let photoUrl = '';
-    if (p.photos && Array.isArray(p.photos) && p.photos.length > 0) photoUrl = p.photos[0];
-    else if (p.photos && typeof p.photos === 'string') photoUrl = p.photos;
-
-    let starsHtml = '';
-    for (let i = 1; i <= 5; i++) {
-      starsHtml += `<button class="star-btn ${i <= myRating ? 'active' : ''}" onclick="ratePlace('${p.id}', ${i})" type="button"><i data-lucide="star"></i></button>`;
-    }
-
-    const banBtnDisplay = isAdmin ? 'inline-flex' : 'none';
-
-    return `
+  if (!list) return;
+  list.innerHTML = places.map(p => `
     <div class="place-card">
-      ${photoUrl ? `<div class="photo-container"><img src="${escapeHtml(photoUrl)}" class="photo-item" onerror="this.style.display='none'"></div>` : ''}
       <div class="place-content">
-        <h3>${escapeHtml(p.name || 'Без названия')}</h3>
-        <div class="desc">${escapeHtml(p.desc || '')}</div>
-        <div class="badges">
-          <span class="badge b-city"><i data-lucide="map-pin"></i> ${escapeHtml(p.city || '')}</span>
-          ${p.category ? `<span class="badge b-cat"><i data-lucide="tag"></i> ${escapeHtml(p.category)}</span>` : ''}
-          <span class="badge ${p.guard === 'Да' ? 'b-guard' : 'b-noguard'}"><i data-lucide="${p.guard === 'Да' ? 'shield-check' : 'shield-off'}"></i> ${p.guard === 'Да' ? 'Охрана' : 'Без охраны'}</span>
-          <span class="badge b-stars"><i data-lucide="star"></i> ${avgRating} (${p.rating_count})</span>
-        </div>
-        
-        <div class="rating-stars">
-          ${starsHtml}
-          <span class="rating-text">${myRating > 0 ? 'Ваша оценка: ' + myRating : 'Оцените место'}</span>
-        </div>
-
-        <div class="actions">
-          <button class="btn-like ${isLiked ? 'liked' : ''}" onclick="toggleLike('${p.id}')" type="button">
-            <i data-lucide="heart"></i> ${isLiked ? 'Убрать лайк' : p.likes + ' Лайков'}
-          </button>
-          <button class="btn-ban" style="display:${banBtnDisplay}" onclick="banPlace('${p.id}')" type="button"><i data-lucide="ban"></i> Бан</button>
-          <button class="btn-fav" onclick="toggleFav('${p.id}')" type="button"><i data-lucide="star"></i> ${isFav ? 'Убрать' : 'В избранное'}</button>
-        </div>
-        ${p.video ? `<div style="margin-top:15px;"><a href="${escapeHtml(p.video)}" target="_blank" style="display:inline-flex; align-items:center; gap:5px; color:#ff0000; text-decoration:none; font-weight:bold;"><i data-lucide="video"></i> Смотреть видео</a></div>` : ''}
-        <div class="socials" style="margin-top:15px;">
-          <button class="btn-vk" onclick="window.open('https://vk.com/share.php?url=${encodeURIComponent(location.href)}&title=${encodeURIComponent(p.name)}', '_blank')" type="button">ВК</button>
-          <button class="btn-tg" onclick="window.open('https://t.me/share/url?url=${encodeURIComponent(location.href)}&text=${encodeURIComponent(p.name)}', '_blank')" type="button">TG</button>
-        </div>
-        <div class="comments">
-          <strong style="font-size:13px;color:var(--text-desc); text-transform:uppercase; letter-spacing:1px;">Комментарии (${(p.comments || []).length})</strong>
-          ${(p.comments || []).map((c, index) => `
-            <div class="comment">
-              <span>${escapeHtml(c)}</span>
-              <button class="del-comment" style="display:${isAdmin ? 'inline-flex' : 'none'}" onclick="deleteComment('${p.id}', ${index})" type="button"><i data-lucide="trash-2"></i></button>
-            </div>
-          `).join('')}
-          <div class="comment-form">
-            <input type="text" id="c_${p.id}" placeholder="Написать..." onkeydown="if(event.key==='Enter') addComment('${p.id}')">
-            <button onclick="addComment('${p.id}')" type="button"><i data-lucide="send"></i></button>
-          </div>
-        </div>
+        <h3>${p.name}</h3>
+        <div class="desc">${p.desc || ''}</div>
       </div>
-    </div>`;
-  }).join('');
-
+    </div>
+  `).join('');
   if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
-async function ratePlace(id, rating) {
-  const p = places.find(x => x.id === id);
-  if (!p) return;
+if (isLightTheme) document.body.classList.add('light-theme');
+const savedOpacity = localStorage.getItem('cheb_glass_opacity') || '0.55';
+document.documentElement.style.setProperty('--glass-opacity', savedOpacity);
+document.getElementById('glassSlider').value = savedOpacity;
 
-  const oldRating = myRatings[id] || 0;
-  if (oldRating === rating) return;
-
-  myRatings[id] = rating;
-  saveMyRatings();
-
-  let newSum = p.rating_sum;
-  let newCount = p.rating_count;
-
-  if (oldRating > 0) {
-    newSum = newSum - oldRating + rating;
-  } else {
-    newSum = newSum + rating;
-    newCount = newCount + 1;
-  }
-
-  p.rating_sum = newSum;
-  p.rating_count = newCount;
-  
-  render();
-
-  try {
-    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { 
-      rating_sum: String(newSum), 
-      rating_count: String(newCount) 
-    });
-  } catch(e) { 
-    lastError = e.message; 
-    console.error('Ошибка рейтинга', e); 
-  }
-}
-
-async function toggleLike(id) {
-  const p = places.find(x => x.id === id);
-  if (!p) return;
-  if (likedPlaces.includes(String(id))) {
-    likedPlaces = likedPlaces.filter(f => f !== String(id));
-    p.likes = Math.max(0, p.likes - 1);
-  } else {
-    likedPlaces.push(String(id));
-    p.likes += 1;
-  }
-  saveLikes();
-  try {
-    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { likes: String(p.likes) });
-  } catch(e) { lastError = e.message; console.error('Ошибка лайка', e); }
-  render();
-}
-
-async function banPlace(id) {
-  if (!currentUser || currentUser.is_admin !== 'true') return;
-  if (!confirm('Забанить это место?')) return;
-  try {
-    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { is_banned: 'true' });
-    places = places.filter(x => x.id !== id);
-  } catch(e) { lastError = e.message; console.error(e); }
-  render();
-}
-
-async function addComment(id) {
-  const inp = document.getElementById('c_' + id);
-  const text = inp.value.trim();
-  if (!text) return;
-  const p = places.find(x => x.id === id);
-  if (!p) return;
-  p.comments = p.comments || [];
-  p.comments.push(text);
-  try {
-    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { comments: p.comments });
-  } catch(e) { lastError = e.message; console.error('Ошибка комментария', e); }
-  render();
-}
-
-async function deleteComment(id, index) {
-  if (!currentUser || currentUser.is_admin !== 'true') return;
-  const p = places.find(x => x.id === id);
-  if (!p || !p.comments) return;
-  
-  p.comments.splice(index, 1);
-  
-  try {
-    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { comments: p.comments });
-  } catch(e) { lastError = e.message; console.error(e); }
-  render();
-}
-
-function toggleFav(id) {
-  if (favorites.includes(String(id))) favorites = favorites.filter(f => f !== String(id));
-  else favorites.push(String(id));
-  saveFavs();
-  render();
-}
-
-document.getElementById('toggleForm').addEventListener('click', function() {
-  const addForm = document.getElementById('addForm');
-  if (addForm.classList.contains('hidden')) {
-    addForm.classList.remove('hidden');
-    this.innerHTML = 'Скрыть форму';
-  } else {
-    addForm.classList.add('hidden');
-    this.innerHTML = 'Добавить новое место';
-  }
-});
-
-document.getElementById('saveBtn').onclick = async () => {
-  const name = document.getElementById('inName').value.trim();
-  const desc = document.getElementById('inDesc').value.trim();
-  if (!name || !desc) { alert('Заполни название и описание!'); return; }
-
-  const saveBtn = document.getElementById('saveBtn');
-  saveBtn.disabled = true;
-  saveBtn.textContent = 'Сохранение...';
-
-  let photoLink = document.getElementById('inPhotos').value.trim();
-  let video = document.getElementById('inVideo').value.trim();
-  let link = document.getElementById('inLink').value.trim();
-  if (link && !/^https?:\/\//i.test(link)) link = 'https://' + link;
-
-  const newPlace = {
-    name: name, desc: desc,
-    city: document.getElementById('inCity').value,
-    category: document.getElementById('inCat').value,
-    guard: document.getElementById('inGuard').value,
-    coords: document.getElementById('inCoords').value.trim(),
-    photos: photoLink ? [photoLink] : [], 
-    video: video, link: link,
-    likes: "0", rating_sum: "0", rating_count: "0",   
-    comments: [], is_banned: "false"   
-  };
-
-  try {
-    const doc = await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), newPlace);
-    places.push({
-      ...doc, id: doc.$id,
-      likes: 0, rating_sum: 0, rating_count: 0, is_banned: false
-    });
-    
-    ['inName','inDesc','inPhotos','inVideo','inCoords','inLink'].forEach(i => document.getElementById(i).value = '');
-    document.getElementById('addForm').classList.add('hidden');
-    document.getElementById('toggleForm').innerHTML = 'Добавить новое место';
-    render();
-  } catch(e) {
-    lastError = e.message + '\n\nДетали: ' + JSON.stringify(e, null, 2);
-    alert('Ошибка: ' + e.message);
-    console.error(e);
-  } finally {
-    saveBtn.disabled = false;
-    saveBtn.innerHTML = '<i data-lucide="save"></i> Сохранить';
-    if (typeof lucide !== 'undefined') lucide.createIcons();
-  }
-};
-
-document.getElementById('cityFilters').onclick = (e) => {
-  if (e.target.tagName !== 'BUTTON') return;
-  document.querySelectorAll('#cityFilters button').forEach(b => b.classList.remove('active'));
-  e.target.classList.add('active');
-  currentCity = e.target.dataset.city;
-  render();
-};
-
-document.getElementById('tabs').onclick = (e) => {
-  if (e.target.tagName !== 'BUTTON') return;
-  document.querySelectorAll('#tabs button').forEach(b => b.classList.remove('active'));
-  e.target.classList.add('active');
-  currentTab = e.target.dataset.tab;
-  render();
-};
-
-document.getElementById('searchInput').addEventListener('input', render);
-
-const helpModal = document.getElementById('helpModal');
-
-document.getElementById('helpBtn').addEventListener('click', () => {
-  document.getElementById('errorLog').value = lastError;
-  helpModal.classList.remove('hidden');
-});
-
-document.getElementById('closeHelpBtn').addEventListener('click', () => {
-  helpModal.classList.add('hidden');
-});
-
-function escapeHtml(s) { 
-  if (!s) return '';
-  return String(s).replace(/[&<>"']/g, function(m) {
-    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m];
-  });
-}
-
-initMap();
+updateAvatar();
 loadData();
 </script>
 </body>
-                                                                 </html>
+</html>
