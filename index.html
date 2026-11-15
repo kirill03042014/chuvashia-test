@@ -95,7 +95,7 @@
   h1 { font-family: 'Oswald', sans-serif; font-size: 2.4em; text-transform: uppercase; text-align: center; color: var(--text-title); text-shadow: 0 0 20px rgba(0,255,200,0.4); margin-bottom: 5px; letter-spacing: 1px; }
   .subtitle { text-align: center; font-size: 12px; text-transform: uppercase; letter-spacing: 3px; color: var(--text-desc); margin-bottom: 25px; }
 
-  .panel, .place-card, .tabs button, .help-content, .profile-content, .settings-content, .about-content, .user-card, .map-modal-content, .quest-card {
+  .panel, .place-card, .tabs button, .help-content, .profile-content, .settings-content, .about-content, .user-card, .map-modal-content, .quest-card, .detail-content {
     background: var(--glass-bg); border: 1px solid var(--glass-border); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
     box-shadow: inset 0 1px 0 var(--glass-highlight), 0 10px 40px rgba(0,0,0,0.4);
     transition: background 0.4s, border 0.4s; border-radius: 20px;
@@ -113,16 +113,34 @@
   .btn-toggle { background: transparent; color: var(--text-desc); border: 1px dashed var(--glass-border); }
   label { font-family: 'Oswald', sans-serif; font-size: 11px; text-transform: uppercase; color: var(--text-desc); display: block; margin-bottom: 6px; letter-spacing: 1px; }
 
-  .place-card { border-left: 4px solid #00ffc8; margin-bottom: 20px; overflow: hidden; }
-  .photo-container { width: 100%; height: 220px; background: #000; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; border-bottom: 1px solid var(--glass-border); }
-  .photo-container::-webkit-scrollbar { display: none; }
+  /* Карточка */
+  .place-card { border-left: 4px solid #00ffc8; margin-bottom: 20px; overflow: hidden; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+  .place-card:hover { transform: translateY(-3px); box-shadow: 0 15px 45px rgba(0,255,200,0.2); }
+  .photo-container { width: 100%; height: 220px; background: #000; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; border-bottom: 1px solid var(--glass-border); pointer-events: none; }
   .photo-item { flex: 0 0 100%; scroll-snap-align: start; height: 100%; object-fit: cover; }
   .place-content { padding: 20px; }
   .place-card h3 { font-family: 'Oswald', sans-serif; font-size: 1.5em; text-transform: uppercase; color: var(--text-title); margin-bottom: 5px; }
+  
+  .author-badge { display: inline-block; background: rgba(0,255,200,0.1); color: #00ffc8; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-bottom: 10px; border: 1px solid rgba(0,255,200,0.3); }
+  .desc { color: var(--text-desc); font-size: 15px; margin-bottom: 15px; line-height: 1.5; word-break: break-word; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
-  .author-badge { display: inline-block; background: rgba(0,255,200,0.1); color: #00ffc8; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-bottom: 10px; cursor: pointer; border: 1px solid rgba(0,255,200,0.3); }
-  .desc { color: var(--text-desc); font-size: 15px; margin-bottom: 15px; line-height: 1.5; word-break: break-word; }
+  /* Кнопки действий в карточке */
+  .actions { display: flex; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--glass-border); }
+  .actions button { padding: 8px 12px; font-size: 12px; border-radius: 8px; width: auto; font-family: 'Rubik', sans-serif; font-weight: 500; text-transform: none; letter-spacing: 0.5px; }
+  .btn-edit { color: #00ffc8; border-color: #00ffc8; background: rgba(0,255,200,0.05); }
+  .btn-delete { color: #ff0066; border-color: #ff0066; background: rgba(255,0,102,0.05); }
 
+  /* Модальное окно подробностей */
+  .detail-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 15px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+  .detail-content { padding: 0; max-width: 600px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; }
+  .detail-header { position: relative; height: 250px; width: 100%; background: #000; }
+  .detail-header img { width: 100%; height: 100%; object-fit: cover; }
+  .detail-close { position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; }
+  .detail-body { padding: 20px; overflow-y: auto; flex-grow: 1; }
+  .detail-body h2 { font-family: 'Oswald'; font-size: 2em; color: var(--text-title); margin-bottom: 10px; }
+  .full-desc { font-size: 16px; line-height: 1.6; color: var(--text-main); margin-bottom: 20px; white-space: pre-wrap; }
+
+  /* Комментарии */
   .comments { margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--glass-border); }
   .comment { background: var(--input-bg); padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; border: 1px solid var(--glass-border); }
   .comment > span { flex: 1; word-break: break-word; }
@@ -158,9 +176,6 @@
 
   .form-row { display: flex; gap: 10px; }
   .form-row > * { flex: 1; }
-
-  .actions { display: flex; gap: 5px; margin-bottom: 10px; }
-  .actions button { width: auto; padding: 5px 10px; font-size: 12px; }
   #questsBtn { display: none; }
 </style>
 </head>
@@ -176,7 +191,6 @@
         <button class="icon-btn" id="themeToggle" title="Сменить тему"><i data-lucide="moon"></i></button>
         <button class="icon-btn" id="banlistBtn" title="Забаненные" style="display:none;"><i data-lucide="shield-alert"></i></button>
         <button class="icon-btn" id="questsBtn" title="Квесты"><i data-lucide="target"></i></button>
-
         <div class="avatar guest" id="avatarBtn">?</div>
       </div>
 
@@ -226,7 +240,29 @@
   </div>
 </div>
 
-<!-- МОДАЛЬНЫЕ ОКНА -->
+<!-- МОДАЛЬНОЕ ОКНО ПОДРОБНОСТЕЙ МЕСТА -->
+<div class="detail-modal hidden" id="detailModal">
+  <div class="detail-content">
+    <div class="detail-header">
+      <img id="detailImg" src="" onerror="this.style.display='none'">
+      <button class="detail-close" id="closeDetailBtn"><i data-lucide="x"></i></button>
+    </div>
+    <div class="detail-body">
+      <h2 id="detailTitle"></h2>
+      <div id="detailAuthor" class="author-badge" style="margin-bottom: 15px;"></div>
+      <div id="detailDesc" class="full-desc"></div>
+      <div id="detailCoordsBox" style="margin-bottom: 20px; display: none;">
+         <button class="btn-toggle" onclick="openMapToPlace()"><i data-lucide="map-pin"></i> Показать на карте</button>
+      </div>
+      
+      <div class="comments" id="detailCommentsSection">
+        <!-- Комментарии подгружаются сюда -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ОСТАЛЬНЫЕ МОДАЛЬНЫЕ ОКНА -->
 <div class="settings-modal hidden" id="settingsModal">
   <div class="settings-content">
     <h3>Настройки</h3>
@@ -295,9 +331,7 @@
   </div>
 </div>
 
-<button class="help-btn" id="helpBtn" type="button">
-  <i data-lucide="shirt"></i>
-</button>
+<button class="help-btn" id="helpBtn" type="button"><i data-lucide="shirt"></i></button>
 
 <div class="help-modal hidden" id="helpModal">
   <div class="help-content">
@@ -312,9 +346,7 @@ const APPWRITE_ENDPOINT   = 'https://fra.cloud.appwrite.io/v1';
 const APPWRITE_PROJECT_ID = '6af75290002021ce6c30';
 const DATABASE_ID         = '6af752b800204637c982';
 const COLLECTION_ID       = '6af754b70031b4620e57';
-
-// ВНИМАНИЕ: Пароль админа в коде — небезопасно! В будущем вынесите его на сервер.
-const ADMIN_PASSWORD = 'SmirnovKirill03@inbox.ry';
+const ADMIN_PASSWORD      = 'SmirnovKirill03@inbox.ry';
 
 const { Client, Databases, ID, Query } = Appwrite;
 const client    = new Client().setEndpoint(APPWRITE_ENDPOINT).setProject(APPWRITE_PROJECT_ID);
@@ -331,6 +363,7 @@ let currentUser = safeParse(localStorage.getItem('cheb_current_user'));
 let selectedUserForBan = null;
 let lastError = 'Ошибок не было.';
 let editingPlaceId = null;
+let currentDetailPlaceId = null; // Для модалки подробностей
 
 const statusEl = document.getElementById('status');
 const avatarBtn = document.getElementById('avatarBtn');
@@ -338,33 +371,23 @@ const banlistBtn = document.getElementById('banlistBtn');
 const questsBtn = document.getElementById('questsBtn');
 
 function safeParse(str) { try { return JSON.parse(str); } catch { return null; } }
-
 function esc(s) {
   if (s === null || s === undefined) return '';
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
-
-function refreshIcons() {
-  if (typeof lucide !== 'undefined' && lucide.createIcons) {
-    try { lucide.createIcons(); } catch (e) {}
-  }
-}
-
+function refreshIcons() { if (typeof lucide !== 'undefined' && lucide.createIcons) { try { lucide.createIcons(); } catch (e) {} } }
 function isBanExpired(user) {
   if (!user || user.ban_type === 'forever') return false;
   if (user.ban_type !== 'day' && user.ban_type !== 'week') return false;
   const until = Number(user.ban_until || 0);
-  if (!until) return false;
-  return Date.now() >= until;
+  return until ? Date.now() >= until : false;
 }
-
 function isUserBannedNow(user) {
   if (!user) return false;
   if (user.ban_type === 'forever') return true;
   if (user.ban_type === 'day' || user.ban_type === 'week') return !isBanExpired(user);
   return user.is_banned === 'true';
 }
-
 function isAdmin() { return !!(currentUser && currentUser.is_admin === 'true'); }
 
 function updateAvatar() {
@@ -385,18 +408,14 @@ function checkAuthBeforeAction(action) {
     document.getElementById('profileModal').classList.remove('hidden');
     return;
   }
-  if (isUserBannedNow(currentUser)) {
-    alert('Вы забанены и не можете совершать действия.');
-    return;
-  }
+  if (isUserBannedNow(currentUser)) { alert('Вы забанены и не можете совершать действия.'); return; }
   action();
 }
 
-/* СВАЙПЫ */
+/* СВАЙПЫ И НАВИГАЦИЯ */
 let startX = 0, startY = 0, isSwiping = false, swipeFromScroller = false;
 document.addEventListener('touchstart', e => {
-  const target = e.target;
-  swipeFromScroller = !!(target.closest('.photo-container') || target.closest('input') || target.closest('textarea') || target.closest('select'));
+  swipeFromScroller = !!(e.target.closest('.photo-container') || e.target.closest('input') || e.target.closest('textarea') || e.target.closest('select') || e.target.closest('.detail-body'));
   startX = e.touches[0].clientX; startY = e.touches[0].clientY; isSwiping = true;
 }, { passive: true });
 document.addEventListener('touchend', e => {
@@ -409,14 +428,8 @@ document.addEventListener('touchend', e => {
   isSwiping = false;
 }, { passive: true });
 
-function goToQuests() {
-  document.getElementById('page-main').style.transform = 'translateX(-100vw)';
-  document.getElementById('page-quests').style.transform = 'translateX(0)';
-}
-function goToMain() {
-  document.getElementById('page-main').style.transform = 'translateX(0)';
-  document.getElementById('page-quests').style.transform = 'translateX(100vw)';
-}
+function goToQuests() { document.getElementById('page-main').style.transform = 'translateX(-100vw)'; document.getElementById('page-quests').style.transform = 'translateX(0)'; }
+function goToMain() { document.getElementById('page-main').style.transform = 'translateX(0)'; document.getElementById('page-quests').style.transform = 'translateX(100vw)'; }
 document.getElementById('backBtn').addEventListener('click', () => { goToMain(); playSound(); });
 questsBtn.addEventListener('click', () => { goToQuests(); playSound(); });
 
@@ -438,23 +451,16 @@ function playSound() {
 }
 document.addEventListener('click', (e) => { if (e.target.closest('button')) playSound(); });
 
-/* УСТАНОВКА ПРИЛОЖЕНИЯ */
+/* УСТАНОВКА */
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault(); deferredPrompt = e;
   if (!localStorage.getItem('cheb_app_installed')) document.getElementById('installBtn').style.display = 'flex';
 });
 document.getElementById('installBtn').addEventListener('click', async () => {
-  if (deferredPrompt) {
-    deferredPrompt.prompt(); await deferredPrompt.userChoice;
-    deferredPrompt = null; document.getElementById('installBtn').style.display = 'none';
-    localStorage.setItem('cheb_app_installed', 'true');
-  }
+  if (deferredPrompt) { deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; document.getElementById('installBtn').style.display = 'none'; localStorage.setItem('cheb_app_installed', 'true'); }
 });
-window.addEventListener('appinstalled', () => {
-  document.getElementById('installBtn').style.display = 'none';
-  localStorage.setItem('cheb_app_installed', 'true');
-});
+window.addEventListener('appinstalled', () => { document.getElementById('installBtn').style.display = 'none'; localStorage.setItem('cheb_app_installed', 'true'); });
 if (localStorage.getItem('cheb_app_installed')) document.getElementById('installBtn').style.display = 'none';
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 
@@ -468,7 +474,6 @@ document.getElementById('mapBtn').addEventListener('click', () => {
   }
   setTimeout(() => { map.invalidateSize(); updateMarkers(); }, 150);
 });
-
 document.getElementById('closeMapBtn').addEventListener('click', () => {
   document.getElementById('mapModal').classList.add('hidden');
   document.body.style.overflow = '';
@@ -483,41 +488,53 @@ function updateMarkers() {
   places.forEach(p => {
     if (p.is_archived === 'true' || p.is_banned === 'true') return;
     if (!p.coords || typeof p.coords !== 'string') return;
-
-    // Очищаем координаты от случайных символов
     const cleanCoords = p.coords.replace(/\s/g, '').replace(/\./g, ',');
-    if (!cleanCoords.includes(',')) return;
-
     const parts = cleanCoords.split(',');
     if (parts.length !== 2) return;
-
-    const lat = parseFloat(parts[0]);
-    const lng = parseFloat(parts[1]);
+    const lat = parseFloat(parts[0]), lng = parseFloat(parts[1]);
     if (isNaN(lat) || isNaN(lng)) return;
 
-    const m = L.marker([lat, lng]).addTo(map).bindPopup(esc(p.name || ''));
+    const m = L.marker([lat, lng]).addTo(map).bindPopup(`<b>${esc(p.name)}</b>`);
     markers.push(m);
     bounds.push([lat, lng]);
   });
+  if (bounds.length > 0) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+}
 
-  // Автоматически подстраиваем зум, чтобы показать ВСЕ маркеры
-  if (bounds.length > 0) {
-    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+function openMapToPlace() {
+  if (!currentDetailPlaceId) return;
+  const p = places.find(x => x.id === currentDetailPlaceId);
+  if (!p || !p.coords) return;
+  document.getElementById('detailModal').classList.add('hidden');
+  document.getElementById('mapModal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  
+  if (!map) {
+    map = L.map('map').setView([56.1463, 47.2481], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
   }
+  setTimeout(() => {
+    map.invalidateSize();
+    const clean = p.coords.replace(/\s/g, '').replace(/\./g, ',');
+    const parts = clean.split(',');
+    if (parts.length === 2) {
+      const lat = parseFloat(parts[0]), lng = parseFloat(parts[1]);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        map.setView([lat, lng], 15);
+        markers.forEach(m => { if (m.getLatLng().lat === lat && m.getLatLng().lng === lng) m.openPopup(); });
+      }
+    }
+  }, 150);
 }
 
 /* АВТОРИЗАЦИЯ */
 avatarBtn.addEventListener('click', () => {
   document.getElementById('profileModal').classList.remove('hidden');
   if (currentUser) {
-    document.getElementById('loginSection').classList.add('hidden');
-    document.getElementById('registerSection').classList.add('hidden');
-    document.getElementById('loggedInSection').classList.remove('hidden');
+    document.getElementById('loginSection').classList.add('hidden'); document.getElementById('registerSection').classList.add('hidden'); document.getElementById('loggedInSection').classList.remove('hidden');
     document.getElementById('userGreeting').innerText = 'Привет, ' + (currentUser.nickname || '');
   } else {
-    document.getElementById('loginSection').classList.remove('hidden');
-    document.getElementById('registerSection').classList.add('hidden');
-    document.getElementById('loggedInSection').classList.add('hidden');
+    document.getElementById('loginSection').classList.remove('hidden'); document.getElementById('registerSection').classList.add('hidden'); document.getElementById('loggedInSection').classList.add('hidden');
   }
 });
 document.getElementById('showRegisterLink').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('loginSection').classList.add('hidden'); document.getElementById('registerSection').classList.remove('hidden'); });
@@ -528,14 +545,11 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
   const nick = document.getElementById('loginNickname').value.trim();
   const pass = document.getElementById('loginPassword').value;
   if (!nick || !pass) return;
-
   if (pass === ADMIN_PASSWORD) {
     currentUser = { nickname: 'Админ', is_admin: 'true', is_banned: 'false', ban_type: 'none', ban_until: '0', id: 'admin' };
     localStorage.setItem('cheb_current_user', JSON.stringify(currentUser));
-    updateAvatar(); document.getElementById('profileModal').classList.add('hidden');
-    alert('Добро пожаловать, Админ!'); render(); return;
+    updateAvatar(); document.getElementById('profileModal').classList.add('hidden'); alert('Добро пожаловать, Админ!'); render(); return;
   }
-
   try {
     const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.equal('city', 'USER_ACCOUNT'), Query.equal('name', nick), Query.limit(1)]);
     if (res.documents.length === 0) { alert('Пользователь не найден!'); return; }
@@ -546,11 +560,9 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
       const until = Number(user.ban_until || 0);
       if (Date.now() < until) { alert('Вы забанены до ' + new Date(until).toLocaleString()); return; }
     }
-
     currentUser = { nickname: user.name, is_admin: 'false', id: user.$id, is_banned: user.is_banned || 'false', ban_type: user.ban_type || 'none', ban_until: user.ban_until || '0' };
     localStorage.setItem('cheb_current_user', JSON.stringify(currentUser));
-    updateAvatar(); document.getElementById('profileModal').classList.add('hidden');
-    alert('С возвращением, ' + user.name); render();
+    updateAvatar(); document.getElementById('profileModal').classList.add('hidden'); alert('С возвращением, ' + user.name); render();
   } catch (e) { lastError = e.message || String(e); alert('Ошибка входа'); }
 });
 
@@ -561,20 +573,14 @@ document.getElementById('registerBtn').addEventListener('click', async () => {
   if (nick.length > 30) { alert('Ник слишком длинный'); return; }
   if (localStorage.getItem('cheb_device_id')) { alert('На этом устройстве уже есть аккаунт!'); return; }
   if (pass === ADMIN_PASSWORD) { alert('Этот пароль занят!'); return; }
-
   try {
     const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.equal('city', 'USER_ACCOUNT'), Query.equal('name', nick), Query.limit(1)]);
     if (res.documents.length > 0) { alert('Ник занят!'); return; }
-
-    const newUser = await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), {
-      name: nick, desc: pass, city: 'USER_ACCOUNT', category: 'user', guard: 'false', is_banned: 'false', ban_type: 'none', ban_until: '0'
-    });
-    
+    const newUser = await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), { name: nick, desc: pass, city: 'USER_ACCOUNT', category: 'user', guard: 'false', is_banned: 'false', ban_type: 'none', ban_until: '0' });
     localStorage.setItem('cheb_device_id', ID.unique());
     currentUser = { nickname: nick, is_admin: 'false', id: newUser.$id, is_banned: 'false', ban_type: 'none', ban_until: '0' };
     localStorage.setItem('cheb_current_user', JSON.stringify(currentUser));
-    updateAvatar(); document.getElementById('profileModal').classList.add('hidden');
-    alert('Успешная регистрация!'); render();
+    updateAvatar(); document.getElementById('profileModal').classList.add('hidden'); alert('Успешная регистрация!'); render();
   } catch (e) { lastError = e.message || String(e); alert('Ошибка регистрации'); }
 });
 
@@ -630,27 +636,19 @@ async function unbanUser(userId) {
 document.getElementById('settingsBtn').addEventListener('click', () => { document.getElementById('settingsModal').classList.remove('hidden'); });
 document.getElementById('closeSettingsBtn').addEventListener('click', () => { document.getElementById('settingsModal').classList.add('hidden'); });
 document.getElementById('glassSlider').addEventListener('input', (e) => {
-  const v = e.target.value;
-  document.documentElement.style.setProperty('--glass-opacity', v);
-  localStorage.setItem('cheb_glass_opacity', v);
+  const v = e.target.value; document.documentElement.style.setProperty('--glass-opacity', v); localStorage.setItem('cheb_glass_opacity', v);
 });
 document.getElementById('soundOnBtn').addEventListener('click', () => { soundEnabled = true; localStorage.setItem('cheb_sound', 'true'); playSound(); });
 document.getElementById('soundOffBtn').addEventListener('click', () => { soundEnabled = false; localStorage.setItem('cheb_sound', 'false'); });
-
 document.getElementById('themeToggle').addEventListener('click', () => {
   isLightTheme = !isLightTheme;
-  if (isLightTheme) {
-    document.body.classList.add('light-theme'); document.getElementById('themeToggle').innerHTML = '<i data-lucide="sun"></i>'; localStorage.setItem('cheb_theme', 'light');
-  } else {
-    document.body.classList.remove('light-theme'); document.getElementById('themeToggle').innerHTML = '<i data-lucide="moon"></i>'; localStorage.setItem('cheb_theme', 'dark');
-  }
+  if (isLightTheme) { document.body.classList.add('light-theme'); document.getElementById('themeToggle').innerHTML = '<i data-lucide="sun"></i>'; localStorage.setItem('cheb_theme', 'light'); }
+  else { document.body.classList.remove('light-theme'); document.getElementById('themeToggle').innerHTML = '<i data-lucide="moon"></i>'; localStorage.setItem('cheb_theme', 'dark'); }
   refreshIcons(); playSound();
 });
 
 /* ОШИБКИ */
-document.getElementById('helpBtn').addEventListener('click', () => {
-  document.getElementById('errorLog').value = lastError; document.getElementById('helpModal').classList.remove('hidden');
-});
+document.getElementById('helpBtn').addEventListener('click', () => { document.getElementById('errorLog').value = lastError; document.getElementById('helpModal').classList.remove('hidden'); });
 document.getElementById('closeHelpBtn').addEventListener('click', () => { document.getElementById('helpModal').classList.add('hidden'); });
 
 /* ВКЛАДКИ / ПОИСК */
@@ -665,9 +663,7 @@ document.getElementById('searchInput').addEventListener('input', (e) => { search
 async function loadData() {
   try {
     const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.limit(100)]);
-    places = response.documents.filter(doc => doc.city !== 'USER_ACCOUNT').map(doc => ({
-      ...doc, id: doc.$id, comments: Array.isArray(doc.comments) ? doc.comments : []
-    }));
+    places = response.documents.filter(doc => doc.city !== 'USER_ACCOUNT').map(doc => ({ ...doc, id: doc.$id, comments: Array.isArray(doc.comments) ? doc.comments : [] }));
     statusEl.style.display = 'none';
   } catch (e) { statusEl.textContent = 'Ошибка базы'; statusEl.className = 'status error'; lastError = e.message || String(e); }
   render(); updateMarkers();
@@ -677,24 +673,20 @@ async function loadData() {
 function getFilteredPlaces() {
   let list = places.filter(p => p.is_archived !== 'true' && p.is_banned !== 'true');
   if (searchQuery) list = list.filter(p => (p.name || '').toLowerCase().includes(searchQuery));
-  if (currentTab === 'new') {
-    list = [...list].sort((a, b) => new Date(b.$createdAt || 0) - new Date(a.$createdAt || 0));
-  } else {
-    list = [...list].sort((a, b) => {
-      const la = Number(a.likes || 0), lb = Number(b.likes || 0);
-      if (lb !== la) return lb - la;
-      const ra = Number(a.rating_sum || 0), rb = Number(b.rating_sum || 0);
-      if (rb !== ra) return rb - ra;
-      return new Date(b.$createdAt || 0) - new Date(a.$createdAt || 0);
-    });
-  }
+  if (currentTab === 'new') list = [...list].sort((a, b) => new Date(b.$createdAt || 0) - new Date(a.$createdAt || 0));
+  else list = [...list].sort((a, b) => {
+    const la = Number(a.likes || 0), lb = Number(b.likes || 0);
+    if (lb !== la) return lb - la;
+    const ra = Number(a.rating_sum || 0), rb = Number(b.rating_sum || 0);
+    if (rb !== ra) return rb - ra;
+    return new Date(b.$createdAt || 0) - new Date(a.$createdAt || 0);
+  });
   return list;
 }
 
 function render() {
   const listEl = document.getElementById('placesList'); if (!listEl) return;
   const filtered = getFilteredPlaces();
-
   if (filtered.length === 0) { listEl.innerHTML = '<div class="empty">Пока ничего нет</div>'; refreshIcons(); return; }
 
   listEl.innerHTML = filtered.map(p => {
@@ -704,46 +696,99 @@ function render() {
 
     const canEdit = isAdmin() || (currentUser && p.author_id && p.author_id === currentUser.id);
 
-    // ИСПРАВЛЕНИЕ КОММЕНТАРИЕВ: работаем с массивом строк
-    const commentsHtml = (p.comments || []).map((c, idx) => {
-      const cText = typeof c === 'string' ? c : (c.text || 'Ошибка');
-      const canDel = isAdmin() || (currentUser && p.author_id === currentUser.id);
-      return `<div class="comment"><span>${esc(cText)}</span>${canDel ? `<button class="del-comment" onclick="deleteComment('${esc(p.id)}', ${idx})" title="Удалить"><i data-lucide="trash-2"></i></button>` : ''}</div>`;
-    }).join('');
-
     return `
-    <div class="place-card" data-place-id="${esc(p.id)}">
+    <div class="place-card" onclick="openPlaceDetail('${esc(p.id)}')">
       ${photoUrl ? `<div class="photo-container"><img src="${esc(photoUrl)}" class="photo-item" onerror="this.parentElement.style.display='none'"></div>` : ''}
       <div class="place-content">
         <h3>${esc(p.name)}</h3>
-        <div class="author-badge" onclick="openUserInfo('${esc(p.author || 'Неизвестный').replace(/'/g, "\\'")}', '${esc(p.author_id || '0')}')">
+        <div class="author-badge" onclick="event.stopPropagation(); openUserInfo('${esc(p.author || 'Неизвестный').replace(/'/g, "\\'")}', '${esc(p.author_id || '0')}')">
           Добавил: ${esc(p.author || 'Неизвестный')}
         </div>
         <div class="desc">${esc(p.desc || '')}</div>
-
-        ${canEdit ? `<div class="actions"><button class="btn-toggle" onclick="editPlace('${esc(p.id)}')">✏️ Ред.</button><button class="btn-toggle" onclick="deletePlace('${esc(p.id)}')" style="color:#ff0066; border-color:#ff0066;">🗑 Удалить</button></div>` : ''}
-
-        <div class="comments">
-          <strong style="font-size:12px;color:var(--text-desc);">КОММЕНТАРИИ (${(p.comments || []).length})</strong>
-          ${commentsHtml || '<div style="color:var(--text-desc); font-size:13px; margin-top:5px;">Пока нет комментариев</div>'}
-          <div class="comment-form">
-            <input type="text" id="c_${esc(p.id)}" placeholder="Комментарий..." maxlength="500" onkeydown="if(event.key==='Enter'){event.preventDefault();addComment('${esc(p.id)}')}">
-            <button onclick="addComment('${esc(p.id)}')"><i data-lucide="send"></i></button>
-          </div>
+        
+        <div style="font-size:12px; color:#00ffc8; font-weight:bold; display:flex; align-items:center; gap:5px; margin-top:10px;">
+          <i data-lucide="info" style="width:14px;height:14px;"></i> Нажмите, чтобы узнать подробнее
         </div>
+
+        ${canEdit ? `
+        <div class="actions" onclick="event.stopPropagation();">
+          <button class="btn-edit" onclick="editPlace('${esc(p.id)}')"><i data-lucide="edit-3" style="width:14px;height:14px;"></i> Редактировать</button>
+          <button class="btn-delete" onclick="deletePlace('${esc(p.id)}')"><i data-lucide="trash-2" style="width:14px;height:14px;"></i> Удалить</button>
+        </div>` : ''}
       </div>
     </div>`;
   }).join('');
   refreshIcons();
 }
 
+/* МОДАЛКА ПОДРОБНОСТЕЙ */
+function openPlaceDetail(id) {
+  const p = places.find(x => x.id === id); if (!p) return;
+  currentDetailPlaceId = id;
+
+  let photoUrl = '';
+  if (Array.isArray(p.photos) && p.photos.length > 0) photoUrl = p.photos[0];
+  else if (typeof p.photos === 'string' && p.photos) photoUrl = p.photos;
+
+  const imgEl = document.getElementById('detailImg');
+  if (photoUrl) { imgEl.src = photoUrl; imgEl.style.display = 'block'; } 
+  else { imgEl.style.display = 'none'; }
+
+  document.getElementById('detailTitle').innerText = p.name || 'Без названия';
+  document.getElementById('detailAuthor').innerText = 'Добавил: ' + (p.author || 'Неизвестный');
+  document.getElementById('detailDesc').innerText = p.desc || '';
+  
+  const coordsBox = document.getElementById('detailCoordsBox');
+  if (p.coords) coordsBox.style.display = 'block'; else coordsBox.style.display = 'none';
+
+  // Рендер комментариев в модалке
+  const commentsContainer = document.getElementById('detailCommentsSection');
+  const commentsHtml = (p.comments || []).map((c, idx) => {
+    const cText = typeof c === 'string' ? c : (c.text || 'Ошибка');
+    const canDel = isAdmin() || (currentUser && p.author_id === currentUser.id);
+    return `<div class="comment"><span>${esc(cText)}</span>${canDel ? `<button class="del-comment" onclick="deleteComment('${esc(p.id)}', ${idx})" title="Удалить"><i data-lucide="trash-2"></i></button>` : ''}</div>`;
+  }).join('');
+
+  commentsContainer.innerHTML = `
+    <strong style="font-size:12px;color:var(--text-desc); text-transform:uppercase; letter-spacing:1px;">Комментарии (${(p.comments || []).length})</strong>
+    <div style="margin-top:10px;">${commentsHtml || '<div style="color:var(--text-desc); font-size:14px;">Пока нет комментариев</div>'}</div>
+    <div class="comment-form">
+      <input type="text" id="c_detail" placeholder="Ваш комментарий..." maxlength="500" onkeydown="if(event.key==='Enter'){event.preventDefault();addCommentDetail('${esc(p.id)}')}">
+      <button onclick="addCommentDetail('${esc(p.id)}')"><i data-lucide="send"></i></button>
+    </div>
+  `;
+
+  document.getElementById('detailModal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+  refreshIcons();
+}
+
+document.getElementById('closeDetailBtn').addEventListener('click', () => {
+  document.getElementById('detailModal').classList.add('hidden');
+  document.body.style.overflow = '';
+});
+
+async function addCommentDetail(id) {
+  checkAuthBeforeAction(async () => {
+    const inp = document.getElementById('c_detail'); if (!inp) return;
+    const text = inp.value.trim(); if (!text) return;
+    const p = places.find(x => x.id === id); if (!p) return;
+
+    const comments = Array.isArray(p.comments) ? [...p.comments] : [];
+    comments.push(`${currentUser.nickname}: ${text}`); // Отправляем как строку
+
+    try {
+      await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { comments });
+      p.comments = comments; inp.value = ''; openPlaceDetail(id); // Перерисовываем модалку
+    } catch (e) { lastError = e.message || String(e); alert('Ошибка комментария: ' + e.message); }
+  });
+}
+
 /* ДОБАВЛЕНИЕ / РЕДАКТИРОВАНИЕ */
 function resetAddForm() {
   editingPlaceId = null;
-  document.getElementById('inName').value = '';
-  document.getElementById('inDesc').value = '';
-  document.getElementById('inPhotos').value = '';
-  document.getElementById('inCoords').value = '';
+  document.getElementById('inName').value = ''; document.getElementById('inDesc').value = '';
+  document.getElementById('inPhotos').value = ''; document.getElementById('inCoords').value = '';
   document.getElementById('inCity').value = 'Чебоксары';
   document.getElementById('saveBtn').innerHTML = '<i data-lucide="save"></i> Сохранить';
   document.getElementById('toggleForm').innerHTML = '<i data-lucide="plus-circle"></i> Добавить место';
@@ -753,8 +798,7 @@ function resetAddForm() {
 function editPlace(id) {
   const p = places.find(x => x.id === id); if (!p) return;
   editingPlaceId = id;
-  document.getElementById('inName').value = p.name || '';
-  document.getElementById('inDesc').value = p.desc || '';
+  document.getElementById('inName').value = p.name || ''; document.getElementById('inDesc').value = p.desc || '';
   document.getElementById('inPhotos').value = Array.isArray(p.photos) ? (p.photos[0] || '') : (p.photos || '');
   document.getElementById('inCoords').value = p.coords || '';
   document.getElementById('inCity').value = ['Чебоксары','Новочебоксарск','Чувашия'].includes(p.city) ? p.city : 'Чебоксары';
@@ -762,16 +806,15 @@ function editPlace(id) {
   document.getElementById('addForm').classList.remove('hidden');
   document.getElementById('toggleForm').innerHTML = '<i data-lucide="x"></i> Отменить редактирование';
   document.getElementById('saveBtn').innerHTML = '<i data-lucide="save"></i> Обновить';
+  document.getElementById('detailModal').classList.add('hidden'); // Закрываем модалку, если были в ней
+  document.body.style.overflow = '';
   refreshIcons(); window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 document.getElementById('toggleForm').addEventListener('click', () => {
   const form = document.getElementById('addForm');
-  if (form.classList.contains('hidden')) {
-    form.classList.remove('hidden'); resetAddForm(); form.classList.remove('hidden');
-  } else {
-    form.classList.add('hidden'); resetAddForm();
-  }
+  if (form.classList.contains('hidden')) { form.classList.remove('hidden'); resetAddForm(); form.classList.remove('hidden'); }
+  else { form.classList.add('hidden'); resetAddForm(); }
 });
 
 document.getElementById('saveBtn').addEventListener('click', () => {
@@ -783,8 +826,7 @@ document.getElementById('saveBtn').addEventListener('click', () => {
     const coords = document.getElementById('inCoords').value.trim();
 
     if (coords) {
-      const parts = coords.split(',');
-      if (parts.length !== 2) return alert('Координаты должны быть в формате "широта, долгота"');
+      const parts = coords.split(','); if (parts.length !== 2) return alert('Координаты должны быть в формате "широта, долгота"');
       const lat = parseFloat(parts[0]), lng = parseFloat(parts[1]);
       if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) return alert('Некорректные координаты');
     }
@@ -792,12 +834,8 @@ document.getElementById('saveBtn').addEventListener('click', () => {
     const data = { name, desc, city: document.getElementById('inCity').value, coords, photos: photoLink ? [photoLink] : [], author: currentUser.nickname, author_id: currentUser.id || '0', is_archived: 'false' };
 
     try {
-      if (editingPlaceId) {
-        await databases.updateDocument(DATABASE_ID, COLLECTION_ID, editingPlaceId, data);
-      } else {
-        data.likes = '0'; data.rating_sum = '0'; data.rating_count = '0'; data.comments = []; data.is_banned = 'false';
-        await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), data);
-      }
+      if (editingPlaceId) await databases.updateDocument(DATABASE_ID, COLLECTION_ID, editingPlaceId, data);
+      else { data.likes = '0'; data.rating_sum = '0'; data.rating_count = '0'; data.comments = []; data.is_banned = 'false'; await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), data); }
       document.getElementById('addForm').classList.add('hidden'); resetAddForm(); loadData();
     } catch (e) { lastError = e.message || String(e); alert('Ошибка: ' + e.message); }
   });
@@ -809,25 +847,12 @@ async function deletePlace(id) {
     const p = places.find(x => x.id === id); if (!p) return;
     const canEdit = isAdmin() || (currentUser && p.author_id === currentUser.id);
     if (!canEdit) { alert('Нет прав'); return; }
-    try { await databases.deleteDocument(DATABASE_ID, COLLECTION_ID, id); loadData(); } catch (e) { lastError = e.message || String(e); alert('Ошибка удаления: ' + e.message); }
-  });
-}
-
-/* КОММЕНТАРИИ */
-async function addComment(id) {
-  checkAuthBeforeAction(async () => {
-    const inp = document.getElementById('c_' + id); if (!inp) return;
-    const text = inp.value.trim(); if (!text) return;
-    const p = places.find(x => x.id === id); if (!p) return;
-
-    const comments = Array.isArray(p.comments) ? [...p.comments] : [];
-    // Добавляем как строку, чтобы Appwrite не выдавал ошибку структуры
-    comments.push(`${currentUser.nickname}: ${text}`);
-
-    try {
-      await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { comments });
-      p.comments = comments; inp.value = ''; render();
-    } catch (e) { lastError = e.message || String(e); alert('Ошибка комментария: ' + e.message); }
+    try { 
+      await databases.deleteDocument(DATABASE_ID, COLLECTION_ID, id); 
+      document.getElementById('detailModal').classList.add('hidden');
+      document.body.style.overflow = '';
+      loadData(); 
+    } catch (e) { lastError = e.message || String(e); alert('Ошибка удаления: ' + e.message); }
   });
 }
 
@@ -839,8 +864,9 @@ async function deleteComment(id, index) {
   comments.splice(index, 1);
   try {
     await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { comments });
-    p.comments = comments; render();
-  } catch (e) { lastError = e.message || String(e); alert('Ошибка удаления комментария: ' + e.message); }
+    p.comments = comments; 
+    if (currentDetailPlaceId === id) openPlaceDetail(id); else render();
+  } catch (e) { lastError = e.message || String(e); alert('Ошибка удаления: ' + e.message); }
 }
 
 /* ИНИЦИАЛИЗАЦИЯ */
