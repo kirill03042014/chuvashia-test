@@ -23,12 +23,15 @@
     --text-main: #e2e8f0;
     --text-title: #ffffff;
     --text-desc: #94a3b8;
-    --glass-opacity: 0.55; 
+    
+    /* МОЩНЫЙ LIQUID GLASS */
+    --glass-opacity: 0.6; 
     --glass-blur: 40px;
+    
     --glass-bg: rgba(20, 25, 35, var(--glass-opacity));
-    --glass-border: rgba(255, 255, 255, 0.18);
-    --glass-highlight: rgba(255, 255, 255, 0.12);
-    --input-bg: rgba(0, 0, 0, 0.35);
+    --glass-border: rgba(255, 255, 255, 0.25);
+    --glass-highlight: rgba(255, 255, 255, 0.15);
+    --input-bg: rgba(0, 0, 0, 0.4);
     --btn-bg: rgba(30, 40, 50, 0.5);
   }
 
@@ -37,8 +40,9 @@
     --text-main: #1e293b;
     --text-title: #0f172a;
     --text-desc: #475569;
+    
     --glass-bg: rgba(255, 255, 255, var(--glass-opacity));
-    --glass-border: rgba(0, 0, 0, 0.15);
+    --glass-border: rgba(255, 255, 255, 0.8);
     --glass-highlight: rgba(255, 255, 255, 0.8);
     --input-bg: rgba(255, 255, 255, 0.6);
     --btn-bg: rgba(255, 255, 255, 0.9);
@@ -53,6 +57,7 @@
     font-size: 16px; 
     overflow: hidden;
     transition: background 0.4s, color 0.4s; 
+    /* ЦВЕТНЫЕ ПЯТНА ДЛЯ СТЕКЛА */
     background-image: 
       radial-gradient(circle at 10% 20%, rgba(0, 255, 200, 0.2) 0%, transparent 40%),
       radial-gradient(circle at 90% 80%, rgba(255, 0, 102, 0.2) 0%, transparent 40%);
@@ -74,7 +79,7 @@
     display: flex; align-items: center; justify-content: center; 
     cursor: pointer; border-radius: 50%; 
     backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
-    box-shadow: inset 0 1px 0 var(--glass-highlight), 0 4px 15px rgba(0,0,0,0.2);
+    box-shadow: inset 0 1px 0 var(--glass-highlight), 0 4px 15px rgba(0,0,0,0.3);
     transition: all 0.3s;
   }
   .icon-btn:hover { background: var(--input-bg); }
@@ -83,16 +88,17 @@
   .avatar { 
     width: 45px; height: 45px; border-radius: 50%; background: #00ffc8; color: #0a0c10; 
     display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; 
-    cursor: pointer; border: 2px solid #fff; box-shadow: 0 0 10px rgba(0,255,200,0.5); margin-left: auto;
+    cursor: pointer; border: 2px solid #fff; box-shadow: 0 0 15px rgba(0,255,200,0.6); margin-left: auto;
   }
   .avatar.guest { background: #475569; color: #fff; border-color: #94a3b8; box-shadow: none; }
 
   h1 { font-family: 'Oswald', sans-serif; font-size: 2.4em; text-transform: uppercase; text-align: center; color: var(--text-title); text-shadow: 0 0 20px rgba(0,255,200,0.4); margin-bottom: 5px; letter-spacing: 1px; }
   .subtitle { text-align: center; font-size: 12px; text-transform: uppercase; letter-spacing: 3px; color: var(--text-desc); margin-bottom: 25px; }
   
+  /* СТЕКЛО */
   .panel, .place-card, .tabs button, .help-content, .profile-content, .settings-content, .about-content, .quest-card, .user-card { 
     background: var(--glass-bg); border: 1px solid var(--glass-border); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
-    box-shadow: inset 0 1px 0 var(--glass-highlight), 0 10px 40px rgba(0,0,0,0.3);
+    box-shadow: inset 0 1px 0 var(--glass-highlight), 0 10px 40px rgba(0,0,0,0.4);
     transition: background 0.4s, border 0.4s; border-radius: 20px;
   }
   .panel { padding: 15px; margin-bottom: 15px; }
@@ -112,22 +118,12 @@
   .place-content { padding: 20px; }
   .place-card h3 { font-family: 'Oswald', sans-serif; font-size: 1.5em; text-transform: uppercase; color: var(--text-title); margin-bottom: 5px; }
   
-  /* БЕЙДЖИ И АВТОР */
   .author-badge { display: inline-block; background: rgba(0,255,200,0.1); color: #00ffc8; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-bottom: 10px; cursor: pointer; border: 1px solid rgba(0,255,200,0.3); }
-  
   .desc { color: var(--text-desc); font-size: 15px; margin-bottom: 15px; line-height: 1.5; }
-  
-  .actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 15px; }
-  .actions button { width: auto; padding: 10px 16px; font-size: 13px; margin: 0; }
-  .btn-ban { border-color: #ff0066; color: #ff0066; display: none; }
-  
-  #map { height: 350px; width: 100%; border-radius: 20px; margin-bottom: 15px; border: 1px solid var(--glass-border); box-shadow: 0 8px 32px rgba(0,0,0,0.3); z-index: 1; }
   
   .comments { margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--glass-border); }
   .comment { background: var(--input-bg); padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--glass-border); }
   .comment-author { font-weight: bold; color: #00ffc8; margin-right: 5px; font-size: 12px; cursor: pointer; }
-  .del-comment { width: auto; padding: 4px 8px; border: none; background: transparent; color: #ff0066; cursor: pointer; display: none; }
-  .del-comment svg { width: 16px; height: 16px; }
   .comment-form { display: flex; gap: 8px; margin-top: 10px; }
   .comment-form input { margin: 0; padding: 12px; }
   .comment-form button { width: auto; padding: 12px 20px; margin: 0; }
@@ -146,6 +142,10 @@
 
   .user-card { padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
   .user-card button { width: auto; padding: 6px 12px; font-size: 12px; }
+
+  /* КНОПКА ПОМОЩИ */
+  .help-btn { position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; border-radius: 50%; background: #ff0066; color: #fff; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 32px rgba(255,0,102,0.5); z-index: 1000; cursor: pointer; backdrop-filter: blur(5px); }
+  .help-btn svg { width: 28px; height: 28px; }
 </style>
 </head>
 <body>
@@ -218,7 +218,7 @@
   <div class="settings-content">
     <h3>Настройки</h3>
     <label>Прозрачность стекла</label>
-    <input type="range" id="glassSlider" min="0.1" max="0.95" step="0.05" value="0.55">
+    <input type="range" id="glassSlider" min="0.1" max="0.95" step="0.05" value="0.6">
     <label style="margin-top:15px;">Звук</label>
     <div style="display:flex; gap:10px;">
       <button id="soundOnBtn" class="btn-toggle" style="flex:1; border-color:#00ffc8;">Вкл</button>
@@ -275,6 +275,18 @@
   </div>
 </div>
 
+<button class="help-btn" id="helpBtn" type="button">
+  <i data-lucide="shirt"></i>
+</button>
+
+<div class="help-modal hidden" id="helpModal">
+  <div class="help-content">
+    <h3>Ошибка</h3>
+    <textarea id="errorLog" readonly></textarea>
+    <button id="closeHelpBtn" type="button" class="btn-toggle">Закрыть</button>
+  </div>
+</div>
+
 <script>
 const APPWRITE_ENDPOINT = 'https://fra.cloud.appwrite.io/v1';
 const APPWRITE_PROJECT_ID = '6af75290002021ce6c30';
@@ -292,6 +304,7 @@ let soundEnabled = localStorage.getItem('cheb_sound') !== 'false';
 let isLightTheme = localStorage.getItem('cheb_theme') === 'light';
 let currentUser = JSON.parse(localStorage.getItem('cheb_current_user') || 'null');
 let selectedUserForBan = null; 
+let lastError = 'Ошибок не было.';
 
 const statusEl = document.getElementById('status');
 const avatarBtn = document.getElementById('avatarBtn');
@@ -344,19 +357,22 @@ document.getElementById('backBtn').addEventListener('click', () => {
   playSound('click');
 });
 
-// === ЗВУК ===
+// === ЗВУК (ОДИН, ПРИЯТНЫЙ) ===
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 let audioCtx;
-function playSound(type) {
+function playSound() {
   if (!soundEnabled) return;
   if (!audioCtx) audioCtx = new AudioContext();
   if (audioCtx.state === 'suspended') audioCtx.resume();
   const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-  if (type === 'click') { osc.type = 'triangle'; osc.frequency.setValueAtTime(200, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1); }
-  gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15);
-  osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.1);
+  gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+  osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.1);
 }
-document.addEventListener('click', (e) => { if (e.target.closest('button')) playSound('click'); });
+document.addEventListener('click', (e) => { if (e.target.closest('button')) playSound(); });
 
 // === АВТОРИЗАЦИЯ ===
 document.getElementById('avatarBtn').addEventListener('click', () => {
@@ -482,17 +498,21 @@ async function unbanUser(userId) {
 document.getElementById('settingsBtn').addEventListener('click', () => document.getElementById('settingsModal').classList.remove('hidden'));
 document.getElementById('closeSettingsBtn').addEventListener('click', () => document.getElementById('settingsModal').classList.add('hidden'));
 document.getElementById('glassSlider').addEventListener('input', (e) => { document.documentElement.style.setProperty('--glass-opacity', e.target.value); localStorage.setItem('cheb_glass_opacity', e.target.value); });
-document.getElementById('soundOnBtn').addEventListener('click', () => { soundEnabled = true; localStorage.setItem('cheb_sound', 'true'); playSound('click'); });
+document.getElementById('soundOnBtn').addEventListener('click', () => { soundEnabled = true; localStorage.setItem('cheb_sound', 'true'); playSound(); });
 document.getElementById('soundOffBtn').addEventListener('click', () => { soundEnabled = false; localStorage.setItem('cheb_sound', 'false'); });
 document.getElementById('themeToggle').addEventListener('click', () => {
   isLightTheme = !isLightTheme;
   if (isLightTheme) { document.body.classList.add('light-theme'); document.getElementById('themeToggle').innerHTML = '<i data-lucide="sun"></i>'; localStorage.setItem('cheb_theme', 'light'); }
   else { document.body.classList.remove('light-theme'); document.getElementById('themeToggle').innerHTML = '<i data-lucide="moon"></i>'; localStorage.setItem('cheb_theme', 'dark'); }
-  lucide.createIcons(); playSound('click');
+  lucide.createIcons(); playSound();
 });
 
-document.getElementById('aboutBtn').addEventListener('click', () => document.getElementById('aboutModal').classList.remove('hidden'));
-document.getElementById('closeAboutBtn').addEventListener('click', () => document.getElementById('aboutModal').classList.add('hidden'));
+// === ОШИБКИ ===
+document.getElementById('helpBtn').addEventListener('click', () => {
+  document.getElementById('errorLog').value = lastError;
+  document.getElementById('helpModal').classList.remove('hidden');
+});
+document.getElementById('closeHelpBtn').addEventListener('click', () => document.getElementById('helpModal').classList.add('hidden'));
 
 // === ЛОГИКА МЕСТ ===
 function initMap() {
@@ -503,7 +523,11 @@ async function loadData() {
   try {
     const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID);
     places = response.documents.filter(doc => doc.city !== 'USER_ACCOUNT').map(doc => ({ ...doc, id: doc.$id }));
-  } catch(e) { console.error(e); }
+    document.getElementById('status').style.display = 'none';
+  } catch(e) { 
+    document.getElementById('status').textContent = 'Ошибка базы'; document.getElementById('status').style.color = '#ff0066';
+    lastError = e.message;
+  }
   render();
 }
 
@@ -518,9 +542,6 @@ function render() {
         <div class="author-badge" onclick="openUserInfo('${p.author || 'Неизвестный'}', '${p.author_id || '0'}')">Добавил: ${p.author || 'Неизвестный'}</div>
         <div class="desc">${p.desc || ''}</div>
         <div class="comments">
-          <div class="comment">
-            <span><span class="comment-author" onclick="openUserInfo('${p.author || 'Неизвестный'}', '${p.author_id || '0'}')">${p.author || 'Неизвестный'}:</span> Тестовый комментарий</span>
-          </div>
           <div class="comment-form">
             <input type="text" placeholder="Комментарий..." onkeydown="if(event.key==='Enter') checkAuthBeforeAction(() => alert('Коммент отправлен!'))">
             <button onclick="checkAuthBeforeAction(() => alert('Коммент отправлен!'))"><i data-lucide="send"></i></button>
@@ -534,7 +555,7 @@ function render() {
 }
 
 if (isLightTheme) document.body.classList.add('light-theme');
-const savedOpacity = localStorage.getItem('cheb_glass_opacity') || '0.55';
+const savedOpacity = localStorage.getItem('cheb_glass_opacity') || '0.6';
 document.documentElement.style.setProperty('--glass-opacity', savedOpacity);
 document.getElementById('glassSlider').value = savedOpacity;
 
