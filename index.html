@@ -214,7 +214,7 @@
           <label>Ссылка на фото</label><input type="url" id="inPhotos" placeholder="https://.../image.jpg">
           <div class="form-row">
             <div><label>Город</label><select id="inCity"><option>Чебоксары</option><option>Новочебоксарск</option><option>Чувашия</option></select></div>
-            <div><label>Координаты</label><input type="text" id="inCoords" placeholder="56.146, 47.248"></div>
+            <div><label>Координаты</label><input type="text" id="inCoords" placeholder="56.1463, 47.2481"></div>
           </div>
           <button id="saveBtn" type="button"><i data-lucide="save"></i> Сохранить</button>
         </div>
@@ -255,9 +255,7 @@
          <button class="btn-toggle" onclick="openMapToPlace()"><i data-lucide="map-pin"></i> Показать на карте</button>
       </div>
       
-      <div class="comments" id="detailCommentsSection">
-        <!-- Комментарии подгружаются сюда -->
-      </div>
+      <div class="comments" id="detailCommentsSection"></div>
     </div>
   </div>
 </div>
@@ -363,7 +361,7 @@ let currentUser = safeParse(localStorage.getItem('cheb_current_user'));
 let selectedUserForBan = null;
 let lastError = 'Ошибок не было.';
 let editingPlaceId = null;
-let currentDetailPlaceId = null; // Для модалки подробностей
+let currentDetailPlaceId = null; 
 
 const statusEl = document.getElementById('status');
 const avatarBtn = document.getElementById('avatarBtn');
@@ -389,6 +387,28 @@ function isUserBannedNow(user) {
   return user.is_banned === 'true';
 }
 function isAdmin() { return !!(currentUser && currentUser.is_admin === 'true'); }
+
+/* --- УМНЫЙ ПАРСЕР КООРДИНАТ --- */
+function parseCoords(str) {
+  if (!str || typeof str !== 'string') return null;
+  // Заменяем точки и запятые на пробел для унификации
+  const clean = str.replace(/[.,]/g, ' ').trim();
+  // Разбиваем по пробелам, убираем пустые куски
+  const parts = clean.split(/\s+/).filter(Boolean);
+  
+  if (parts.length < 2) return null; // Нужно хотя бы два числа
+
+  // Если первое число больше 90, значит, сначала ввели долготу, а потом широту (широта от -90 до 90)
+  let lat = parseFloat(parts[0]);
+  let lng = parseFloat(parts[1]);
+  if (isNaN(lat) || isNaN(lng)) return null;
+  if (Math.abs(lat) > 90) { 
+    const temp = lat; lat = lng; lng = temp; 
+  }
+
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+  return `${lat},${lng}`; // Возвращаем идеальную строку для Appwrite
+}
 
 function updateAvatar() {
   if (currentUser) {
@@ -487,12 +507,9 @@ function updateMarkers() {
 
   places.forEach(p => {
     if (p.is_archived === 'true' || p.is_banned === 'true') return;
-    if (!p.coords || typeof p.coords !== 'string') return;
-    const cleanCoords = p.coords.replace(/\s/g, '').replace(/\./g, ',');
-    const parts = cleanCoords.split(',');
-    if (parts.length !== 2) return;
-    const lat = parseFloat(parts[0]), lng = parseFloat(parts[1]);
-    if (isNaN(lat) || isNaN(lng)) return;
+    const parsed = parseCoords(p.coords);
+    if (!parsed) return;
+    const [lat, lng] = parsed.split(',').map(Number);
 
     const m = L.marker([lat, lng]).addTo(map).bindPopup(`<b>${esc(p.name)}</b>`);
     markers.push(m);
@@ -504,7 +521,10 @@ function updateMarkers() {
 function openMapToPlace() {
   if (!currentDetailPlaceId) return;
   const p = places.find(x => x.id === currentDetailPlaceId);
-  if (!p || !p.coords) return;
+  if (!p) return;
+  const parsed = parseCoords(p.coords);
+  if (!parsed) return;
+
   document.getElementById('detailModal').classList.add('hidden');
   document.getElementById('mapModal').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
@@ -515,15 +535,9 @@ function openMapToPlace() {
   }
   setTimeout(() => {
     map.invalidateSize();
-    const clean = p.coords.replace(/\s/g, '').replace(/\./g, ',');
-    const parts = clean.split(',');
-    if (parts.length === 2) {
-      const lat = parseFloat(parts[0]), lng = parseFloat(parts[1]);
-      if (!isNaN(lat) && !isNaN(lng)) {
-        map.setView([lat, lng], 15);
-        markers.forEach(m => { if (m.getLatLng().lat === lat && m.getLatLng().lng === lng) m.openPopup(); });
-      }
-    }
+    const [lat, lng] = parsed.split(',').map(Number);
+    map.setView([lat, lng], 15);
+    markers.forEach(m => { if (m.getLatLng().lat === lat && m.getLatLng().lng === lng) m.openPopup(); });
   }, 150);
 }
 
@@ -741,7 +755,6 @@ function openPlaceDetail(id) {
   const coordsBox = document.getElementById('detailCoordsBox');
   if (p.coords) coordsBox.style.display = 'block'; else coordsBox.style.display = 'none';
 
-  // Рендер комментариев в модалке
   const commentsContainer = document.getElementById('detailCommentsSection');
   const commentsHtml = (p.comments || []).map((c, idx) => {
     const cText = typeof c === 'string' ? c : (c.text || 'Ошибка');
@@ -753,8 +766,8 @@ function openPlaceDetail(id) {
     <strong style="font-size:12px;color:var(--text-desc); text-transform:uppercase; letter-spacing:1px;">Комментарии (${(p.comments || []).length})</strong>
     <div style="margin-top:10px;">${commentsHtml || '<div style="color:var(--text-desc); font-size:14px;">Пока нет комментариев</div>'}</div>
     <div class="comment-form">
-      <input type="text" id="c_detail" placeholder="Ваш комментарий..." maxlength="500" onkeydown="if(event.key==='Enter'){event.preventDefault();addCommentDetail('${esc(p.id)}')}">
-      <button onclick="addCommentDetail('${esc(p.id)}')"><i data-lucide="send"></i></button>
+      <input type="text" id="c_detail" placeholder="Ваш комментарий..." maxlength="500" onkeydown="if(event.key==='Enter'){event.preventDefault();addComment('${esc(p.id)}')}">
+      <button onclick="addComment('${esc(p.id)}')"><i data-lucide="send"></i></button>
     </div>
   `;
 
@@ -768,18 +781,25 @@ document.getElementById('closeDetailBtn').addEventListener('click', () => {
   document.body.style.overflow = '';
 });
 
-async function addCommentDetail(id) {
+async function addComment(id) {
   checkAuthBeforeAction(async () => {
-    const inp = document.getElementById('c_detail'); if (!inp) return;
+    // Ищем инпут либо в модалке (c_detail), либо в ленте (c_id)
+    const inp = document.getElementById('c_detail') || document.getElementById('c_' + id); 
+    if (!inp) return;
     const text = inp.value.trim(); if (!text) return;
     const p = places.find(x => x.id === id); if (!p) return;
 
     const comments = Array.isArray(p.comments) ? [...p.comments] : [];
-    comments.push(`${currentUser.nickname}: ${text}`); // Отправляем как строку
+    comments.push(`${currentUser.nickname}: ${text}`); // Строгий формат строки
 
     try {
       await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { comments });
-      p.comments = comments; inp.value = ''; openPlaceDetail(id); // Перерисовываем модалку
+      p.comments = comments; inp.value = ''; 
+      
+      // Обновляем везде: и ленту, и модалку
+      if (currentDetailPlaceId === id) openPlaceDetail(id); else render();
+      render(); // На всякий случай перерисовываем ленту, чтобы счетчик обновился
+      
     } catch (e) { lastError = e.message || String(e); alert('Ошибка комментария: ' + e.message); }
   });
 }
@@ -823,15 +843,17 @@ document.getElementById('saveBtn').addEventListener('click', () => {
     const desc = document.getElementById('inDesc').value.trim();
     if (!name || !desc) return alert('Заполните поля!');
     const photoLink = document.getElementById('inPhotos').value.trim();
-    const coords = document.getElementById('inCoords').value.trim();
+    const rawCoords = document.getElementById('inCoords').value.trim();
 
-    if (coords) {
-      const parts = coords.split(','); if (parts.length !== 2) return alert('Координаты должны быть в формате "широта, долгота"');
-      const lat = parseFloat(parts[0]), lng = parseFloat(parts[1]);
-      if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) return alert('Некорректные координаты');
+    // Умный парсер координат
+    let finalCoords = '';
+    if (rawCoords) {
+      const parsed = parseCoords(rawCoords);
+      if (!parsed) return alert('Некорректные координаты. Введите широту и долготу (например, 56.1463, 47.2481)');
+      finalCoords = parsed;
     }
 
-    const data = { name, desc, city: document.getElementById('inCity').value, coords, photos: photoLink ? [photoLink] : [], author: currentUser.nickname, author_id: currentUser.id || '0', is_archived: 'false' };
+    const data = { name, desc, city: document.getElementById('inCity').value, coords: finalCoords, photos: photoLink ? [photoLink] : [], author: currentUser.nickname, author_id: currentUser.id || '0', is_archived: 'false' };
 
     try {
       if (editingPlaceId) await databases.updateDocument(DATABASE_ID, COLLECTION_ID, editingPlaceId, data);
@@ -866,6 +888,7 @@ async function deleteComment(id, index) {
     await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { comments });
     p.comments = comments; 
     if (currentDetailPlaceId === id) openPlaceDetail(id); else render();
+    render();
   } catch (e) { lastError = e.message || String(e); alert('Ошибка удаления: ' + e.message); }
 }
 
