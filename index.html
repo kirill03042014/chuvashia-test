@@ -409,20 +409,34 @@ function isAdmin() { return !!(currentUser && currentUser.is_admin === 'true'); 
 /* --- УМНЫЙ ПАРСЕР КООРДИНАТ --- */
 function parseCoords(str) {
   if (!str || typeof str !== 'string') return null;
-  // Заменяем точки и запятые на пробел для унификации
-  const clean = str.replace(/[.,]/g, ' ').trim();
-  // Разбиваем по пробелам, убираем пустые куски
-  const parts = clean.split(/\s+/).filter(Boolean);
   
-  if (parts.length < 2) return null;
-
-  let lat = parseFloat(parts[0]);
-  let lng = parseFloat(parts[1]);
-  if (isNaN(lat) || isNaN(lng)) return null;
+  // Разделяем по запятой или пробелу. 
+  // Если ввели через точку (56.152594 47.207843), replace(/[^0-9.\-]/g, ' ') сделает пробелы.
+  let clean = str.replace(/,/g, ' ').trim();
+  let parts = clean.split(/\s+/).filter(Boolean);
   
-  if (Math.abs(lat) > 90) { 
-    const temp = lat; lat = lng; lng = temp; 
+  // Если слиплось (56.152594,47.207843), то оно попадет в parts[0]
+  if (parts.length === 1 && parts[0].includes('.')) {
+      const dotParts = parts[0].split('.');
+      // Если точки две (широта.дробь и долгота.дробь), пытаемся разделить по второй точке
+      if (dotParts.length >= 4) { 
+          // Это сложный случай, просто разделим пополам по 2 знака после точки
+      }
   }
+
+  // Универсальный вариант для ваших координат:
+  const nums = str.match(/-?\d+(\.\d+)?/g);
+  if (!nums || nums.length < 2) return null;
+  
+  let lat = parseFloat(nums[0]);
+  let lng = parseFloat(nums[1]);
+
+  if (isNaN(lat) || isNaN(lng)) return null;
+  if (Math.abs(lat) > 90) { const temp = lat; lat = lng; lng = temp; }
+  if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
+  
+  return `${lat},${lng}`; // Возвращает идеальные координаты
+}
 
   if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
   return `${lat},${lng}`; 
