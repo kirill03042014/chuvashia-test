@@ -23,11 +23,8 @@
     --text-main: #e2e8f0;
     --text-title: #ffffff;
     --text-desc: #94a3b8;
-    
-    /* МОЩНЫЙ LIQUID GLASS */
     --glass-opacity: 0.6; 
     --glass-blur: 40px;
-    
     --glass-bg: rgba(20, 25, 35, var(--glass-opacity));
     --glass-border: rgba(255, 255, 255, 0.25);
     --glass-highlight: rgba(255, 255, 255, 0.15);
@@ -40,7 +37,6 @@
     --text-main: #1e293b;
     --text-title: #0f172a;
     --text-desc: #475569;
-    
     --glass-bg: rgba(255, 255, 255, var(--glass-opacity));
     --glass-border: rgba(255, 255, 255, 0.8);
     --glass-highlight: rgba(255, 255, 255, 0.8);
@@ -57,7 +53,6 @@
     font-size: 16px; 
     overflow: hidden;
     transition: background 0.4s, color 0.4s; 
-    /* ЦВЕТНЫЕ ПЯТНА ДЛЯ СТЕКЛА */
     background-image: 
       radial-gradient(circle at 10% 20%, rgba(0, 255, 200, 0.2) 0%, transparent 40%),
       radial-gradient(circle at 90% 80%, rgba(255, 0, 102, 0.2) 0%, transparent 40%);
@@ -95,7 +90,6 @@
   h1 { font-family: 'Oswald', sans-serif; font-size: 2.4em; text-transform: uppercase; text-align: center; color: var(--text-title); text-shadow: 0 0 20px rgba(0,255,200,0.4); margin-bottom: 5px; letter-spacing: 1px; }
   .subtitle { text-align: center; font-size: 12px; text-transform: uppercase; letter-spacing: 3px; color: var(--text-desc); margin-bottom: 25px; }
   
-  /* СТЕКЛО */
   .panel, .place-card, .tabs button, .help-content, .profile-content, .settings-content, .about-content, .quest-card, .user-card { 
     background: var(--glass-bg); border: 1px solid var(--glass-border); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
     box-shadow: inset 0 1px 0 var(--glass-highlight), 0 10px 40px rgba(0,0,0,0.4);
@@ -115,6 +109,10 @@
   label { font-family: 'Oswald', sans-serif; font-size: 11px; text-transform: uppercase; color: var(--text-desc); display: block; margin-bottom: 6px; letter-spacing: 1px; }
   
   .place-card { border-left: 4px solid #00ffc8; margin-bottom: 20px; overflow: hidden; }
+  .photo-container { width: 100%; height: 220px; background: #000; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; border-bottom: 1px solid var(--glass-border); }
+  .photo-container::-webkit-scrollbar { display: none; }
+  .photo-item { flex: 0 0 100%; scroll-snap-align: start; height: 100%; object-fit: cover; }
+  
   .place-content { padding: 20px; }
   .place-card h3 { font-family: 'Oswald', sans-serif; font-size: 1.5em; text-transform: uppercase; color: var(--text-title); margin-bottom: 5px; }
   
@@ -143,7 +141,6 @@
   .user-card { padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
   .user-card button { width: auto; padding: 6px 12px; font-size: 12px; }
 
-  /* КНОПКА ПОМОЩИ */
   .help-btn { position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; border-radius: 50%; background: #ff0066; color: #fff; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 32px rgba(255,0,102,0.5); z-index: 1000; cursor: pointer; backdrop-filter: blur(5px); }
   .help-btn svg { width: 28px; height: 28px; }
 </style>
@@ -357,7 +354,7 @@ document.getElementById('backBtn').addEventListener('click', () => {
   playSound('click');
 });
 
-// === ЗВУК (ОДИН, ПРИЯТНЫЙ) ===
+// === ЗВУК ===
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 let audioCtx;
 function playSound() {
@@ -535,8 +532,14 @@ function render() {
   const list = document.getElementById('placesList');
   if (!list) return;
   
-  list.innerHTML = places.map(p => `
+  list.innerHTML = places.map(p => {
+    let photoUrl = '';
+    if (p.photos && Array.isArray(p.photos) && p.photos.length > 0) photoUrl = p.photos[0];
+    else if (p.photos && typeof p.photos === 'string') photoUrl = p.photos;
+
+    return `
     <div class="place-card">
+      ${photoUrl ? `<div class="photo-container"><img src="${photoUrl}" class="photo-item" onerror="this.style.display='none'"></div>` : ''}
       <div class="place-content">
         <h3>${p.name}</h3>
         <div class="author-badge" onclick="openUserInfo('${p.author || 'Неизвестный'}', '${p.author_id || '0'}')">Добавил: ${p.author || 'Неизвестный'}</div>
@@ -548,8 +551,8 @@ function render() {
           </div>
         </div>
       </div>
-    </div>
-  `).join('');
+    </div>`;
+  }).join('');
   
   if (typeof lucide !== 'undefined') lucide.createIcons();
 }
