@@ -166,7 +166,7 @@
   .map-close-btn { position: absolute; top: 15px; right: 15px; z-index: 1000; width: 50px; height: 50px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 50%; color: var(--text-main); display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: var(--glass-blur); box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
 
   h3 { color: var(--text-title); margin-bottom: 20px; text-align: center; font-family: 'Oswald'; text-transform: uppercase; letter-spacing: 1px; }
-  .help-content textarea { width: 100%; height: 150px; margin-bottom: 15px; background: var(--input-bg); color: var(--text-main); border: 1px solid var(--glass-border); padding: 12px; font-size: 12px; border-radius: 8px; }
+  .help-content textarea { width: 100%; height: 200px; margin-bottom: 15px; background: var(--input-bg); color: var(--text-main); border: 1px solid var(--glass-border); padding: 12px; font-size: 12px; border-radius: 8px; font-family: monospace; }
 
   .user-card { padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
   .user-card button { width: auto; padding: 6px 12px; font-size: 12px; }
@@ -329,17 +329,36 @@
   </div>
 </div>
 
-<button class="help-btn" id="helpBtn" type="button"><i data-lucide="shirt"></i></button>
+<!-- Кнопка диагностики -->
+<button class="help-btn" id="helpBtn" type="button" title="Диагностика"><i data-lucide="shirt"></i></button>
 
 <div class="help-modal hidden" id="helpModal">
   <div class="help-content">
-    <h3>Ошибка</h3>
+    <h3>🛠 Диагностика (Черный ящик)</h3>
     <textarea id="errorLog" readonly></textarea>
     <button id="closeHelpBtn" type="button" class="btn-toggle">Закрыть</button>
   </div>
 </div>
 
 <script>
+/* ============================================================
+   СИСТЕМА ЛОГИРОВАНИЯ (ЧЕРНЫЙ ЯЩИК)
+   ============================================================ */
+const debugLogs = [];
+function addLog(msg) {
+  const time = new Date().toLocaleTimeString();
+  const formatted = `[${time}] ${msg}`;
+  debugLogs.push(formatted);
+  if (debugLogs.length > 100) debugLogs.shift(); // Храним последние 100 записей
+  console.log(formatted);
+}
+window.addEventListener('error', function(e) {
+  addLog(`КРИТИЧЕСКАЯ ОШИБКА JS: ${e.message} (в файле ${e.filename}:${e.lineno})`);
+});
+
+/* ============================================================
+   КОНФИГУРАЦИЯ APPWRITE
+   ============================================================ */
 const APPWRITE_ENDPOINT   = 'https://fra.cloud.appwrite.io/v1';
 const APPWRITE_PROJECT_ID = '6af75290002021ce6c30';
 const DATABASE_ID         = '6af752b800204637c982';
@@ -359,7 +378,6 @@ let soundEnabled = localStorage.getItem('cheb_sound') !== 'false';
 let isLightTheme = localStorage.getItem('cheb_theme') === 'light';
 let currentUser = safeParse(localStorage.getItem('cheb_current_user'));
 let selectedUserForBan = null;
-let lastError = 'Ошибок не было.';
 let editingPlaceId = null;
 let currentDetailPlaceId = null; 
 
@@ -396,18 +414,18 @@ function parseCoords(str) {
   // Разбиваем по пробелам, убираем пустые куски
   const parts = clean.split(/\s+/).filter(Boolean);
   
-  if (parts.length < 2) return null; // Нужно хотя бы два числа
+  if (parts.length < 2) return null;
 
-  // Если первое число больше 90, значит, сначала ввели долготу, а потом широту (широта от -90 до 90)
   let lat = parseFloat(parts[0]);
   let lng = parseFloat(parts[1]);
   if (isNaN(lat) || isNaN(lng)) return null;
+  
   if (Math.abs(lat) > 90) { 
     const temp = lat; lat = lng; lng = temp; 
   }
 
   if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return null;
-  return `${lat},${lng}`; // Возвращаем идеальную строку для Appwrite
+  return `${lat},${lng}`; 
 }
 
 function updateAvatar() {
@@ -486,36 +504,65 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catc
 
 /* КАРТА */
 document.getElementById('mapBtn').addEventListener('click', () => {
+  addLog('--- ОТКРЫТИЕ КАРТЫ ---');
   document.getElementById('mapModal').classList.remove('hidden');
   document.body.style.overflow = 'hidden';
+  
   if (!map) {
+    addLog('Инициализация Leaflet...');
     map = L.map('map').setView([56.1463, 47.2481], 12);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
   }
-  setTimeout(() => { map.invalidateSize(); updateMarkers(); }, 150);
+  setTimeout(() => { 
+    addLog('Обновление размеров карты (invalidateSize)');
+    map.invalidateSize(); 
+    updateMarkers(); 
+  }, 150);
 });
+
 document.getElementById('closeMapBtn').addEventListener('click', () => {
   document.getElementById('mapModal').classList.add('hidden');
   document.body.style.overflow = '';
 });
 
 function updateMarkers() {
-  if (!map) return;
+  addLog(`Начало обновления маркеров. Всего мест в базе: ${places.length}`);
+  if (!map) { addLog('ОШИБКА: Карта (map) не инициализирована!'); return; }
+  
   markers.forEach(m => map.removeLayer(m));
   markers = [];
   const bounds = [];
+  let addedCount = 0;
 
   places.forEach(p => {
-    if (p.is_archived === 'true' || p.is_banned === 'true') return;
+    if (p.is_archived === 'true' || p.is_banned === 'true') {
+      addLog(`Пропущено место "${p.name}" (в архиве или забанено)`);
+      return;
+    }
+    
     const parsed = parseCoords(p.coords);
-    if (!parsed) return;
+    if (!parsed) {
+      addLog(`ОШИБКА КООРДИНАТ: Место "${p.name}" имеет неверные координаты в базе: "${p.coords}"`);
+      return;
+    }
+    
     const [lat, lng] = parsed.split(',').map(Number);
+    addLog(`✅ Маркер добавлен: "${p.name}" на координаты [${lat}, ${lng}]`);
 
     const m = L.marker([lat, lng]).addTo(map).bindPopup(`<b>${esc(p.name)}</b>`);
     markers.push(m);
     bounds.push([lat, lng]);
+    addedCount++;
   });
-  if (bounds.length > 0) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+  
+  addLog(`Итого добавлено маркеров: ${addedCount}`);
+  
+  if (bounds.length > 0) {
+    addLog('Автоматический подбор зума (fitBounds)');
+    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+  } else {
+    addLog('ВНИМАНИЕ: Нет маркеров для отображения. Карта останется на стандартном зуме.');
+  }
 }
 
 function openMapToPlace() {
@@ -523,7 +570,7 @@ function openMapToPlace() {
   const p = places.find(x => x.id === currentDetailPlaceId);
   if (!p) return;
   const parsed = parseCoords(p.coords);
-  if (!parsed) return;
+  if (!parsed) { alert('У этого места нет корректных координат.'); return; }
 
   document.getElementById('detailModal').classList.add('hidden');
   document.getElementById('mapModal').classList.remove('hidden');
@@ -577,7 +624,7 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
     currentUser = { nickname: user.name, is_admin: 'false', id: user.$id, is_banned: user.is_banned || 'false', ban_type: user.ban_type || 'none', ban_until: user.ban_until || '0' };
     localStorage.setItem('cheb_current_user', JSON.stringify(currentUser));
     updateAvatar(); document.getElementById('profileModal').classList.add('hidden'); alert('С возвращением, ' + user.name); render();
-  } catch (e) { lastError = e.message || String(e); alert('Ошибка входа'); }
+  } catch (e) { addLog('Ошибка входа: ' + e.message); alert('Ошибка входа'); }
 });
 
 document.getElementById('registerBtn').addEventListener('click', async () => {
@@ -595,7 +642,7 @@ document.getElementById('registerBtn').addEventListener('click', async () => {
     currentUser = { nickname: nick, is_admin: 'false', id: newUser.$id, is_banned: 'false', ban_type: 'none', ban_until: '0' };
     localStorage.setItem('cheb_current_user', JSON.stringify(currentUser));
     updateAvatar(); document.getElementById('profileModal').classList.add('hidden'); alert('Успешная регистрация!'); render();
-  } catch (e) { lastError = e.message || String(e); alert('Ошибка регистрации'); }
+  } catch (e) { addLog('Ошибка регистрации: ' + e.message); alert('Ошибка регистрации'); }
 });
 
 document.getElementById('logoutBtn').addEventListener('click', () => {
@@ -622,7 +669,7 @@ async function banUser(type) {
   try {
     await databases.updateDocument(DATABASE_ID, COLLECTION_ID, selectedUserForBan, { is_banned: 'true', ban_type: type, ban_until: banUntil });
     alert('Пользователь забанен!'); document.getElementById('userInfoModal').classList.add('hidden'); render();
-  } catch (e) { lastError = e.message || String(e); alert('Ошибка бана: ' + e.message); }
+  } catch (e) { addLog('Ошибка бана: ' + e.message); alert('Ошибка бана: ' + e.message); }
 }
 
 banlistBtn.addEventListener('click', async () => {
@@ -634,7 +681,7 @@ banlistBtn.addEventListener('click', async () => {
     const banned = res.documents.filter(u => u.ban_type === 'forever' || ((u.ban_type === 'day' || u.ban_type === 'week') && Date.now() < Number(u.ban_until || 0)));
     if (banned.length === 0) container.innerHTML = '<p style="text-align:center; color:var(--text-desc);">Нет забаненных</p>';
     else container.innerHTML = banned.map(u => `<div class="user-card"><span>${esc(u.name)}</span><button onclick="unbanUser('${esc(u.$id)}')" style="border-color:#00ffc8; color:#00ffc8;">Разбанить</button></div>`).join('');
-  } catch (e) { lastError = e.message || String(e); container.innerHTML = 'Ошибка загрузки'; }
+  } catch (e) { addLog('Ошибка загрузки банлиста: ' + e.message); container.innerHTML = 'Ошибка загрузки'; }
 });
 document.getElementById('closeBanlistBtn').addEventListener('click', () => { document.getElementById('banlistModal').classList.add('hidden'); });
 
@@ -643,7 +690,7 @@ async function unbanUser(userId) {
   try {
     await databases.updateDocument(DATABASE_ID, COLLECTION_ID, userId, { is_banned: 'false', ban_type: 'none', ban_until: '0' });
     alert('Разбанен!'); banlistBtn.click();
-  } catch (e) { lastError = e.message || String(e); alert('Ошибка'); }
+  } catch (e) { addLog('Ошибка разбана: ' + e.message); alert('Ошибка'); }
 }
 
 /* НАСТРОЙКИ */
@@ -661,8 +708,12 @@ document.getElementById('themeToggle').addEventListener('click', () => {
   refreshIcons(); playSound();
 });
 
-/* ОШИБКИ */
-document.getElementById('helpBtn').addEventListener('click', () => { document.getElementById('errorLog').value = lastError; document.getElementById('helpModal').classList.remove('hidden'); });
+/* ДИАГНОСТИКА */
+document.getElementById('helpBtn').addEventListener('click', () => { 
+  const logText = debugLogs.join('\n');
+  document.getElementById('errorLog').value = logText || 'Логи пусты. Всё работает отлично!';
+  document.getElementById('helpModal').classList.remove('hidden'); 
+});
 document.getElementById('closeHelpBtn').addEventListener('click', () => { document.getElementById('helpModal').classList.add('hidden'); });
 
 /* ВКЛАДКИ / ПОИСК */
@@ -675,11 +726,16 @@ document.getElementById('searchInput').addEventListener('input', (e) => { search
 
 /* ЗАГРУЗКА ДАННЫХ */
 async function loadData() {
+  addLog('Начало загрузки данных из Appwrite...');
   try {
     const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.limit(100)]);
     places = response.documents.filter(doc => doc.city !== 'USER_ACCOUNT').map(doc => ({ ...doc, id: doc.$id, comments: Array.isArray(doc.comments) ? doc.comments : [] }));
     statusEl.style.display = 'none';
-  } catch (e) { statusEl.textContent = 'Ошибка базы'; statusEl.className = 'status error'; lastError = e.message || String(e); }
+    addLog(`Успешно загружено мест: ${places.length}`);
+  } catch (e) { 
+    statusEl.textContent = 'Ошибка базы'; statusEl.className = 'status error'; 
+    addLog('ОШИБКА ЗАГРУЗКИ ИЗ БАЗЫ: ' + e.message); 
+  }
   render(); updateMarkers();
 }
 
@@ -783,24 +839,20 @@ document.getElementById('closeDetailBtn').addEventListener('click', () => {
 
 async function addComment(id) {
   checkAuthBeforeAction(async () => {
-    // Ищем инпут либо в модалке (c_detail), либо в ленте (c_id)
     const inp = document.getElementById('c_detail') || document.getElementById('c_' + id); 
     if (!inp) return;
     const text = inp.value.trim(); if (!text) return;
     const p = places.find(x => x.id === id); if (!p) return;
 
     const comments = Array.isArray(p.comments) ? [...p.comments] : [];
-    comments.push(`${currentUser.nickname}: ${text}`); // Строгий формат строки
+    comments.push(`${currentUser.nickname}: ${text}`); 
 
     try {
       await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { comments });
       p.comments = comments; inp.value = ''; 
-      
-      // Обновляем везде: и ленту, и модалку
       if (currentDetailPlaceId === id) openPlaceDetail(id); else render();
-      render(); // На всякий случай перерисовываем ленту, чтобы счетчик обновился
-      
-    } catch (e) { lastError = e.message || String(e); alert('Ошибка комментария: ' + e.message); }
+      render(); 
+    } catch (e) { addLog('Ошибка добавления комментария: ' + e.message); alert('Ошибка комментария: ' + e.message); }
   });
 }
 
@@ -826,7 +878,7 @@ function editPlace(id) {
   document.getElementById('addForm').classList.remove('hidden');
   document.getElementById('toggleForm').innerHTML = '<i data-lucide="x"></i> Отменить редактирование';
   document.getElementById('saveBtn').innerHTML = '<i data-lucide="save"></i> Обновить';
-  document.getElementById('detailModal').classList.add('hidden'); // Закрываем модалку, если были в ней
+  document.getElementById('detailModal').classList.add('hidden');
   document.body.style.overflow = '';
   refreshIcons(); window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -845,7 +897,6 @@ document.getElementById('saveBtn').addEventListener('click', () => {
     const photoLink = document.getElementById('inPhotos').value.trim();
     const rawCoords = document.getElementById('inCoords').value.trim();
 
-    // Умный парсер координат
     let finalCoords = '';
     if (rawCoords) {
       const parsed = parseCoords(rawCoords);
@@ -859,7 +910,7 @@ document.getElementById('saveBtn').addEventListener('click', () => {
       if (editingPlaceId) await databases.updateDocument(DATABASE_ID, COLLECTION_ID, editingPlaceId, data);
       else { data.likes = '0'; data.rating_sum = '0'; data.rating_count = '0'; data.comments = []; data.is_banned = 'false'; await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), data); }
       document.getElementById('addForm').classList.add('hidden'); resetAddForm(); loadData();
-    } catch (e) { lastError = e.message || String(e); alert('Ошибка: ' + e.message); }
+    } catch (e) { addLog('Ошибка сохранения места: ' + e.message); alert('Ошибка: ' + e.message); }
   });
 });
 
@@ -874,7 +925,7 @@ async function deletePlace(id) {
       document.getElementById('detailModal').classList.add('hidden');
       document.body.style.overflow = '';
       loadData(); 
-    } catch (e) { lastError = e.message || String(e); alert('Ошибка удаления: ' + e.message); }
+    } catch (e) { addLog('Ошибка удаления места: ' + e.message); alert('Ошибка удаления: ' + e.message); }
   });
 }
 
@@ -889,7 +940,7 @@ async function deleteComment(id, index) {
     p.comments = comments; 
     if (currentDetailPlaceId === id) openPlaceDetail(id); else render();
     render();
-  } catch (e) { lastError = e.message || String(e); alert('Ошибка удаления: ' + e.message); }
+  } catch (e) { addLog('Ошибка удаления комментария: ' + e.message); alert('Ошибка удаления: ' + e.message); }
 }
 
 /* ИНИЦИАЛИЗАЦИЯ */
