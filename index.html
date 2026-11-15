@@ -443,15 +443,69 @@ function parseCoords(str) {
 }
 
 function updateAvatar() {
-  if (currentUser) {
-    avatarBtn.classList.remove('guest');
-    avatarBtn.innerText = (currentUser.nickname || '?').charAt(0).toUpperCase();
-    banlistBtn.style.display = isAdmin() ? 'flex' : 'none';
-  } else {
-    avatarBtn.classList.add('guest');
-    avatarBtn.innerText = '?';
-    banlistBtn.style.display = 'none';
+function updateMarkers() {
+  addLog(`Начало обновления маркеров. Всего мест в базе: ${places.length}`);
+  if (!map) { addLog('Карта еще не создана, ждем открытия...'); return; }
+  
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+  const bounds = [];
+  let addedCount = 0;
+
+  places.forEach(p => {
+    if (p.is_archived === 'true' || p.is_banned === 'true') {
+      addLog(`Пропущено место "${p.name}" (в архиве)`);
+      return;
+    }
+    
+    if (!p.coords) {
+      addLog(`ОШИБКА: У места "${p.name}" вообще нет координат.`);
+      return;
+    }
+
+    // ЖЕСТКАЯ ОЧИСТКА: оставляем только цифры, точки и минусы
+    let clean = p.coords.replace(/,/g, ' ').replace(/\s+/g, ' ').trim();
+    let parts = clean.split(' ');
+    
+    // Если слиплось в одно целое (нет пробела), пытаемся разделить по точке (если их две)
+    if (parts.length === 1) {
+        // Ищем вторую точку, чтобы разделить
+        let dotIndex = parts[0].indexOf('.', parts[0].indexOf('.') + 1);
+        if (dotIndex !== -1) {
+            parts = [parts[0].substring(0, dotIndex), parts[0].substring(dotIndex)];
+        }
+    }
+    
+    if (parts.length < 2) {
+        addLog(`ОШИБКА КООРДИНАТ (не удалось разделить): "${p.coords}"`);
+        return;
+    }
+
+    let lat = parseFloat(parts[0]);
+    let lng = parseFloat(parts[1]);
+
+    if (isNaN(lat) || isNaN(lng)) {
+      addLog(`ОШИБКА КООРДИНАТ (не числа): "${p.coords}"`);
+      return;
+    }
+    
+    if (Math.abs(lat) > 90) { const temp = lat; lat = lng; lng = temp; }
+
+    addLog(`✅ УСПЕХ: "${p.name}" -> [${lat}, ${lng}]`);
+
+    const m = L.marker([lat, lng]).addTo(map).bindPopup(`<b>${esc(p.name)}</b>`);
+    markers.push(m);
+    bounds.push([lat, lng]);
+    addedCount++;
+  });
+  
+  addLog(`Итого добавлено маркеров: ${addedCount}`);
+  
+  if (bounds.length > 0) {
+    addLog('Автоматический подбор зума (fitBounds)');
+    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
   }
+}
 }
 
 function checkAuthBeforeAction(action) {
