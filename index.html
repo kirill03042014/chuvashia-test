@@ -23,8 +23,6 @@
     --text-main: #e2e8f0;
     --text-title: #ffffff;
     --text-desc: #94a3b8;
-    
-    /* МОЩНЫЙ LIQUID GLASS */
     --glass-opacity: 0.6; 
     --glass-blur: 40px;
     --glass-bg: rgba(20, 25, 35, var(--glass-opacity));
@@ -146,6 +144,9 @@
 
   .help-btn { position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; border-radius: 50%; background: #ff0066; color: #fff; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 32px rgba(255,0,102,0.5); z-index: 1000; cursor: pointer; backdrop-filter: blur(5px); }
   .help-btn svg { width: 28px; height: 28px; }
+  
+  /* СТИЛИ ДЛЯ АРХИВА */
+  .archive-badge { display: inline-block; background: rgba(255,0,102,0.1); color: #ff0066; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-bottom: 10px; border: 1px solid rgba(255,0,102,0.3); }
 </style>
 </head>
 <body>
@@ -171,6 +172,7 @@
       <div class="tabs" id="tabs">
         <button class="active" data-tab="popular"><i data-lucide="flame"></i> Популярное</button>
         <button data-tab="new"><i data-lucide="sparkles"></i> Новое</button>
+        <button data-tab="archive"><i data-lucide="archive"></i> Архив</button>
       </div>
       <div class="panel">
         <input type="text" id="searchInput" placeholder="Поиск по названию...">
@@ -285,8 +287,8 @@
     <textarea id="errorLog" readonly></textarea>
     <button id="closeHelpBtn" type="button" class="btn-toggle">Закрыть</button>
   </div>
-  </div>
-  <script>
+</div>
+<script>
 const APPWRITE_ENDPOINT = 'https://fra.cloud.appwrite.io/v1';
 const APPWRITE_PROJECT_ID = '6af75290002021ce6c30';
 const DATABASE_ID = '6af752b800204637c982'; 
@@ -298,12 +300,16 @@ const databases = new Databases(client);
 
 const ADMIN_PASSWORD = 'SmirnovKirill03@inbox.ry';
 
+let map = null; // ВАЖНО: Инициализация карты
+let markers = [];
 let places = [];
 let soundEnabled = localStorage.getItem('cheb_sound') !== 'false';
 let isLightTheme = localStorage.getItem('cheb_theme') === 'light';
 let currentUser = JSON.parse(localStorage.getItem('cheb_current_user') || 'null');
 let selectedUserForBan = null; 
 let lastError = 'Ошибок не было.';
+let currentTab = 'popular';
+let editingPlaceId = null; // Для редактирования
 
 const statusEl = document.getElementById('status');
 const avatarBtn = document.getElementById('avatarBtn');
@@ -321,19 +327,6 @@ function updateAvatar() {
     avatarBtn.innerText = '?';
     banlistBtn.style.display = 'none';
   }
-}
-
-function checkAuthBeforeAction(action) {
-  if (!currentUser) {
-    alert('Войдите в профиль, чтобы совершить это действие!');
-    document.getElementById('profileModal').classList.remove('hidden');
-    return;
-  }
-  if (currentUser.is_banned === 'true' || currentUser.ban_type === 'forever') {
-    alert('Вы забанены и не можете совершать действия.');
-    return;
-  }
-  action();
 }
 
 // === СВАЙПЫ ===
@@ -373,6 +366,34 @@ function playSound() {
 }
 document.addEventListener('click', (e) => { if (e.target.closest('button')) playSound(); });
 
+// === УСТАНОВКА ПРИЛОЖЕНИЯ ===
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // Показываем кнопку, только если приложение еще не установлено
+  if (!localStorage.getItem('cheb_app_installed')) {
+    document.getElementById('installBtn').style.display = 'flex';
+  }
+});
+document.getElementById('installBtn').addEventListener('click', async () => {
+  if (deferredPrompt) {
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    document.getElementById('installBtn').style.display = 'none';
+    localStorage.setItem('cheb_app_installed', 'true');
+  }
+});
+window.addEventListener('appinstalled', () => {
+  document.getElementById('installBtn').style.display = 'none';
+  localStorage.setItem('cheb_app_installed', 'true');
+});
+if (localStorage.getItem('cheb_app_installed')) {
+  document.getElementById('installBtn').style.display = 'none';
+}
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+
 // === АВТОРИЗАЦИЯ ===
 document.getElementById('avatarBtn').addEventListener('click', () => {
   document.getElementById('profileModal').classList.remove('hidden');
@@ -387,12 +408,10 @@ document.getElementById('avatarBtn').addEventListener('click', () => {
     document.getElementById('loggedInSection').classList.add('hidden');
   }
 });
-
 document.getElementById('showRegisterLink').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('loginSection').classList.add('hidden'); document.getElementById('registerSection').classList.remove('hidden'); });
 document.getElementById('showLoginLink').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('loginSection').classList.remove('hidden'); document.getElementById('registerSection').classList.add('hidden'); });
 document.getElementById('closeProfileBtn').addEventListener('click', () => { document.getElementById('profileModal').classList.add('hidden'); });
 
-// ВХОД
 document.getElementById('loginBtn').addEventListener('click', async () => {
   const nick = document.getElementById('loginNickname').value.trim();
   const pass = document.getElementById('loginPassword').value;
@@ -419,7 +438,6 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
   } catch(e) { alert('Ошибка входа'); }
 });
 
-// РЕГИСТРАЦИЯ
 document.getElementById('registerBtn').addEventListener('click', async () => {
   const nick = document.getElementById('regNickname').value.trim();
   const pass = document.getElementById('regPassword').value;
@@ -452,20 +470,21 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 
 // === МОДЕРАЦИЯ ===
 function openUserInfo(nickname, userId) {
-  if (currentUser && currentUser.nickname === nickname) {
+  if (currentUser && currentUser.id === userId) {
     alert('Вы не можете забанить самого себя!');
     return;
   }
   selectedUserForBan = userId;
   document.getElementById('infoNickname').innerText = nickname;
   
-  if (isAdmin() && nickname !== 'Админ' && nickname !== currentUser.nickname) {
+  if (isAdmin() && userId && userId !== '0') {
     document.getElementById('adminBanControls').classList.remove('hidden');
   } else {
     document.getElementById('adminBanControls').classList.add('hidden');
   }
   document.getElementById('userInfoModal').classList.remove('hidden');
 }
+document.getElementById('closeUserInfoBtn').addEventListener('click', () => { document.getElementById('userInfoModal').classList.add('hidden'); });
 
 async function banUser(type) {
   if (!isAdmin() || !selectedUserForBan) return;
@@ -479,9 +498,6 @@ async function banUser(type) {
   } catch(e) { alert('Ошибка бана: ' + e.message); }
 }
 
-document.getElementById('closeUserInfoBtn').addEventListener('click', () => { document.getElementById('userInfoModal').classList.add('hidden'); });
-
-// === СПИСОК ЗАБАНЕННЫХ ===
 document.getElementById('banlistBtn').addEventListener('click', async () => {
   if (!isAdmin()) return;
   document.getElementById('banlistModal').classList.remove('hidden');
@@ -494,7 +510,6 @@ document.getElementById('banlistBtn').addEventListener('click', async () => {
     else container.innerHTML = banned.map(u => `<div class="user-card"><span>${u.name}</span><button onclick="unbanUser('${u.$id}')" style="border-color:#00ffc8; color:#00ffc8;">Разбанить</button></div>`).join('');
   } catch(e) { container.innerHTML = 'Ошибка загрузки'; }
 });
-
 document.getElementById('closeBanlistBtn').addEventListener('click', () => { document.getElementById('banlistModal').classList.add('hidden'); });
 
 async function unbanUser(userId) {
@@ -517,19 +532,31 @@ document.getElementById('themeToggle').addEventListener('click', () => {
   else { document.body.classList.remove('light-theme'); document.getElementById('themeToggle').innerHTML = '<i data-lucide="moon"></i>'; localStorage.setItem('cheb_theme', 'dark'); }
   lucide.createIcons(); playSound();
 });
-
-// === ОШИБКИ ===
 document.getElementById('helpBtn').addEventListener('click', () => {
   document.getElementById('errorLog').value = lastError;
   document.getElementById('helpModal').classList.remove('hidden');
 });
 document.getElementById('closeHelpBtn').addEventListener('click', () => document.getElementById('helpModal').classList.add('hidden'));
 
-// === ЛОГИКА МЕСТ ===
+// === ВКЛАДКИ ===
+document.getElementById('tabs').onclick = (e) => {
+  if (e.target.tagName !== 'BUTTON' && e.target.parentElement.tagName !== 'BUTTON') return;
+  const btn = e.target.tagName === 'BUTTON' ? e.target : e.target.parentElement;
+  document.querySelectorAll('#tabs button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentTab = btn.dataset.tab;
+  render();
+};
+
+// === КАРТА ===
 function initMap() {
-  try { map = L.map('map').setView([56.1463, 47.2481], 12); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map); } catch(e) {}
+  try { 
+    map = L.map('map').setView([56.1463, 47.2481], 12); 
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map); 
+  } catch(e) { console.error('Ошибка карты', e); }
 }
 
+// === ЗАГРУЗКА ===
 async function loadData() {
   try {
     const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID);
@@ -542,22 +569,53 @@ async function loadData() {
   render();
 }
 
+// === РЕНДЕР ===
 function render() {
+  if (map) {
+    markers.forEach(m => map.removeLayer(m));
+    markers = [];
+  }
+  
   const list = document.getElementById('placesList');
   if (!list) return;
-  
-  list.innerHTML = places.map(p => {
+
+  let filtered = places.filter(p => {
+    if (currentTab === 'archive') return p.is_archived === 'true';
+    return p.is_archived !== 'true';
+  });
+
+  if (currentTab === 'new') filtered.sort((a, b) => b.id - a.id);
+
+  list.innerHTML = filtered.map(p => {
     let photoUrl = '';
     if (p.photos && Array.isArray(p.photos) && p.photos.length > 0) photoUrl = p.photos[0];
     else if (p.photos && typeof p.photos === 'string') photoUrl = p.photos;
+
+    if (map && p.coords && p.coords.includes(',')) {
+      const [lat, lng] = p.coords.split(',').map(Number);
+      if (!isNaN(lat) && !isNaN(lng)) {
+        const m = L.marker([lat, lng]).addTo(map).bindPopup(p.name || '');
+        markers.push(m);
+      }
+    }
+
+    const canEdit = isAdmin() || (currentUser && p.author_id === currentUser.id);
+    const archiveBadge = p.is_archived === 'true' ? `<div class="archive-badge">В архиве</div>` : '';
 
     return `
     <div class="place-card">
       ${photoUrl ? `<div class="photo-container"><img src="${photoUrl}" class="photo-item" onerror="this.style.display='none'"></div>` : ''}
       <div class="place-content">
         <h3>${p.name}</h3>
+        ${archiveBadge}
         <div class="author-badge" onclick="openUserInfo('${p.author || 'Неизвестный'}', '${p.author_id || '0'}')">Добавил: ${p.author || 'Неизвестный'}</div>
         <div class="desc">${p.desc || ''}</div>
+        
+        <div class="actions" style="display:${canEdit ? 'flex' : 'none'}">
+          <button class="btn-toggle" onclick="editPlace('${p.id}')"><i data-lucide="edit"></i> Редактировать</button>
+          <button class="btn-toggle" onclick="archivePlace('${p.id}', ${p.is_archived !== 'true'})"><i data-lucide="archive"></i> ${p.is_archived === 'true' ? 'Из архива' : 'В архив'}</button>
+        </div>
+
         <div class="comments">
           <div class="comment-form">
             <input type="text" placeholder="Комментарий..." onkeydown="if(event.key==='Enter') checkAuthBeforeAction(() => alert('Коммент отправлен!'))">
@@ -571,6 +629,73 @@ function render() {
   if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
+// === РЕДАКТИРОВАНИЕ И АРХИВ ===
+async function archivePlace(id, archive) {
+  try {
+    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { is_archived: archive ? 'true' : 'false' });
+    render();
+  } catch(e) { alert('Ошибка: ' + e.message); }
+}
+
+function editPlace(id) {
+  const p = places.find(x => x.id === id);
+  if (!p) return;
+  editingPlaceId = id;
+  document.getElementById('inName').value = p.name || '';
+  document.getElementById('inDesc').value = p.desc || '';
+  document.getElementById('inPhotos').value = p.photos ? (Array.isArray(p.photos) ? p.photos[0] : p.photos) : '';
+  document.getElementById('inCoords').value = p.coords || '';
+  document.getElementById('addForm').classList.remove('hidden');
+  document.getElementById('toggleForm').innerText = 'Редактирование...';
+  document.getElementById('saveBtn').innerHTML = 'Обновить';
+}
+
+// === ДОБАВЛЕНИЕ / ОБНОВЛЕНИЕ ===
+document.getElementById('toggleForm').addEventListener('click', () => {
+  const form = document.getElementById('addForm');
+  if (form.classList.contains('hidden')) {
+    form.classList.remove('hidden');
+    editingPlaceId = null;
+    document.getElementById('saveBtn').innerHTML = '<i data-lucide="save"></i> Сохранить';
+    lucide.createIcons();
+  } else {
+    form.classList.add('hidden');
+    document.getElementById('toggleForm').innerText = 'Добавить место';
+  }
+});
+
+document.getElementById('saveBtn').addEventListener('click', () => {
+  checkAuthBeforeAction(async () => {
+    const name = document.getElementById('inName').value.trim();
+    const desc = document.getElementById('inDesc').value.trim();
+    if (!name || !desc) return alert('Заполните поля!');
+    
+    const photoLink = document.getElementById('inPhotos').value.trim();
+    
+    const data = {
+      name: name, desc: desc,
+      city: document.getElementById('inCity').value,
+      coords: document.getElementById('inCoords').value.trim(),
+      photos: photoLink ? [photoLink] : [],
+      author: currentUser.nickname, // ПОДВЯЗЫВАЕМ АВТОРА
+      author_id: currentUser.id || '0'
+    };
+
+    try {
+      if (editingPlaceId) {
+        await databases.updateDocument(DATABASE_ID, COLLECTION_ID, editingPlaceId, data);
+      } else {
+        data.likes = "0"; data.rating_sum = "0"; data.rating_count = "0"; data.comments = []; data.is_banned = "false"; data.is_archived = "false";
+        await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), data);
+      }
+      document.getElementById('addForm').classList.add('hidden');
+      document.getElementById('toggleForm').innerText = 'Добавить место';
+      loadData();
+    } catch(e) { alert('Ошибка: ' + e.message); }
+  });
+});
+
+// === ИНИЦИАЛИЗАЦИЯ ===
 if (isLightTheme) document.body.classList.add('light-theme');
 const savedOpacity = localStorage.getItem('cheb_glass_opacity') || '0.6';
 document.documentElement.style.setProperty('--glass-opacity', savedOpacity);
