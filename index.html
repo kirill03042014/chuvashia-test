@@ -23,6 +23,8 @@
     --text-main: #e2e8f0;
     --text-title: #ffffff;
     --text-desc: #94a3b8;
+    
+    /* МОЩНЫЙ LIQUID GLASS */
     --glass-opacity: 0.6; 
     --glass-blur: 40px;
     --glass-bg: rgba(20, 25, 35, var(--glass-opacity));
@@ -112,7 +114,6 @@
   .photo-container { width: 100%; height: 220px; background: #000; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; border-bottom: 1px solid var(--glass-border); }
   .photo-container::-webkit-scrollbar { display: none; }
   .photo-item { flex: 0 0 100%; scroll-snap-align: start; height: 100%; object-fit: cover; }
-  
   .place-content { padding: 20px; }
   .place-card h3 { font-family: 'Oswald', sans-serif; font-size: 1.5em; text-transform: uppercase; color: var(--text-title); margin-bottom: 5px; }
   
@@ -122,6 +123,8 @@
   .comments { margin-top: 20px; padding-top: 15px; border-top: 1px solid var(--glass-border); }
   .comment { background: var(--input-bg); padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--glass-border); }
   .comment-author { font-weight: bold; color: #00ffc8; margin-right: 5px; font-size: 12px; cursor: pointer; }
+  .del-comment { width: auto; padding: 4px 8px; border: none; background: transparent; color: #ff0066; cursor: pointer; display: none; }
+  .del-comment svg { width: 16px; height: 16px; }
   .comment-form { display: flex; gap: 8px; margin-top: 10px; }
   .comment-form input { margin: 0; padding: 12px; }
   .comment-form button { width: auto; padding: 12px 20px; margin: 0; }
@@ -282,9 +285,8 @@
     <textarea id="errorLog" readonly></textarea>
     <button id="closeHelpBtn" type="button" class="btn-toggle">Закрыть</button>
   </div>
-</div>
-
-<script>
+  </div>
+  <script>
 const APPWRITE_ENDPOINT = 'https://fra.cloud.appwrite.io/v1';
 const APPWRITE_PROJECT_ID = '6af75290002021ce6c30';
 const DATABASE_ID = '6af752b800204637c982'; 
@@ -351,7 +353,7 @@ document.addEventListener('touchend', e => {
 document.getElementById('backBtn').addEventListener('click', () => {
   document.getElementById('page-main').style.transform = 'translateX(0)';
   document.getElementById('page-quests').style.transform = 'translateX(100vw)';
-  playSound('click');
+  playSound();
 });
 
 // === ЗВУК ===
@@ -450,10 +452,18 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 
 // === МОДЕРАЦИЯ ===
 function openUserInfo(nickname, userId) {
+  if (currentUser && currentUser.nickname === nickname) {
+    alert('Вы не можете забанить самого себя!');
+    return;
+  }
   selectedUserForBan = userId;
   document.getElementById('infoNickname').innerText = nickname;
-  if (isAdmin()) document.getElementById('adminBanControls').classList.remove('hidden');
-  else document.getElementById('adminBanControls').classList.add('hidden');
+  
+  if (isAdmin() && nickname !== 'Админ' && nickname !== currentUser.nickname) {
+    document.getElementById('adminBanControls').classList.remove('hidden');
+  } else {
+    document.getElementById('adminBanControls').classList.add('hidden');
+  }
   document.getElementById('userInfoModal').classList.remove('hidden');
 }
 
@@ -469,6 +479,8 @@ async function banUser(type) {
   } catch(e) { alert('Ошибка бана: ' + e.message); }
 }
 
+document.getElementById('closeUserInfoBtn').addEventListener('click', () => { document.getElementById('userInfoModal').classList.add('hidden'); });
+
 // === СПИСОК ЗАБАНЕННЫХ ===
 document.getElementById('banlistBtn').addEventListener('click', async () => {
   if (!isAdmin()) return;
@@ -482,6 +494,8 @@ document.getElementById('banlistBtn').addEventListener('click', async () => {
     else container.innerHTML = banned.map(u => `<div class="user-card"><span>${u.name}</span><button onclick="unbanUser('${u.$id}')" style="border-color:#00ffc8; color:#00ffc8;">Разбанить</button></div>`).join('');
   } catch(e) { container.innerHTML = 'Ошибка загрузки'; }
 });
+
+document.getElementById('closeBanlistBtn').addEventListener('click', () => { document.getElementById('banlistModal').classList.add('hidden'); });
 
 async function unbanUser(userId) {
   if (!isAdmin()) return;
