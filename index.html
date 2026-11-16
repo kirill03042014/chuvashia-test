@@ -321,8 +321,7 @@ const APPWRITE_PROJECT_ID = '6af75290002021ce6c30';
 const DATABASE_ID         = '6af752b800204637c982';
 const COLLECTION_ID       = '6af754b70031b4620e57';
 const ADMIN_PASSWORD      = 'SmirnovKirill03@inbox.ry';
-// ⚠️ ID БАКЕТА ХРАНИЛИЩА
-const STORAGE_BUCKET_ID   = '6afb48200025d425c71b';
+const STORAGE_BUCKET_ID   = '6afb48200025d425c71b'; // ID вашего бакета
 
 const { Client, Databases, Storage, ID, Query } = Appwrite;
 const client    = new Client().setEndpoint(APPWRITE_ENDPOINT).setProject(APPWRITE_PROJECT_ID);
@@ -340,7 +339,7 @@ let currentUser = safeParse(localStorage.getItem('cheb_current_user'));
 let selectedUserForBan = null;
 let editingPlaceId = null;
 let currentDetailPlaceId = null; 
-let uploadedPhotoUrl = ''; // Ссылка на загруженное фото
+let uploadedPhotoUrl = ''; 
 
 const statusEl = document.getElementById('status');
 const avatarBtn = document.getElementById('avatarBtn');
@@ -378,29 +377,78 @@ function checkAuthBeforeAction(action) {
   action();
 }
 
-// ================== ЗАГРУЗКА ФОТО ==================
+// ================== ЛОГИ И ДИАГНОСТИКА ==================
+const debugLogs = [];
+function addLog(msg) {
+  const time = new Date().toLocaleTimeString();
+  debugLogs.push(`[${time}] ${msg}`);
+  if (debugLogs.length > 100) debugLogs.shift();
+  console.log(msg);
+}
+
+// Инициализация кнопки "Футболка"
+document.getElementById('helpBtn').addEventListener('click', () => { 
+  const logText = debugLogs.join('\n'); 
+  document.getElementById('errorLog').value = logText || 'Логи пусты. Всё работает отлично!'; 
+  document.getElementById('helpModal').classList.remove('hidden'); 
+});
+document.getElementById('closeHelpBtn').addEventListener('click', () => { document.getElementById('helpModal').classList.add('hidden'); });
+
+// ================== СЖАТИЕ И ЗАГРУЗКА ФОТО ==================
 async function uploadPhoto(input) {
   if (!input.files || input.files.length === 0) return;
   const file = input.files[0];
-  
   const btnText = document.getElementById('uploadBtnText');
-  btnText.innerHTML = 'Загрузка... ⏳';
   
+  btnText.innerHTML = 'Сжатие и загрузка... ⏳';
+  addLog('Начало обработки фото: ' + file.name);
+
   try {
-    // Загружаем в Appwrite Storage
-    const response = await storage.createFile(STORAGE_BUCKET_ID, ID.unique(), file);
+    // 1. СЖАТИЕ ФОТО через Canvas
+    const compressedFile = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (e) => {
+        const img = new Image();
+        img.src = e.target.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 1200; // Максимальная ширина
+          const scale = Math.min(MAX_WIDTH / img.width, 1);
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
+          
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          
+          canvas.toBlob((blob) => {
+            if (!blob) reject(new Error('Ошибка сжатия'));
+            // Создаем файл из сжатого blob
+            resolve(new File([blob], "photo.jpg", { type: "image/jpeg" }));
+          }, 'image/jpeg', 0.7); // Качество 70%
+        };
+        img.onerror = () => reject(new Error('Ошибка чтения картинки'));
+      };
+      reader.onerror = () => reject(new Error('Ошибка чтения файла'));
+    });
+
+    addLog(`Фото сжато. Размер: ${(compressedFile.size / 1024).toFixed(1)} КБ`);
+
+    // 2. ЗАГРУЗКА В APPWRITE
+    btnText.innerHTML = 'Загрузка на сервер... ⏳';
+    const response = await storage.createFile(STORAGE_BUCKET_ID, ID.unique(), compressedFile);
     
-    // Формируем прямую ссылку на файл
     const url = `${APPWRITE_ENDPOINT}/storage/buckets/${STORAGE_BUCKET_ID}/files/${response.$id}/view?project=${APPWRITE_PROJECT_ID}`;
     
     uploadedPhotoUrl = url;
-    document.getElementById('inPhotos').value = url; // Подставляем в поле ввода
-    btnText.innerHTML = '✅ Фото загружено!';
+    document.getElementById('inPhotos').value = url;
+    btnText.innerHTML = '✅ Фото готово!';
     addLog('Фото загружено в Storage: ' + url);
   } catch (e) {
-    addLog('Ошибка загрузки фото: ' + e.message);
+    addLog('ОШИБКА ЗАГРУЗКИ ФОТО: ' + e.message);
     alert('Ошибка загрузки: ' + e.message);
-    btnText.innerHTML = '❌ Ошибка (попробуйте снова)';
+    btnText.innerHTML = '❌ Ошибка. Попробуйте еще раз.';
+    input.value = '';
   }
 }
 
@@ -552,22 +600,25 @@ document.getElementById('themeToggle').addEventListener('click', () => {
   refreshIcons(); playSound();
 });
 
-/* ДИАГНОСТИКА */
-document.getElementById('helpBtn').addEventListener('click', () => { const logText = debugLogs.join('\n'); document.getElementById('errorLog').value = logText || 'Логи пусты. Всё работает отлично!'; document.getElementById('helpModal').classList.remove('hidden'); });
-document.getElementById('closeHelpBtn').addEventListener('click', () => { document.getElementById('helpModal').classList.add('hidden'); });
-
 /* ВКЛАДКИ / ПОИСК */
 document.getElementById('tabs').addEventListener('click', (e) => { const btn = e.target.closest('button'); if (!btn) return; document.querySelectorAll('#tabs button').forEach(b => b.classList.remove('active')); btn.classList.add('active'); currentTab = btn.dataset.tab || 'popular'; render(); });
 document.getElementById('searchInput').addEventListener('input', (e) => { searchQuery = e.target.value.trim().toLowerCase(); render(); });
 
-/* ЗАГРУЗКА ДАННЫХ */
+/* ЗАГРУЗКА ДАННЫХ (С тайм-аутом) */
 async function loadData() {
   addLog('Загрузка из Appwrite...');
   try {
-    const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.limit(100)]);
+    // Защита от вечной загрузки (таймаут 10 сек)
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Сервер не отвечает (тайм-аут)')), 10000));
+    const response = await Promise.race([databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.limit(100)]), timeoutPromise]);
+    
     places = response.documents.filter(doc => doc.city !== 'USER_ACCOUNT').map(doc => ({ ...doc, id: doc.$id, comments: Array.isArray(doc.comments) ? doc.comments : [] }));
     statusEl.style.display = 'none'; addLog(`Загружено мест: ${places.length}`);
-  } catch (e) { statusEl.textContent = 'Ошибка базы'; statusEl.className = 'status error'; addLog('ОШИБКА ЗАГРУЗКИ: ' + e.message); }
+  } catch (e) { 
+    statusEl.textContent = 'Ошибка загрузки (проверьте сеть)'; 
+    statusEl.className = 'status error'; 
+    addLog('ОШИБКА ЗАГРУЗКИ: ' + e.message); 
+  }
   render(); updateMarkers();
 }
 
