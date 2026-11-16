@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta name="yandex-verification" content="7631dcc440cbea26" />
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 <title>КРУТЫЕ МЕСТА ЧУВАШИИ</title>
@@ -31,6 +30,7 @@
     --glass-highlight: rgba(255, 255, 255, 0.15);
     --input-bg: rgba(0, 0, 0, 0.4);
     --btn-bg: rgba(30, 40, 50, 0.5);
+    --modal-bg: #111827; /* Плотный фон для модалки */
   }
 
   body.light-theme {
@@ -43,6 +43,7 @@
     --glass-highlight: rgba(255, 255, 255, 0.8);
     --input-bg: rgba(255, 255, 255, 0.6);
     --btn-bg: rgba(255, 255, 255, 0.9);
+    --modal-bg: #ffffff;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -119,20 +120,21 @@
   .photo-container { width: 100%; height: 220px; background: #000; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; border-bottom: 1px solid var(--glass-border); pointer-events: none; }
   .photo-item { flex: 0 0 100%; scroll-snap-align: start; height: 100%; object-fit: cover; }
   .place-content { padding: 20px; }
-  .place-card h3 { font-family: 'Oswald', sans-serif; font-size: 1.5em; text-transform: uppercase; color: var(--text-title); margin-bottom: 5px; }
+  .place-card h3 { font-family: 'Oswald', sans-serif; font-size: 1.5em; text-transform: uppercase; color: var(--text-title); margin-bottom: 5px; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
   
   .author-badge { display: inline-block; background: rgba(0,255,200,0.1); color: #00ffc8; padding: 2px 8px; border-radius: 4px; font-size: 11px; margin-bottom: 10px; border: 1px solid rgba(0,255,200,0.3); }
-  .desc { color: var(--text-desc); font-size: 15px; margin-bottom: 15px; line-height: 1.5; word-break: break-word; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .desc { color: var(--text-main); font-size: 15px; margin-bottom: 15px; line-height: 1.5; word-break: break-word; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; text-shadow: 1px 1px 3px rgba(0,0,0,0.8); }
 
   .actions { display: flex; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--glass-border); }
   .actions button { padding: 8px 12px; font-size: 12px; border-radius: 8px; width: auto; font-family: 'Rubik', sans-serif; font-weight: 500; text-transform: none; letter-spacing: 0.5px; }
   .btn-edit { color: #00ffc8; border-color: #00ffc8; background: rgba(0,255,200,0.05); }
   .btn-delete { color: #ff0066; border-color: #ff0066; background: rgba(255,0,102,0.05); }
 
+  /* Модальное окно подробностей (ИСПРАВЛЕНО) */
   .detail-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 15px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-  .detail-content { padding: 0; max-width: 600px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; }
-  .detail-header { position: relative; height: 250px; width: 100%; background: #000; }
-  .detail-header img { width: 100%; height: 100%; object-fit: cover; }
+  .detail-content { padding: 0; max-width: 600px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; background: var(--modal-bg); border: 2px solid var(--glass-border); border-radius: 20px; } /* Плотный фон */
+  .detail-header { position: relative; width: 100%; background: var(--input-bg); display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 20px 20px 0 0; } /* Убран фиксированный размер */
+  .detail-header img { width: 100%; height: auto; max-height: 350px; object-fit: cover; display: none; } /* Скрыто по умолчанию */
   .detail-close { position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); color: #fff; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; }
   .detail-body { padding: 20px; overflow-y: auto; flex-grow: 1; }
   .detail-body h2 { font-family: 'Oswald'; font-size: 2em; color: var(--text-title); margin-bottom: 10px; }
@@ -156,7 +158,7 @@
   .status.loading { color: var(--text-desc); background: rgba(255,255,255,0.05); }
 
   .help-modal, .profile-modal, .settings-modal, .about-modal, .banlist-modal, .user-info-modal, .map-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.6); z-index: 1001; display: flex; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
-  .help-content, .profile-content, .settings-content, .about-content, .banlist-content, .user-info-content { padding: 25px; max-width: 450px; width: 100%; color: var(--text-main); }
+  .help-content, .profile-content, .settings-content, .about-content, .banlist-content, .user-info-content { padding: 25px; max-width: 450px; width: 100%; color: var(--text-main); background: var(--modal-bg); }
 
   .map-modal-content { width: 100%; height: 100%; padding: 0; overflow: hidden; position: relative; display: flex; flex-direction: column; }
   #map { flex-grow: 1; width: 100%; border-radius: 20px; z-index: 1; }
@@ -165,7 +167,7 @@
   h3 { color: var(--text-title); margin-bottom: 20px; text-align: center; font-family: 'Oswald'; text-transform: uppercase; letter-spacing: 1px; }
   .help-content textarea { width: 100%; height: 200px; margin-bottom: 15px; background: var(--input-bg); color: var(--text-main); border: 1px solid var(--glass-border); padding: 12px; font-size: 12px; border-radius: 8px; font-family: monospace; }
 
-  .user-card { padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+  .user-card { padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; background: var(--input-bg); border-radius: 12px; }
   .user-card button { width: auto; padding: 6px 12px; font-size: 12px; }
 
   .help-btn { position: fixed; bottom: 25px; right: 25px; width: 60px; height: 60px; border-radius: 50%; background: #ff0066; color: #fff; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 32px rgba(255,0,102,0.5); z-index: 1000; cursor: pointer; backdrop-filter: blur(5px); }
@@ -211,7 +213,6 @@
           <label>Ссылка на фото</label><input type="url" id="inPhotos" placeholder="https://.../image.jpg">
           <div class="form-row">
             <div><label>Город</label><select id="inCity"><option>Чебоксары</option><option>Новочебоксарск</option><option>Чувашия</option></select></div>
-            <!-- ИЗМЕНЕНА ПОДСКАЗКА В ПОЛЕ КООРДИНАТ -->
             <div><label>Координаты</label><input type="text" id="inCoords" placeholder="Введите координаты Яндекс (например: 56.152594, 47.207843)"></div>
           </div>
           <button id="saveBtn" type="button"><i data-lucide="save"></i> Сохранить</button>
@@ -240,8 +241,8 @@
 
 <div class="detail-modal hidden" id="detailModal">
   <div class="detail-content">
-    <div class="detail-header">
-      <img id="detailImg" src="" onerror="this.style.display='none'">
+    <div class="detail-header" id="detailHeader">
+      <img id="detailImg" src="">
       <button class="detail-close" id="closeDetailBtn"><i data-lucide="x"></i></button>
     </div>
     <div class="detail-body">
@@ -336,7 +337,6 @@
 </div>
 
 <script>
-/* СИСТЕМА ЛОГИРОВАНИЯ */
 const debugLogs = [];
 function addLog(msg) {
   const time = new Date().toLocaleTimeString();
@@ -345,9 +345,7 @@ function addLog(msg) {
   if (debugLogs.length > 100) debugLogs.shift();
   console.log(formatted);
 }
-window.addEventListener('error', function(e) {
-  addLog(`КРИТИЧЕСКАЯ ОШИБКА JS: ${e.message} (в файле ${e.filename}:${e.lineno})`);
-});
+window.addEventListener('error', function(e) { addLog(`КРИТИЧЕСКАЯ ОШИБКА JS: ${e.message} (${e.filename}:${e.lineno})`); });
 
 const APPWRITE_ENDPOINT   = 'https://fra.cloud.appwrite.io/v1';
 const APPWRITE_PROJECT_ID = '6af75290002021ce6c30';
@@ -377,64 +375,32 @@ const banlistBtn = document.getElementById('banlistBtn');
 const questsBtn = document.getElementById('questsBtn');
 
 function safeParse(str) { try { return JSON.parse(str); } catch { return null; } }
-function esc(s) {
-  if (s === null || s === undefined) return '';
-  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-}
+function esc(s) { if (s === null || s === undefined) return ''; return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
 function refreshIcons() { if (typeof lucide !== 'undefined' && lucide.createIcons) { try { lucide.createIcons(); } catch (e) {} } }
-function isBanExpired(user) {
-  if (!user || user.ban_type === 'forever') return false;
-  if (user.ban_type !== 'day' && user.ban_type !== 'week') return false;
-  const until = Number(user.ban_until || 0);
-  return until ? Date.now() >= until : false;
-}
-function isUserBannedNow(user) {
-  if (!user) return false;
-  if (user.ban_type === 'forever') return true;
-  if (user.ban_type === 'day' || user.ban_type === 'week') return !isBanExpired(user);
-  return user.is_banned === 'true';
-}
+function isBanExpired(user) { if (!user || user.ban_type === 'forever') return false; if (user.ban_type !== 'day' && user.ban_type !== 'week') return false; const until = Number(user.ban_until || 0); return until ? Date.now() >= until : false; }
+function isUserBannedNow(user) { if (!user) return false; if (user.ban_type === 'forever') return true; if (user.ban_type === 'day' || user.ban_type === 'week') return !isBanExpired(user); return user.is_banned === 'true'; }
 function isAdmin() { return !!(currentUser && currentUser.is_admin === 'true'); }
 
-/* --- ПУЛЕНЕПРОБИВАЕМЫЙ ПАРСЕР КООРДИНАТ --- */
 function parseCoords(str) {
   if (!str || typeof str !== 'string') return null;
-  
-  // Ищем ВСЕ числа в строке (включая отрицательные и с точками)
-  // Регулярка находит: 56.152594 и 47.207843
   const matches = str.match(/-?\d+(?:\.\d+)?/g);
-  
-  // Если нашли меньше 2 чисел - это не координаты
   if (!matches || matches.length < 2) return null;
-  
-  let lat = parseFloat(matches[0]);
-  let lng = parseFloat(matches[1]);
-  
-  // Проверка на дурака
+  let lat = parseFloat(matches[0]); let lng = parseFloat(matches[1]);
   if (isNaN(lat) || isNaN(lng)) return null;
-  
-  // Возвращаем как есть, БЕЗ перестановок
   return `${lat},${lng}`; 
 }
 
 function updateAvatar() {
   if (currentUser) {
-    avatarBtn.classList.remove('guest');
-    avatarBtn.innerText = (currentUser.nickname || '?').charAt(0).toUpperCase();
+    avatarBtn.classList.remove('guest'); avatarBtn.innerText = (currentUser.nickname || '?').charAt(0).toUpperCase();
     banlistBtn.style.display = isAdmin() ? 'flex' : 'none';
   } else {
-    avatarBtn.classList.add('guest');
-    avatarBtn.innerText = '?';
-    banlistBtn.style.display = 'none';
+    avatarBtn.classList.add('guest'); avatarBtn.innerText = '?'; banlistBtn.style.display = 'none';
   }
 }
 
 function checkAuthBeforeAction(action) {
-  if (!currentUser) {
-    alert('Войдите в профиль, чтобы совершить это действие!');
-    document.getElementById('profileModal').classList.remove('hidden');
-    return;
-  }
+  if (!currentUser) { alert('Войдите в профиль, чтобы совершить это действие!'); document.getElementById('profileModal').classList.remove('hidden'); return; }
   if (isUserBannedNow(currentUser)) { alert('Вы забанены и не можете совершать действия.'); return; }
   action();
 }
@@ -447,11 +413,8 @@ document.addEventListener('touchstart', e => {
 }, { passive: true });
 document.addEventListener('touchend', e => {
   if (!isSwiping || swipeFromScroller) { isSwiping = false; return; }
-  const diffX = startX - e.changedTouches[0].clientX;
-  const diffY = startY - e.changedTouches[0].clientY;
-  if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 70) {
-    if (diffX > 0) goToQuests(); else goToMain();
-  }
+  const diffX = startX - e.changedTouches[0].clientX; const diffY = startY - e.changedTouches[0].clientY;
+  if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 70) { if (diffX > 0) goToQuests(); else goToMain(); }
   isSwiping = false;
 }, { passive: true });
 
@@ -463,30 +426,13 @@ questsBtn.addEventListener('click', () => { goToQuests(); playSound(); });
 /* ЗВУК */
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
 let audioCtx;
-function playSound() {
-  if (!soundEnabled) return;
-  try {
-    if (!audioCtx) audioCtx = new AudioCtx();
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
-    osc.type = 'sine'; osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.1);
-    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-    osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.1);
-  } catch (e) {}
-}
+function playSound() { if (!soundEnabled) return; try { if (!audioCtx) audioCtx = new AudioCtx(); if (audioCtx.state === 'suspended') audioCtx.resume(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'sine'; osc.frequency.setValueAtTime(400, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.1); gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.1); } catch (e) {} }
 document.addEventListener('click', (e) => { if (e.target.closest('button')) playSound(); });
 
 /* УСТАНОВКА */
 let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault(); deferredPrompt = e;
-  if (!localStorage.getItem('cheb_app_installed')) document.getElementById('installBtn').style.display = 'flex';
-});
-document.getElementById('installBtn').addEventListener('click', async () => {
-  if (deferredPrompt) { deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; document.getElementById('installBtn').style.display = 'none'; localStorage.setItem('cheb_app_installed', 'true'); }
-});
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; if (!localStorage.getItem('cheb_app_installed')) document.getElementById('installBtn').style.display = 'flex'; });
+document.getElementById('installBtn').addEventListener('click', async () => { if (deferredPrompt) { deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; document.getElementById('installBtn').style.display = 'none'; localStorage.setItem('cheb_app_installed', 'true'); } });
 window.addEventListener('appinstalled', () => { document.getElementById('installBtn').style.display = 'none'; localStorage.setItem('cheb_app_installed', 'true'); });
 if (localStorage.getItem('cheb_app_installed')) document.getElementById('installBtn').style.display = 'none';
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
@@ -494,177 +440,95 @@ if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catc
 /* КАРТА */
 document.getElementById('mapBtn').addEventListener('click', () => {
   addLog('--- ОТКРЫТИЕ КАРТЫ ---');
-  document.getElementById('mapModal').classList.remove('hidden');
-  document.body.style.overflow = 'hidden';
-  
-  if (!map) {
-    addLog('Инициализация Leaflet...');
-    map = L.map('map').setView([56.1463, 47.2481], 12);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
-  }
-  setTimeout(() => { 
-    addLog('Обновление размеров карты (invalidateSize)');
-    map.invalidateSize(); 
-    updateMarkers(); 
-  }, 150);
+  document.getElementById('mapModal').classList.remove('hidden'); document.body.style.overflow = 'hidden';
+  if (!map) { addLog('Инициализация Leaflet...'); map = L.map('map').setView([56.1463, 47.2481], 12); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map); }
+  setTimeout(() => { addLog('invalidateSize'); map.invalidateSize(); updateMarkers(); }, 150);
 });
-
-document.getElementById('closeMapBtn').addEventListener('click', () => {
-  document.getElementById('mapModal').classList.add('hidden');
-  document.body.style.overflow = '';
-});
+document.getElementById('closeMapBtn').addEventListener('click', () => { document.getElementById('mapModal').classList.add('hidden'); document.body.style.overflow = ''; });
 
 function updateMarkers() {
-  addLog(`Начало обновления маркеров. Всего мест в базе: ${places.length}`);
+  addLog(`Обновление маркеров. Всего мест: ${places.length}`);
   if (!map) { addLog('ОШИБКА: Карта (map) не инициализирована!'); return; }
-  
-  markers.forEach(m => map.removeLayer(m));
-  markers = [];
-  const bounds = [];
-  let addedCount = 0;
+  markers.forEach(m => map.removeLayer(m)); markers = []; const bounds = []; let addedCount = 0;
 
   places.forEach(p => {
-    if (p.is_archived === 'true' || p.is_banned === 'true') {
-      addLog(`Пропущено место "${p.name}" (в архиве или забанено)`);
-      return;
-    }
-    
+    if (p.is_archived === 'true' || p.is_banned === 'true') { addLog(`Пропущено "${p.name}" (архив/бан)`); return; }
     const parsed = parseCoords(p.coords);
-    if (!parsed) {
-      addLog(`ОШИБКА КООРДИНАТ: Место "${p.name}" имеет неверные координаты в базе: "${p.coords}"`);
-      return;
-    }
-    
+    if (!parsed) { addLog(`ОШИБКА КООРДИНАТ: "${p.name}" -> "${p.coords}"`); return; }
     const [lat, lng] = parsed.split(',').map(Number);
-    addLog(`✅ Маркер добавлен: "${p.name}" на координаты [${lat}, ${lng}]`);
-
+    addLog(`✅ Маркер: "${p.name}" [${lat}, ${lng}]`);
     const m = L.marker([lat, lng]).addTo(map).bindPopup(`<b>${esc(p.name)}</b>`);
-    markers.push(m);
-    bounds.push([lat, lng]);
-    addedCount++;
+    markers.push(m); bounds.push([lat, lng]); addedCount++;
   });
-  
-  addLog(`Итого добавлено маркеров: ${addedCount}`);
-  
-  if (bounds.length > 0) {
-    addLog('Автоматический подбор зума (fitBounds)');
-    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
-  } else {
-    addLog('ВНИМАНИЕ: Нет маркеров для отображения.');
-  }
+  addLog(`Добавлено маркеров: ${addedCount}`);
+  if (bounds.length > 0) { addLog('fitBounds'); map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 }); }
 }
 
 function openMapToPlace() {
   if (!currentDetailPlaceId) return;
-  const p = places.find(x => x.id === currentDetailPlaceId);
-  if (!p) return;
-  const parsed = parseCoords(p.coords);
-  if (!parsed) { alert('У этого места нет корректных координат.'); return; }
-
-  document.getElementById('detailModal').classList.add('hidden');
-  document.getElementById('mapModal').classList.remove('hidden');
-  document.body.style.overflow = 'hidden';
-  
-  if (!map) {
-    map = L.map('map').setView([56.1463, 47.2481], 12);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
-  }
-  setTimeout(() => {
-    map.invalidateSize();
-    const [lat, lng] = parsed.split(',').map(Number);
-    map.setView([lat, lng], 15);
-    markers.forEach(m => { if (m.getLatLng().lat === lat && m.getLatLng().lng === lng) m.openPopup(); });
-  }, 150);
+  const p = places.find(x => x.id === currentDetailPlaceId); if (!p) return;
+  const parsed = parseCoords(p.coords); if (!parsed) { alert('Нет координат.'); return; }
+  document.getElementById('detailModal').classList.add('hidden'); document.getElementById('mapModal').classList.remove('hidden'); document.body.style.overflow = 'hidden';
+  if (!map) { map = L.map('map').setView([56.1463, 47.2481], 12); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map); }
+  setTimeout(() => { map.invalidateSize(); const [lat, lng] = parsed.split(',').map(Number); map.setView([lat, lng], 15); markers.forEach(m => { if (m.getLatLng().lat === lat && m.getLatLng().lng === lng) m.openPopup(); }); }, 150);
 }
 
 /* АВТОРИЗАЦИЯ */
 avatarBtn.addEventListener('click', () => {
   document.getElementById('profileModal').classList.remove('hidden');
-  if (currentUser) {
-    document.getElementById('loginSection').classList.add('hidden'); document.getElementById('registerSection').classList.add('hidden'); document.getElementById('loggedInSection').classList.remove('hidden');
-    document.getElementById('userGreeting').innerText = 'Привет, ' + (currentUser.nickname || '');
-  } else {
-    document.getElementById('loginSection').classList.remove('hidden'); document.getElementById('registerSection').classList.add('hidden'); document.getElementById('loggedInSection').classList.add('hidden');
-  }
+  if (currentUser) { document.getElementById('loginSection').classList.add('hidden'); document.getElementById('registerSection').classList.add('hidden'); document.getElementById('loggedInSection').classList.remove('hidden'); document.getElementById('userGreeting').innerText = 'Привет, ' + (currentUser.nickname || ''); }
+  else { document.getElementById('loginSection').classList.remove('hidden'); document.getElementById('registerSection').classList.add('hidden'); document.getElementById('loggedInSection').classList.add('hidden'); }
 });
 document.getElementById('showRegisterLink').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('loginSection').classList.add('hidden'); document.getElementById('registerSection').classList.remove('hidden'); });
 document.getElementById('showLoginLink').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('loginSection').classList.remove('hidden'); document.getElementById('registerSection').classList.add('hidden'); });
 document.getElementById('closeProfileBtn').addEventListener('click', () => { document.getElementById('profileModal').classList.add('hidden'); });
 
 document.getElementById('loginBtn').addEventListener('click', async () => {
-  const nick = document.getElementById('loginNickname').value.trim();
-  const pass = document.getElementById('loginPassword').value;
+  const nick = document.getElementById('loginNickname').value.trim(); const pass = document.getElementById('loginPassword').value;
   if (!nick || !pass) return;
-  if (pass === ADMIN_PASSWORD) {
-    currentUser = { nickname: 'Админ', is_admin: 'true', is_banned: 'false', ban_type: 'none', ban_until: '0', id: 'admin' };
-    localStorage.setItem('cheb_current_user', JSON.stringify(currentUser));
-    updateAvatar(); document.getElementById('profileModal').classList.add('hidden'); alert('Добро пожаловать, Админ!'); render(); return;
-  }
+  if (pass === ADMIN_PASSWORD) { currentUser = { nickname: 'Админ', is_admin: 'true', is_banned: 'false', ban_type: 'none', ban_until: '0', id: 'admin' }; localStorage.setItem('cheb_current_user', JSON.stringify(currentUser)); updateAvatar(); document.getElementById('profileModal').classList.add('hidden'); alert('Добро пожаловать, Админ!'); render(); return; }
   try {
     const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.equal('city', 'USER_ACCOUNT'), Query.equal('name', nick), Query.limit(1)]);
     if (res.documents.length === 0) { alert('Пользователь не найден!'); return; }
     const user = res.documents[0];
     if (user.desc !== pass) { alert('Неверный пароль!'); return; }
     if (user.ban_type === 'forever') { alert('Вы забанены навсегда!'); return; }
-    if (user.ban_type === 'day' || user.ban_type === 'week') {
-      const until = Number(user.ban_until || 0);
-      if (Date.now() < until) { alert('Вы забанены до ' + new Date(until).toLocaleString()); return; }
-    }
+    if (user.ban_type === 'day' || user.ban_type === 'week') { const until = Number(user.ban_until || 0); if (Date.now() < until) { alert('Вы забанены до ' + new Date(until).toLocaleString()); return; } }
     currentUser = { nickname: user.name, is_admin: 'false', id: user.$id, is_banned: user.is_banned || 'false', ban_type: user.ban_type || 'none', ban_until: user.ban_until || '0' };
-    localStorage.setItem('cheb_current_user', JSON.stringify(currentUser));
-    updateAvatar(); document.getElementById('profileModal').classList.add('hidden'); alert('С возвращением, ' + user.name); render();
+    localStorage.setItem('cheb_current_user', JSON.stringify(currentUser)); updateAvatar(); document.getElementById('profileModal').classList.add('hidden'); alert('С возвращением, ' + user.name); render();
   } catch (e) { addLog('Ошибка входа: ' + e.message); alert('Ошибка входа'); }
 });
 
 document.getElementById('registerBtn').addEventListener('click', async () => {
-  const nick = document.getElementById('regNickname').value.trim();
-  const pass = document.getElementById('regPassword').value;
-  if (!nick || !pass) return;
-  if (nick.length > 30) { alert('Ник слишком длинный'); return; }
-  if (localStorage.getItem('cheb_device_id')) { alert('На этом устройстве уже есть аккаунт!'); return; }
-  if (pass === ADMIN_PASSWORD) { alert('Этот пароль занят!'); return; }
+  const nick = document.getElementById('regNickname').value.trim(); const pass = document.getElementById('regPassword').value;
+  if (!nick || !pass) return; if (nick.length > 30) { alert('Ник слишком длинный'); return; } if (localStorage.getItem('cheb_device_id')) { alert('На этом устройстве уже есть аккаунт!'); return; } if (pass === ADMIN_PASSWORD) { alert('Этот пароль занят!'); return; }
   try {
     const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.equal('city', 'USER_ACCOUNT'), Query.equal('name', nick), Query.limit(1)]);
     if (res.documents.length > 0) { alert('Ник занят!'); return; }
     const newUser = await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), { name: nick, desc: pass, city: 'USER_ACCOUNT', category: 'user', guard: 'false', is_banned: 'false', ban_type: 'none', ban_until: '0' });
-    localStorage.setItem('cheb_device_id', ID.unique());
-    currentUser = { nickname: nick, is_admin: 'false', id: newUser.$id, is_banned: 'false', ban_type: 'none', ban_until: '0' };
-    localStorage.setItem('cheb_current_user', JSON.stringify(currentUser));
-    updateAvatar(); document.getElementById('profileModal').classList.add('hidden'); alert('Успешная регистрация!'); render();
+    localStorage.setItem('cheb_device_id', ID.unique()); currentUser = { nickname: nick, is_admin: 'false', id: newUser.$id, is_banned: 'false', ban_type: 'none', ban_until: '0' };
+    localStorage.setItem('cheb_current_user', JSON.stringify(currentUser)); updateAvatar(); document.getElementById('profileModal').classList.add('hidden'); alert('Успешная регистрация!'); render();
   } catch (e) { addLog('Ошибка регистрации: ' + e.message); alert('Ошибка регистрации'); }
 });
 
-document.getElementById('logoutBtn').addEventListener('click', () => {
-  currentUser = null; localStorage.removeItem('cheb_current_user');
-  updateAvatar(); document.getElementById('profileModal').classList.add('hidden'); render();
-});
+document.getElementById('logoutBtn').addEventListener('click', () => { currentUser = null; localStorage.removeItem('cheb_current_user'); updateAvatar(); document.getElementById('profileModal').classList.add('hidden'); render(); });
 
 /* МОДЕРАЦИЯ */
 function openUserInfo(nickname, userId) {
   if (currentUser && currentUser.id === userId) { alert('Вы не можете забанить самого себя!'); return; }
-  selectedUserForBan = userId;
-  document.getElementById('infoNickname').innerText = nickname || 'Неизвестный';
-  if (isAdmin() && userId && userId !== '0' && userId !== 'admin') document.getElementById('adminBanControls').classList.remove('hidden');
-  else document.getElementById('adminBanControls').classList.add('hidden');
+  selectedUserForBan = userId; document.getElementById('infoNickname').innerText = nickname || 'Неизвестный';
+  if (isAdmin() && userId && userId !== '0' && userId !== 'admin') document.getElementById('adminBanControls').classList.remove('hidden'); else document.getElementById('adminBanControls').classList.add('hidden');
   document.getElementById('userInfoModal').classList.remove('hidden');
 }
 document.getElementById('closeUserInfoBtn').addEventListener('click', () => { document.getElementById('userInfoModal').classList.add('hidden'); });
 
 async function banUser(type) {
-  if (!isAdmin() || !selectedUserForBan) return;
-  let banUntil = '0';
-  if (type === 'day') banUntil = String(Date.now() + 86400000);
-  if (type === 'week') banUntil = String(Date.now() + 604800000);
-  try {
-    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, selectedUserForBan, { is_banned: 'true', ban_type: type, ban_until: banUntil });
-    alert('Пользователь забанен!'); document.getElementById('userInfoModal').classList.add('hidden'); render();
-  } catch (e) { addLog('Ошибка бана: ' + e.message); alert('Ошибка бана: ' + e.message); }
+  if (!isAdmin() || !selectedUserForBan) return; let banUntil = '0'; if (type === 'day') banUntil = String(Date.now() + 86400000); if (type === 'week') banUntil = String(Date.now() + 604800000);
+  try { await databases.updateDocument(DATABASE_ID, COLLECTION_ID, selectedUserForBan, { is_banned: 'true', ban_type: type, ban_until: banUntil }); alert('Пользователь забанен!'); document.getElementById('userInfoModal').classList.add('hidden'); render(); } catch (e) { addLog('Ошибка бана: ' + e.message); alert('Ошибка бана: ' + e.message); }
 }
 
 banlistBtn.addEventListener('click', async () => {
-  if (!isAdmin()) return;
-  document.getElementById('banlistModal').classList.remove('hidden');
-  const container = document.getElementById('banlistItems'); container.innerHTML = 'Загрузка...';
+  if (!isAdmin()) return; document.getElementById('banlistModal').classList.remove('hidden'); const container = document.getElementById('banlistItems'); container.innerHTML = 'Загрузка...';
   try {
     const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.equal('city', 'USER_ACCOUNT'), Query.limit(100)]);
     const banned = res.documents.filter(u => u.ban_type === 'forever' || ((u.ban_type === 'day' || u.ban_type === 'week') && Date.now() < Number(u.ban_until || 0)));
@@ -674,20 +538,12 @@ banlistBtn.addEventListener('click', async () => {
 });
 document.getElementById('closeBanlistBtn').addEventListener('click', () => { document.getElementById('banlistModal').classList.add('hidden'); });
 
-async function unbanUser(userId) {
-  if (!isAdmin()) return;
-  try {
-    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, userId, { is_banned: 'false', ban_type: 'none', ban_until: '0' });
-    alert('Разбанен!'); banlistBtn.click();
-  } catch (e) { addLog('Ошибка разбана: ' + e.message); alert('Ошибка'); }
-}
+async function unbanUser(userId) { if (!isAdmin()) return; try { await databases.updateDocument(DATABASE_ID, COLLECTION_ID, userId, { is_banned: 'false', ban_type: 'none', ban_until: '0' }); alert('Разбанен!'); banlistBtn.click(); } catch (e) { addLog('Ошибка разбана: ' + e.message); alert('Ошибка'); } }
 
 /* НАСТРОЙКИ */
 document.getElementById('settingsBtn').addEventListener('click', () => { document.getElementById('settingsModal').classList.remove('hidden'); });
 document.getElementById('closeSettingsBtn').addEventListener('click', () => { document.getElementById('settingsModal').classList.add('hidden'); });
-document.getElementById('glassSlider').addEventListener('input', (e) => {
-  const v = e.target.value; document.documentElement.style.setProperty('--glass-opacity', v); localStorage.setItem('cheb_glass_opacity', v);
-});
+document.getElementById('glassSlider').addEventListener('input', (e) => { const v = e.target.value; document.documentElement.style.setProperty('--glass-opacity', v); localStorage.setItem('cheb_glass_opacity', v); });
 document.getElementById('soundOnBtn').addEventListener('click', () => { soundEnabled = true; localStorage.setItem('cheb_sound', 'true'); playSound(); });
 document.getElementById('soundOffBtn').addEventListener('click', () => { soundEnabled = false; localStorage.setItem('cheb_sound', 'false'); });
 document.getElementById('themeToggle').addEventListener('click', () => {
@@ -698,33 +554,21 @@ document.getElementById('themeToggle').addEventListener('click', () => {
 });
 
 /* ДИАГНОСТИКА */
-document.getElementById('helpBtn').addEventListener('click', () => { 
-  const logText = debugLogs.join('\n');
-  document.getElementById('errorLog').value = logText || 'Логи пусты. Всё работает отлично!';
-  document.getElementById('helpModal').classList.remove('hidden'); 
-});
+document.getElementById('helpBtn').addEventListener('click', () => { const logText = debugLogs.join('\n'); document.getElementById('errorLog').value = logText || 'Логи пусты. Всё работает отлично!'; document.getElementById('helpModal').classList.remove('hidden'); });
 document.getElementById('closeHelpBtn').addEventListener('click', () => { document.getElementById('helpModal').classList.add('hidden'); });
 
 /* ВКЛАДКИ / ПОИСК */
-document.getElementById('tabs').addEventListener('click', (e) => {
-  const btn = e.target.closest('button'); if (!btn) return;
-  document.querySelectorAll('#tabs button').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active'); currentTab = btn.dataset.tab || 'popular'; render();
-});
+document.getElementById('tabs').addEventListener('click', (e) => { const btn = e.target.closest('button'); if (!btn) return; document.querySelectorAll('#tabs button').forEach(b => b.classList.remove('active')); btn.classList.add('active'); currentTab = btn.dataset.tab || 'popular'; render(); });
 document.getElementById('searchInput').addEventListener('input', (e) => { searchQuery = e.target.value.trim().toLowerCase(); render(); });
 
 /* ЗАГРУЗКА ДАННЫХ */
 async function loadData() {
-  addLog('Начало загрузки данных из Appwrite...');
+  addLog('Загрузка из Appwrite...');
   try {
     const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.limit(100)]);
     places = response.documents.filter(doc => doc.city !== 'USER_ACCOUNT').map(doc => ({ ...doc, id: doc.$id, comments: Array.isArray(doc.comments) ? doc.comments : [] }));
-    statusEl.style.display = 'none';
-    addLog(`Успешно загружено мест: ${places.length}`);
-  } catch (e) { 
-    statusEl.textContent = 'Ошибка базы'; statusEl.className = 'status error'; 
-    addLog('ОШИБКА ЗАГРУЗКИ ИЗ БАЗЫ: ' + e.message); 
-  }
+    statusEl.style.display = 'none'; addLog(`Загружено мест: ${places.length}`);
+  } catch (e) { statusEl.textContent = 'Ошибка базы'; statusEl.className = 'status error'; addLog('ОШИБКА ЗАГРУЗКИ: ' + e.message); }
   render(); updateMarkers();
 }
 
@@ -733,13 +577,7 @@ function getFilteredPlaces() {
   let list = places.filter(p => p.is_archived !== 'true' && p.is_banned !== 'true');
   if (searchQuery) list = list.filter(p => (p.name || '').toLowerCase().includes(searchQuery));
   if (currentTab === 'new') list = [...list].sort((a, b) => new Date(b.$createdAt || 0) - new Date(a.$createdAt || 0));
-  else list = [...list].sort((a, b) => {
-    const la = Number(a.likes || 0), lb = Number(b.likes || 0);
-    if (lb !== la) return lb - la;
-    const ra = Number(a.rating_sum || 0), rb = Number(b.rating_sum || 0);
-    if (rb !== ra) return rb - ra;
-    return new Date(b.$createdAt || 0) - new Date(a.$createdAt || 0);
-  });
+  else list = [...list].sort((a, b) => { const la = Number(a.likes || 0), lb = Number(b.likes || 0); if (lb !== la) return lb - la; const ra = Number(a.rating_sum || 0), rb = Number(b.rating_sum || 0); if (rb !== ra) return rb - ra; return new Date(b.$createdAt || 0) - new Date(a.$createdAt || 0); });
   return list;
 }
 
@@ -749,31 +587,17 @@ function render() {
   if (filtered.length === 0) { listEl.innerHTML = '<div class="empty">Пока ничего нет</div>'; refreshIcons(); return; }
 
   listEl.innerHTML = filtered.map(p => {
-    let photoUrl = '';
-    if (Array.isArray(p.photos) && p.photos.length > 0) photoUrl = p.photos[0];
-    else if (typeof p.photos === 'string' && p.photos) photoUrl = p.photos;
-
+    const photoUrl = typeof p.photos === 'string' ? p.photos : (Array.isArray(p.photos) && p.photos[0] ? p.photos[0] : '');
     const canEdit = isAdmin() || (currentUser && p.author_id && p.author_id === currentUser.id);
-
     return `
     <div class="place-card" onclick="openPlaceDetail('${esc(p.id)}')">
       ${photoUrl ? `<div class="photo-container"><img src="${esc(photoUrl)}" class="photo-item" onerror="this.parentElement.style.display='none'"></div>` : ''}
       <div class="place-content">
         <h3>${esc(p.name)}</h3>
-        <div class="author-badge" onclick="event.stopPropagation(); openUserInfo('${esc(p.author || 'Неизвестный').replace(/'/g, "\\'")}', '${esc(p.author_id || '0')}')">
-          Добавил: ${esc(p.author || 'Неизвестный')}
-        </div>
+        <div class="author-badge" onclick="event.stopPropagation(); openUserInfo('${esc(p.author || 'Неизвестный').replace(/'/g, "\\'")}', '${esc(p.author_id || '0')}')">Добавил: ${esc(p.author || 'Неизвестный')}</div>
         <div class="desc">${esc(p.desc || '')}</div>
-        
-        <div style="font-size:12px; color:#00ffc8; font-weight:bold; display:flex; align-items:center; gap:5px; margin-top:10px;">
-          <i data-lucide="info" style="width:14px;height:14px;"></i> Нажмите, чтобы узнать подробнее
-        </div>
-
-        ${canEdit ? `
-        <div class="actions" onclick="event.stopPropagation();">
-          <button class="btn-edit" onclick="editPlace('${esc(p.id)}')"><i data-lucide="edit-3" style="width:14px;height:14px;"></i> Редактировать</button>
-          <button class="btn-delete" onclick="deletePlace('${esc(p.id)}')"><i data-lucide="trash-2" style="width:14px;height:14px;"></i> Удалить</button>
-        </div>` : ''}
+        <div style="font-size:12px; color:#00ffc8; font-weight:bold; display:flex; align-items:center; gap:5px; margin-top:10px;"><i data-lucide="info" style="width:14px;height:14px;"></i> Нажмите, чтобы узнать подробнее</div>
+        ${canEdit ? `<div class="actions" onclick="event.stopPropagation();"><button class="btn-edit" onclick="editPlace('${esc(p.id)}')"><i data-lucide="edit-3" style="width:14px;height:14px;"></i> Редактировать</button><button class="btn-delete" onclick="deletePlace('${esc(p.id)}')"><i data-lucide="trash-2" style="width:14px;height:14px;"></i> Удалить</button></div>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -782,21 +606,17 @@ function render() {
 
 /* МОДАЛКА ПОДРОБНОСТЕЙ */
 function openPlaceDetail(id) {
-  const p = places.find(x => x.id === id); if (!p) return;
-  currentDetailPlaceId = id;
-
-  let photoUrl = '';
-  if (Array.isArray(p.photos) && p.photos.length > 0) photoUrl = p.photos[0];
-  else if (typeof p.photos === 'string' && p.photos) photoUrl = p.photos;
-
+  const p = places.find(x => x.id === id); if (!p) return; currentDetailPlaceId = id;
+  const photoUrl = typeof p.photos === 'string' ? p.photos : (Array.isArray(p.photos) && p.photos[0] ? p.photos[0] : '');
+  
   const imgEl = document.getElementById('detailImg');
-  if (photoUrl) { imgEl.src = photoUrl; imgEl.style.display = 'block'; } 
-  else { imgEl.style.display = 'none'; }
+  const headerEl = document.getElementById('detailHeader');
+  if (photoUrl) { imgEl.src = photoUrl; imgEl.style.display = 'block'; headerEl.style.display = 'flex'; } 
+  else { imgEl.style.display = 'none'; headerEl.style.display = 'none'; }
 
   document.getElementById('detailTitle').innerText = p.name || 'Без названия';
   document.getElementById('detailAuthor').innerText = 'Добавил: ' + (p.author || 'Неизвестный');
   document.getElementById('detailDesc').innerText = p.desc || '';
-  
   const coordsBox = document.getElementById('detailCoordsBox');
   if (p.coords) coordsBox.style.display = 'block'; else coordsBox.style.display = 'none';
 
@@ -813,63 +633,38 @@ function openPlaceDetail(id) {
     <div class="comment-form">
       <input type="text" id="c_detail" placeholder="Ваш комментарий..." maxlength="500" onkeydown="if(event.key==='Enter'){event.preventDefault();addComment('${esc(p.id)}')}">
       <button onclick="addComment('${esc(p.id)}')"><i data-lucide="send"></i></button>
-    </div>
-  `;
+    </div>`;
 
-  document.getElementById('detailModal').classList.remove('hidden');
-  document.body.style.overflow = 'hidden';
-  refreshIcons();
+  document.getElementById('detailModal').classList.remove('hidden'); document.body.style.overflow = 'hidden'; refreshIcons();
 }
-
-document.getElementById('closeDetailBtn').addEventListener('click', () => {
-  document.getElementById('detailModal').classList.add('hidden');
-  document.body.style.overflow = '';
-});
+document.getElementById('closeDetailBtn').addEventListener('click', () => { document.getElementById('detailModal').classList.add('hidden'); document.body.style.overflow = ''; });
 
 async function addComment(id) {
   checkAuthBeforeAction(async () => {
-    const inp = document.getElementById('c_detail') || document.getElementById('c_' + id); 
-    if (!inp) return;
+    const inp = document.getElementById('c_detail') || document.getElementById('c_' + id); if (!inp) return;
     const text = inp.value.trim(); if (!text) return;
     const p = places.find(x => x.id === id); if (!p) return;
-
     const comments = Array.isArray(p.comments) ? [...p.comments] : [];
     comments.push(`${currentUser.nickname}: ${text}`); 
-
     try {
-      await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { comments });
-      p.comments = comments; inp.value = ''; 
-      if (currentDetailPlaceId === id) openPlaceDetail(id); else render();
-      render(); 
+      await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { comments }); p.comments = comments; inp.value = ''; 
+      if (currentDetailPlaceId === id) openPlaceDetail(id); else render(); render(); 
     } catch (e) { addLog('Ошибка добавления комментария: ' + e.message); alert('Ошибка комментария: ' + e.message); }
   });
 }
 
 /* ДОБАВЛЕНИЕ / РЕДАКТИРОВАНИЕ */
 function resetAddForm() {
-  editingPlaceId = null;
-  document.getElementById('inName').value = ''; document.getElementById('inDesc').value = '';
-  document.getElementById('inPhotos').value = ''; document.getElementById('inCoords').value = '';
-  document.getElementById('inCity').value = 'Чебоксары';
-  document.getElementById('saveBtn').innerHTML = '<i data-lucide="save"></i> Сохранить';
-  document.getElementById('toggleForm').innerHTML = '<i data-lucide="plus-circle"></i> Добавить место';
-  refreshIcons();
+  editingPlaceId = null; document.getElementById('inName').value = ''; document.getElementById('inDesc').value = ''; document.getElementById('inPhotos').value = ''; document.getElementById('inCoords').value = ''; document.getElementById('inCity').value = 'Чебоксары';
+  document.getElementById('saveBtn').innerHTML = '<i data-lucide="save"></i> Сохранить'; document.getElementById('toggleForm').innerHTML = '<i data-lucide="plus-circle"></i> Добавить место'; refreshIcons();
 }
-
 function editPlace(id) {
-  const p = places.find(x => x.id === id); if (!p) return;
-  editingPlaceId = id;
+  const p = places.find(x => x.id === id); if (!p) return; editingPlaceId = id;
   document.getElementById('inName').value = p.name || ''; document.getElementById('inDesc').value = p.desc || '';
-  document.getElementById('inPhotos').value = Array.isArray(p.photos) ? (p.photos[0] || '') : (p.photos || '');
-  document.getElementById('inCoords').value = p.coords || '';
-  document.getElementById('inCity').value = ['Чебоксары','Новочебоксарск','Чувашия'].includes(p.city) ? p.city : 'Чебоксары';
-
-  document.getElementById('addForm').classList.remove('hidden');
-  document.getElementById('toggleForm').innerHTML = '<i data-lucide="x"></i> Отменить редактирование';
-  document.getElementById('saveBtn').innerHTML = '<i data-lucide="save"></i> Обновить';
-  document.getElementById('detailModal').classList.add('hidden');
-  document.body.style.overflow = '';
-  refreshIcons(); window.scrollTo({ top: 0, behavior: 'smooth' });
+  document.getElementById('inPhotos').value = typeof p.photos === 'string' ? p.photos : (Array.isArray(p.photos) ? (p.photos[0] || '') : '');
+  document.getElementById('inCoords').value = p.coords || ''; document.getElementById('inCity').value = ['Чебоксары','Новочебоксарск','Чувашия'].includes(p.city) ? p.city : 'Чебоксары';
+  document.getElementById('addForm').classList.remove('hidden'); document.getElementById('toggleForm').innerHTML = '<i data-lucide="x"></i> Отменить редактирование'; document.getElementById('saveBtn').innerHTML = '<i data-lucide="save"></i> Обновить';
+  document.getElementById('detailModal').classList.add('hidden'); document.body.style.overflow = ''; refreshIcons(); window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 document.getElementById('toggleForm').addEventListener('click', () => {
@@ -880,26 +675,18 @@ document.getElementById('toggleForm').addEventListener('click', () => {
 
 document.getElementById('saveBtn').addEventListener('click', () => {
   checkAuthBeforeAction(async () => {
-    const name = document.getElementById('inName').value.trim();
-    const desc = document.getElementById('inDesc').value.trim();
+    const name = document.getElementById('inName').value.trim(); const desc = document.getElementById('inDesc').value.trim();
     if (!name || !desc) return alert('Заполните поля!');
-    const photoLink = document.getElementById('inPhotos').value.trim();
-    const rawCoords = document.getElementById('inCoords').value.trim();
-
+    const photoLink = document.getElementById('inPhotos').value.trim(); const rawCoords = document.getElementById('inCoords').value.trim();
     let finalCoords = '';
-    if (rawCoords) {
-      const parsed = parseCoords(rawCoords);
-      if (!parsed) return alert('Некорректные координаты. Вставьте координаты из Яндекс.Карт (например: 56.152594, 47.207843)');
-      finalCoords = parsed;
-    }
-
-    const data = { name, desc, city: document.getElementById('inCity').value, coords: finalCoords, photos: photoLink ? [photoLink] : [], author: currentUser.nickname, author_id: currentUser.id || '0', is_archived: 'false' };
-
+    if (rawCoords) { const parsed = parseCoords(rawCoords); if (!parsed) return alert('Некорректные координаты. Вставьте координаты из Яндекс.Карт (например: 56.152594, 47.207843)'); finalCoords = parsed; }
+    // ИСПРАВЛЕНО: сохраняем строку, а не массив
+    const data = { name, desc, city: document.getElementById('inCity').value, coords: finalCoords, photos: photoLink ? photoLink : "", author: currentUser.nickname, author_id: currentUser.id || '0', is_archived: 'false' };
     try {
       if (editingPlaceId) await databases.updateDocument(DATABASE_ID, COLLECTION_ID, editingPlaceId, data);
       else { data.likes = '0'; data.rating_sum = '0'; data.rating_count = '0'; data.comments = []; data.is_banned = 'false'; await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), data); }
       document.getElementById('addForm').classList.add('hidden'); resetAddForm(); loadData();
-    } catch (e) { addLog('Ошибка сохранения места: ' + e.message); alert('Ошибка: ' + e.message); }
+    } catch (e) { addLog('Ошибка сохранения: ' + e.message); alert('Ошибка: ' + e.message); }
   });
 });
 
@@ -907,40 +694,22 @@ async function deletePlace(id) {
   if (!confirm('Удалить это место?')) return;
   checkAuthBeforeAction(async () => {
     const p = places.find(x => x.id === id); if (!p) return;
-    const canEdit = isAdmin() || (currentUser && p.author_id === currentUser.id);
-    if (!canEdit) { alert('Нет прав'); return; }
-    try { 
-      await databases.deleteDocument(DATABASE_ID, COLLECTION_ID, id); 
-      document.getElementById('detailModal').classList.add('hidden');
-      document.body.style.overflow = '';
-      loadData(); 
-    } catch (e) { addLog('Ошибка удаления места: ' + e.message); alert('Ошибка удаления: ' + e.message); }
+    const canEdit = isAdmin() || (currentUser && p.author_id === currentUser.id); if (!canEdit) { alert('Нет прав'); return; }
+    try { await databases.deleteDocument(DATABASE_ID, COLLECTION_ID, id); document.getElementById('detailModal').classList.add('hidden'); document.body.style.overflow = ''; loadData(); } catch (e) { addLog('Ошибка удаления: ' + e.message); alert('Ошибка удаления: ' + e.message); }
   });
 }
 
 async function deleteComment(id, index) {
   const p = places.find(x => x.id === id); if (!p) return;
-  const canDel = isAdmin() || (currentUser && p.author_id === currentUser.id);
-  if (!canDel) { alert('Нет прав'); return; }
-  const comments = Array.isArray(p.comments) ? [...p.comments] : [];
-  comments.splice(index, 1);
-  try {
-    await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { comments });
-    p.comments = comments; 
-    if (currentDetailPlaceId === id) openPlaceDetail(id); else render();
-    render();
-  } catch (e) { addLog('Ошибка удаления комментария: ' + e.message); alert('Ошибка удаления: ' + e.message); }
+  const canDel = isAdmin() || (currentUser && p.author_id === currentUser.id); if (!canDel) { alert('Нет прав'); return; }
+  const comments = Array.isArray(p.comments) ? [...p.comments] : []; comments.splice(index, 1);
+  try { await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { comments }); p.comments = comments; if (currentDetailPlaceId === id) openPlaceDetail(id); else render(); render(); } catch (e) { addLog('Ошибка удаления комментария: ' + e.message); alert('Ошибка удаления: ' + e.message); }
 }
 
 /* ИНИЦИАЛИЗАЦИЯ */
 if (isLightTheme) { document.body.classList.add('light-theme'); document.getElementById('themeToggle').innerHTML = '<i data-lucide="sun"></i>'; }
-const savedOpacity = localStorage.getItem('cheb_glass_opacity') || '0.6';
-document.documentElement.style.setProperty('--glass-opacity', savedOpacity);
-document.getElementById('glassSlider').value = savedOpacity;
-questsBtn.style.display = 'flex';
-updateAvatar();
-loadData();
-window.addEventListener('load', () => refreshIcons());
+const savedOpacity = localStorage.getItem('cheb_glass_opacity') || '0.6'; document.documentElement.style.setProperty('--glass-opacity', savedOpacity); document.getElementById('glassSlider').value = savedOpacity;
+questsBtn.style.display = 'flex'; updateAvatar(); loadData(); window.addEventListener('load', () => refreshIcons());
 </script>
 </body>
-  </html>
+</html>
