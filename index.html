@@ -24,7 +24,6 @@
     --text-title: #ffffff;
     --text-desc: #94a3b8;
     
-    /* Более мощная прозрачность и размытие */
     --glass-opacity: 0.4; 
     --glass-blur: 50px;
     --glass-bg: rgba(15, 20, 30, var(--glass-opacity));
@@ -34,7 +33,6 @@
     --input-bg: rgba(0, 0, 0, 0.5);
     --btn-bg: rgba(30, 40, 50, 0.6);
     
-    /* Идеальный фон для модалки (без прозрачности) */
     --modal-bg: #0f141e; 
     --neon-glow: 0 0 20px rgba(0, 255, 200, 0.3);
   }
@@ -104,7 +102,6 @@
   h1 { font-family: 'Oswald', sans-serif; font-size: 2.4em; text-transform: uppercase; text-align: center; color: var(--text-title); text-shadow: 0 0 20px rgba(0,255,200,0.5); margin-bottom: 5px; letter-spacing: 1px; }
   .subtitle { text-align: center; font-size: 12px; text-transform: uppercase; letter-spacing: 3px; color: var(--text-desc); margin-bottom: 25px; }
 
-  /* Стили для стекла */
   .panel, .place-card, .tabs button, .help-content, .profile-content, .settings-content, .about-content, .user-card, .map-modal-content, .quest-card, .detail-content {
     background: var(--glass-bg); border: 1px solid var(--glass-border); 
     backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
@@ -140,10 +137,9 @@
   .btn-edit { color: #00ffc8; border-color: #00ffc8; background: rgba(0,255,200,0.05); }
   .btn-delete { color: #ff0066; border-color: #ff0066; background: rgba(255,0,102,0.05); }
 
-  /* Модальное окно подробностей (ИСПРАВЛЕНО) */
   .detail-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 15px; backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); }
-  .detail-content { padding: 0; max-width: 600px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; background: var(--modal-bg); border: 1px solid var(--glass-border); border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.8); } /* Плотный фон */
-  .detail-header { position: relative; width: 100%; background: var(--input-bg); display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 24px 24px 0 0; display: none; } /* Скрыт по умолчанию */
+  .detail-content { padding: 0; max-width: 600px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; background: var(--modal-bg); border: 1px solid var(--glass-border); border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.8); }
+  .detail-header { position: relative; width: 100%; background: var(--input-bg); display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 24px 24px 0 0; display: none; }
   .detail-header img { width: 100%; height: auto; max-height: 350px; object-fit: cover; display: block; }
   .detail-close { position: absolute; top: 15px; right: 15px; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.3); color: #fff; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; backdrop-filter: blur(10px); transition: all 0.2s; }
   .detail-close:hover { background: #ff0066; transform: rotate(90deg); }
@@ -599,7 +595,8 @@ function render() {
   if (filtered.length === 0) { listEl.innerHTML = '<div class="empty">Пока ничего нет</div>'; refreshIcons(); return; }
 
   listEl.innerHTML = filtered.map(p => {
-    const photoUrl = typeof p.photos === 'string' ? p.photos : (Array.isArray(p.photos) && p.photos[0] ? p.photos[0] : '');
+    // ТЕПЕРЬ БЕРЕМ ПЕРВЫЙ ЭЛЕМЕНТ МАССИВА
+    const photoUrl = Array.isArray(p.photos) && p.photos.length > 0 ? p.photos[0] : (typeof p.photos === 'string' ? p.photos : '');
     const canEdit = isAdmin() || (currentUser && p.author_id && p.author_id === currentUser.id);
     return `
     <div class="place-card" onclick="openPlaceDetail('${esc(p.id)}')">
@@ -619,7 +616,8 @@ function render() {
 /* МОДАЛКА ПОДРОБНОСТЕЙ */
 function openPlaceDetail(id) {
   const p = places.find(x => x.id === id); if (!p) return; currentDetailPlaceId = id;
-  const photoUrl = typeof p.photos === 'string' ? p.photos : (Array.isArray(p.photos) && p.photos[0] ? p.photos[0] : '');
+  // ТЕПЕРЬ БЕРЕМ ПЕРВЫЙ ЭЛЕМЕНТ МАССИВА
+  const photoUrl = Array.isArray(p.photos) && p.photos.length > 0 ? p.photos[0] : (typeof p.photos === 'string' ? p.photos : '');
   
   const imgEl = document.getElementById('detailImg');
   const headerEl = document.getElementById('detailHeader');
@@ -673,7 +671,7 @@ function resetAddForm() {
 function editPlace(id) {
   const p = places.find(x => x.id === id); if (!p) return; editingPlaceId = id;
   document.getElementById('inName').value = p.name || ''; document.getElementById('inDesc').value = p.desc || '';
-  document.getElementById('inPhotos').value = typeof p.photos === 'string' ? p.photos : (Array.isArray(p.photos) ? (p.photos[0] || '') : '');
+  document.getElementById('inPhotos').value = Array.isArray(p.photos) ? (p.photos[0] || '') : (p.photos || '');
   document.getElementById('inCoords').value = p.coords || ''; document.getElementById('inCity').value = ['Чебоксары','Новочебоксарск','Чувашия'].includes(p.city) ? p.city : 'Чебоксары';
   document.getElementById('addForm').classList.remove('hidden'); document.getElementById('toggleForm').innerHTML = '<i data-lucide="x"></i> Отменить редактирование'; document.getElementById('saveBtn').innerHTML = '<i data-lucide="save"></i> Обновить';
   document.getElementById('detailModal').classList.add('hidden'); document.body.style.overflow = ''; refreshIcons(); window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -694,11 +692,10 @@ document.getElementById('saveBtn').addEventListener('click', () => {
     let finalCoords = '';
     if (rawCoords) { const parsed = parseCoords(rawCoords); if (!parsed) return alert('Некорректные координаты. Вставьте координаты из Яндекс.Карт (например: 56.152594, 47.207843)'); finalCoords = parsed; }
     
-    // ИСПРАВЛЕНО: сохраняем строку, а не массив
-    const data = { name, desc, city: document.getElementById('inCity').value, coords: finalCoords, photos: photoLink ? photoLink : "", author: currentUser.nickname, author_id: currentUser.id || '0', is_archived: 'false' };
+    // ИСПРАВЛЕНО: снова отправляем массив, чтобы Appwrite принял
+    const data = { name, desc, city: document.getElementById('inCity').value, coords: finalCoords, photos: photoLink ? [photoLink] : [], author: currentUser.nickname, author_id: currentUser.id || '0', is_archived: 'false' };
     
-    // ДИАГНОСТИКА ФОТО
-    if (photoLink) addLog(`Фото прикреплено: ${photoLink.substring(0, 30)}...`);
+    if (photoLink) addLog(`Фото прикреплено (массив): ${photoLink.substring(0, 30)}...`);
     else addLog(`Фото не прикреплено (пусто).`);
 
     try {
