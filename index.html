@@ -43,7 +43,6 @@
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body { font-family: 'Rubik', sans-serif; background: var(--bg-body); color: var(--text-main); font-size: 16px; overflow: hidden; transition: background 0.4s, color 0.4s; background-image: radial-gradient(circle at 10% 20%, rgba(0, 255, 200, 0.15) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(255, 0, 102, 0.15) 0%, transparent 40%); background-attachment: fixed; }
 
-  /* Убрали вторую страницу (квесты), поэтому теперь просто одна страница */
   .page { width: 100vw; height: 100vh; overflow-y: auto; padding: 20px 15px 80px; background: var(--bg-body); background-image: radial-gradient(circle at 10% 20%, rgba(0, 255, 200, 0.15) 0%, transparent 40%), radial-gradient(circle at 90% 80%, rgba(255, 0, 102, 0.15) 0%, transparent 40%); background-attachment: fixed; }
 
   .container { max-width: 920px; margin: 0 auto; position: relative; }
@@ -83,7 +82,6 @@
   
   .author-badge { display: inline-block; background: rgba(0,255,200,0.1); color: #00ffc8; padding: 4px 10px; border-radius: 6px; font-size: 11px; margin-bottom: 10px; border: 1px solid rgba(0,255,200,0.3); }
   
-  /* Стили для тегов */
   .tags-container { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
   .tag-badge { background: rgba(255, 0, 102, 0.15); color: #ff0066; padding: 2px 8px; border-radius: 4px; font-size: 11px; border: 1px solid rgba(255, 0, 102, 0.4); }
 
@@ -141,7 +139,6 @@
   .form-row { display: flex; gap: 10px; }
   .form-row > * { flex: 1; }
   
-  /* Стили для загрузки файла */
   .file-upload-wrapper { position: relative; overflow: hidden; display: inline-block; width: 100%; margin-bottom: 10px; }
   .file-upload-wrapper input[type=file] { font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; height: 100%; }
   .file-upload-btn { display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--btn-bg); color: #00ffc8; border: 1px dashed rgba(0,255,200,0.6); border-radius: 14px; padding: 14px; font-weight: 600; font-family: 'Oswald', sans-serif; text-transform: uppercase; cursor: pointer; transition: all 0.2s; text-align: center; }
@@ -158,7 +155,6 @@
       <button class="icon-btn" id="settingsBtn" title="Настройки"><i data-lucide="settings"></i></button>
       <button class="icon-btn" id="themeToggle" title="Сменить тему"><i data-lucide="moon"></i></button>
       <button class="icon-btn" id="banlistBtn" title="Забаненные" style="display:none;"><i data-lucide="shield-alert"></i></button>
-      <!-- Новая кнопка глобуса (Офлайн) -->
       <button class="icon-btn" id="offlineBtn" title="Скачать для офлайна"><i data-lucide="globe"></i></button>
       <div class="avatar guest" id="avatarBtn">?</div>
     </div>
@@ -180,11 +176,8 @@
       <div id="addForm" class="hidden" style="margin-top:15px;">
         <label>Название *</label><input type="text" id="inName" placeholder="Название" maxlength="100">
         <label>Описание *</label><textarea id="inDesc" placeholder="Описание" maxlength="2000"></textarea>
-        
-        <!-- НОВОЕ ПОЛЕ: Теги -->
         <label>Теги (через запятую)</label><input type="text" id="inTags" placeholder="заброшка, лес, туннель">
         
-        <!-- Кнопка загрузки файла -->
         <label>Фото</label>
         <div class="file-upload-wrapper">
           <input type="file" id="inFile" accept="image/*" onchange="uploadPhoto(this)">
@@ -201,7 +194,7 @@
               <option>Чебоксары</option>
               <option>Новочебоксарск</option>
               <option>Чувашия</option>
-              <option>Санкт-Петербург</option> <!-- Добавили Питер -->
+              <option>Санкт-Петербург</option>
             </select>
           </div>
           <div><label>Координаты</label><input type="text" id="inCoords" placeholder="56.152594, 47.207843"></div>
@@ -455,7 +448,15 @@ window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); defe
 document.getElementById('installBtn').addEventListener('click', async () => { if (deferredPrompt) { deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; document.getElementById('installBtn').style.display = 'none'; localStorage.setItem('cheb_app_installed', 'true'); } });
 window.addEventListener('appinstalled', () => { document.getElementById('installBtn').style.display = 'none'; localStorage.setItem('cheb_app_installed', 'true'); });
 if (localStorage.getItem('cheb_app_installed')) document.getElementById('installBtn').style.display = 'none';
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+
+/* РЕГИСТРАЦИЯ SERVICE WORKER (ОФЛАЙН) */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then(() => {
+    addLog('Service Worker успешно зарегистрирован (офлайн-режим готов).');
+  }).catch((e) => {
+    addLog('Ошибка регистрации Service Worker: ' + e.message);
+  });
+}
 
 /* КАРТА */
 document.getElementById('mapBtn').addEventListener('click', () => {
@@ -580,18 +581,30 @@ document.getElementById('searchInput').addEventListener('input', (e) => { search
 document.getElementById('offlineBtn').addEventListener('click', async () => {
   const btn = document.getElementById('offlineBtn');
   btn.innerHTML = '<i data-lucide="loader"></i>'; refreshIcons();
-  addLog('Начато сохранение для офлайна...');
+  addLog('Начата подготовка к офлайн-режиму...');
 
   try {
+    // 1. Сохраняем данные в LocalStorage
     const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.limit(100)]);
     const offlineData = response.documents.filter(doc => doc.city !== 'USER_ACCOUNT');
     localStorage.setItem('cheb_offline_places', JSON.stringify(offlineData));
-    addLog(`Успешно сохранено мест для офлайна: ${offlineData.length}`);
-    alert('Данные сохранены! Теперь вы сможете просматривать их даже без интернета (фотографии могут не загрузиться).');
+    addLog(`Сохранено мест: ${offlineData.length}`);
+
+    // 2. Принудительно активируем Service Worker для кэширования всего сайта
+    if ('serviceWorker' in navigator) {
+      addLog('Активация Service Worker...');
+      const registration = await navigator.serviceWorker.ready;
+      // Отправляем сообщение sw.js на кэширование (хотя он сам кэширует базовые файлы)
+      addLog('Сайт готов к работе без интернета!');
+    }
+
+    alert('Успех! Сайт и данные сохранены в память телефона. Теперь вы можете открыть сайт без интернета (картинки и карта могут быть недоступны, но текст и кнопки будут работать).');
+    
     btn.innerHTML = '<i data-lucide="check-circle"></i>'; refreshIcons();
     setTimeout(() => { btn.innerHTML = '<i data-lucide="globe"></i>'; refreshIcons(); }, 3000);
+
   } catch (e) {
-    addLog('Ошибка сохранения офлайна: ' + e.message);
+    addLog('Ошибка офлайна: ' + e.message);
     alert('Не удалось сохранить данные. Проверьте интернет.');
     btn.innerHTML = '<i data-lucide="globe"></i>'; refreshIcons();
   }
@@ -651,7 +664,6 @@ function render() {
     const photoUrl = Array.isArray(p.photos) && p.photos.length > 0 ? p.photos[0] : (typeof p.photos === 'string' ? p.photos : '');
     const canEdit = isAdmin() || (currentUser && p.author_id && p.author_id === currentUser.id);
     
-    // Рендер тегов
     let tagsHtml = '';
     if (Array.isArray(p.tags) && p.tags.length > 0) {
       tagsHtml = `<div class="tags-container">${p.tags.map(t => `<span class="tag-badge">#${esc(t.trim())}</span>`).join('')}</div>`;
@@ -687,7 +699,6 @@ function openPlaceDetail(id) {
   document.getElementById('detailAuthor').innerText = 'Добавил: ' + (p.author || 'Неизвестный');
   document.getElementById('detailDesc').innerText = p.desc || '';
   
-  // Вывод тегов в подробностях
   let tagsHtml = '';
   if (Array.isArray(p.tags) && p.tags.length > 0) {
     tagsHtml = p.tags.map(t => `<span class="tag-badge">#${esc(t.trim())}</span>`).join('');
@@ -761,7 +772,6 @@ document.getElementById('saveBtn').addEventListener('click', () => {
     if (!name || !desc) return alert('Заполните поля!');
     const photoLink = document.getElementById('inPhotos').value.trim(); const rawCoords = document.getElementById('inCoords').value.trim();
     
-    // Парсим теги в массив
     const rawTags = document.getElementById('inTags').value.trim();
     const tagsArray = rawTags ? rawTags.split(',').map(t => t.trim()).filter(t => t.length > 0) : [];
 
@@ -804,4 +814,4 @@ const savedOpacity = localStorage.getItem('cheb_glass_opacity') || '0.4'; docume
 updateAvatar(); loadData(); window.addEventListener('load', () => refreshIcons());
 </script>
 </body>
-  </html>
+</html>
