@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 <title>КРУТЫЕ МЕСТА</title>
 
-<!-- Мета-тег для Яндекса -->
 <meta name="yandex-verification" content="7631dcc440cbea26" />
 
 <link rel="icon" type="image/svg+xml" href="icon.svg">
@@ -160,7 +159,6 @@
   .map-locate-btn { position: absolute; bottom: 30px; right: 15px; z-index: 1000; width: 45px; height: 45px; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 50%; color: #00ffc8; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(20px); box-shadow: 0 4px 15px rgba(0,0,0,0.5); transition: 0.2s; }
   .map-locate-btn:hover { background: rgba(0,255,200,0.2); border-color: #00ffc8; }
 
-  /* Стили для ПАСХАЛКИ (настоящая атрибуция Leaflet) */
   .leaflet-control-attribution {
     cursor: pointer !important;
     transition: all 0.2s !important;
@@ -198,7 +196,6 @@
   input:checked + .slider { background-color: #00ffc8; }
   input:checked + .slider:before { transform: translateX(22px); }
 
-  /* КРАСИВЫЙ ТОСТ ДЛЯ ПАСХАЛКИ */
   .toast-message {
     position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8);
     background: var(--glass-bg); border: 2px solid #00ffc8; border-radius: 24px;
@@ -209,6 +206,30 @@
     letter-spacing: 2px; max-width: 90%;
   }
   .toast-message.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+
+  /* Инструкция по установке */
+  .install-instruction {
+    background: var(--input-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    padding: 20px;
+    margin-top: 15px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .install-instruction h4 {
+    color: #00ffc8;
+    margin-bottom: 10px;
+    font-family: 'Oswald', sans-serif;
+    text-transform: uppercase;
+  }
+  .install-instruction ol {
+    margin-left: 20px;
+    color: var(--text-main);
+  }
+  .install-instruction li {
+    margin-bottom: 8px;
+  }
 </style>
 </head>
 <body>
@@ -217,7 +238,7 @@
   <div class="container">
     <div class="top-bar">
       <button class="icon-btn glass" id="mapBtn" title="Открыть карту"><i data-lucide="map"></i></button>
-      <button class="icon-btn glass" id="installBtn" title="Установить приложение" style="display:none;"><i data-lucide="download"></i></button>
+      <button class="icon-btn glass" id="installBtn" title="Установить приложение"><i data-lucide="download"></i></button>
       <button class="icon-btn glass" id="settingsBtn" title="Настройки"><i data-lucide="settings"></i></button>
       <button class="icon-btn glass" id="aboutBtn" title="О проекте"><i data-lucide="info"></i></button>
       <button class="icon-btn glass" id="themeToggle" title="Сменить тему"><i data-lucide="moon"></i></button>
@@ -389,6 +410,24 @@
   </div>
 </div>
 
+<!-- Модальное окно установки приложения -->
+<div class="modal-overlay hidden" id="installModal">
+  <div class="small-modal-content">
+    <h3 style="color: var(--text-title); margin-bottom: 20px; text-align: center; font-family: 'Oswald'; text-transform: uppercase;">Установить приложение</h3>
+    <div id="installAutoSection">
+      <p style="text-align:center; color: var(--text-main); margin-bottom: 20px;">Нажмите кнопку ниже, чтобы установить приложение на ваше устройство</p>
+      <button id="installAppBtn" type="button"><i data-lucide="download"></i> Установить</button>
+    </div>
+    <div id="installManualSection" class="hidden">
+      <div class="install-instruction">
+        <h4>📱 Как установить вручную:</h4>
+        <ol id="installSteps"></ol>
+      </div>
+    </div>
+    <button id="closeInstallBtn" type="button" class="btn-toggle glass" style="margin-top:20px;">Закрыть</button>
+  </div>
+</div>
+
 <button class="help-btn" id="helpBtn" type="button" title="Диагностика"><i data-lucide="activity"></i></button>
 
 <div class="modal-overlay hidden" id="helpModal">
@@ -515,12 +554,109 @@ let audioCtx;
 function playSound() { if (!soundEnabled) return; try { if (!audioCtx) audioCtx = new AudioCtx(); if (audioCtx.state === 'suspended') audioCtx.resume(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'sine'; osc.frequency.setValueAtTime(400, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.1); gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.1); } catch (e) {} }
 document.addEventListener('click', (e) => { if (e.target.closest('button')) playSound(); });
 
-/* УСТАНОВКА */
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; if (!localStorage.getItem('cheb_app_installed')) document.getElementById('installBtn').style.display = 'flex'; });
-document.getElementById('installBtn').addEventListener('click', async () => { if (deferredPrompt) { deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; document.getElementById('installBtn').style.display = 'none'; localStorage.setItem('cheb_app_installed', 'true'); } });
-window.addEventListener('appinstalled', () => { document.getElementById('installBtn').style.display = 'none'; localStorage.setItem('cheb_app_installed', 'true'); });
-if (localStorage.getItem('cheb_app_installed')) document.getElementById('installBtn').style.display = 'none';
+/* УСТАНОВКА ПРИЛОЖЕНИЯ (ИСПРАВЛЕНО) */
+let deferredPrompt = null;
+const installBtn = document.getElementById('installBtn');
+const installModal = document.getElementById('installModal');
+const installAppBtn = document.getElementById('installAppBtn');
+const installAutoSection = document.getElementById('installAutoSection');
+const installManualSection = document.getElementById('installManualSection');
+const installSteps = document.getElementById('installSteps');
+
+// Проверяем, установлено ли уже приложение
+if (window.matchMedia('(display-mode: standalone)').matches || localStorage.getItem('cheb_app_installed') === 'true') {
+  installBtn.style.display = 'none';
+}
+
+// Слушаем событие установки PWA
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  addLog('PWA установка доступна');
+});
+
+// Клик по кнопке установки
+installBtn.addEventListener('click', () => {
+  installModal.classList.remove('hidden');
+  installModal.classList.add('active');
+  
+  if (deferredPrompt) {
+    // Автоматическая установка доступна
+    installAutoSection.classList.remove('hidden');
+    installManualSection.classList.add('hidden');
+  } else {
+    // Показываем инструкцию для ручной установки
+    installAutoSection.classList.add('hidden');
+    installManualSection.classList.remove('hidden');
+    
+    // Определяем платформу и показываем соответствующую инструкцию
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = /Android/.test(navigator.userAgent);
+    const isChrome = /Chrome/.test(navigator.userAgent) && !/Edge/.test(navigator.userAgent);
+    const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
+    
+    let steps = [];
+    
+    if (isIOS && isSafari) {
+      steps = [
+        'Нажмите кнопку "Поделиться" внизу экрана (квадрат со стрелкой вверх)',
+        'Прокрутите вниз и найдите "На экран «Домой»"',
+        'Нажмите "Добавить" в правом верхнем углу'
+      ];
+    } else if (isAndroid && isChrome) {
+      steps = [
+        'Нажмите три точки в правом верхнем углу браузера',
+        'Выберите "Добавить на главный экран" или "Установить приложение"',
+        'Подтвердите установку'
+      ];
+    } else {
+      steps = [
+        'Откройте меню браузера (три точки или линии)',
+        'Найдите "Добавить на главный экран" или "Установить приложение"',
+        'Подтвердите установку'
+      ];
+    }
+    
+    installSteps.innerHTML = steps.map(step => `<li>${step}</li>`).join('');
+  }
+});
+
+// Кнопка автоматической установки
+installAppBtn.addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  
+  try {
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    
+    if (outcome === 'accepted') {
+      addLog('Пользователь принял установку PWA');
+      localStorage.setItem('cheb_app_installed', 'true');
+      installBtn.style.display = 'none';
+      showToast('Приложение установлено!');
+    } else {
+      addLog('Пользователь отменил установку PWA');
+    }
+    
+    deferredPrompt = null;
+    installModal.classList.remove('active');
+    setTimeout(() => installModal.classList.add('hidden'), 300);
+  } catch (e) {
+    addLog('Ошибка установки PWA: ' + e.message);
+    alert('Ошибка установки: ' + e.message);
+  }
+});
+
+document.getElementById('closeInstallBtn').addEventListener('click', () => {
+  installModal.classList.remove('active');
+  setTimeout(() => installModal.classList.add('hidden'), 300);
+});
+
+window.addEventListener('appinstalled', () => {
+  addLog('Приложение установлено');
+  localStorage.setItem('cheb_app_installed', 'true');
+  installBtn.style.display = 'none';
+});
 
 /* ============ КАРТА ============ */
 function initMap() {
@@ -529,7 +665,6 @@ function initMap() {
   map = L.map('map').setView([56.1463, 47.2481], 12);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(map);
 
-  // ПАСХАЛКА: клик на настоящую атрибуцию Leaflet
   setTimeout(() => {
     const attrContainer = map.attributionControl.getContainer();
     if (attrContainer) {
@@ -744,7 +879,7 @@ document.getElementById('offlineDownloadBtn').addEventListener('click', async ()
   } catch (e) { addLog('Ошибка офлайна: ' + e.message); alert('Не удалось сохранить данные.'); btn.innerHTML = originalHtml; refreshIcons(); }
 });
 
-/* О ПРОЕКТЕ (ИСПРАВЛЕНО: ПОИСК БЕЗ ИНДЕКСОВ) */
+/* О ПРОЕКТЕ */
 const DEFAULT_ABOUT_TEXT = `✨ Этот проект создан, чтобы посмотреть на города с другой стороны. Открыть Чебоксары, Новочебоксарск, Чувашию и Санкт-Петербург по-новому — через глаза тех, кто знает их скрытые уголки.
 
 👨‍💻 Автор: Кирилл
@@ -769,7 +904,6 @@ async function loadAboutData() {
   displayEl.innerText = 'Загрузка...';
   
   try {
-    // Загружаем ВСЕ документы и ищем нужный на клиенте (без Query.equal, чтобы не требовать индекс)
     const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.limit(200)]);
     const aboutDoc = res.documents.find(doc => doc.city === 'SYSTEM_ABOUT');
     
@@ -783,7 +917,6 @@ async function loadAboutData() {
     
     editBtn.style.display = isAdmin() ? 'flex' : 'none';
   } catch (e) {
-    // Даже при ошибке показываем дефолтный текст
     displayEl.innerText = DEFAULT_ABOUT_TEXT;
     aboutData = null;
     editBtn.style.display = isAdmin() ? 'flex' : 'none';
