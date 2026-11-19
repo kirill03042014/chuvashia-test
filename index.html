@@ -14,7 +14,7 @@
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://unpkg.com/lucide@latest" defer></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 <script src="https://cdn.jsdelivr.net/npm/appwrite@13.0.0"></script>
 
 <style>
@@ -114,6 +114,17 @@
   .btn-delete { color: #00ffc8; border-color: rgba(0,255,200,0.4); background: rgba(0,255,200,0.05); opacity: 0.8; }
   .btn-delete:hover { opacity: 1; background: rgba(0,255,200,0.15); }
 
+  .like-btn { 
+    display: inline-flex; align-items: center; gap: 5px; 
+    background: rgba(255, 0, 102, 0.1); color: #ff0066; 
+    padding: 6px 12px; border-radius: 20px; font-size: 13px; 
+    border: 1px solid rgba(255, 0, 102, 0.3); cursor: pointer; 
+    transition: all 0.2s; margin-right: 10px;
+  }
+  .like-btn:hover { background: rgba(255, 0, 102, 0.2); transform: scale(1.05); }
+  .like-btn.liked { background: rgba(255, 0, 102, 0.3); }
+  .like-btn svg { width: 16px; height: 16px; }
+
   .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.75); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 15px; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); opacity: 0; pointer-events: none; transition: opacity 0.3s; }
   .modal-overlay.active { opacity: 1; pointer-events: all; }
 
@@ -207,29 +218,13 @@
   }
   .toast-message.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
 
-  /* Инструкция по установке */
-  .install-instruction {
-    background: var(--input-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: 14px;
-    padding: 20px;
-    margin-top: 15px;
-    font-size: 14px;
-    line-height: 1.6;
+  .auto-save-indicator {
+    position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+    background: rgba(0,255,200,0.2); color: #00ffc8; padding: 8px 16px;
+    border-radius: 20px; font-size: 12px; z-index: 3000;
+    opacity: 0; transition: opacity 0.3s; pointer-events: none;
   }
-  .install-instruction h4 {
-    color: #00ffc8;
-    margin-bottom: 10px;
-    font-family: 'Oswald', sans-serif;
-    text-transform: uppercase;
-  }
-  .install-instruction ol {
-    margin-left: 20px;
-    color: var(--text-main);
-  }
-  .install-instruction li {
-    margin-bottom: 8px;
-  }
+  .auto-save-indicator.show { opacity: 1; }
 </style>
 </head>
 <body>
@@ -252,7 +247,7 @@
     <div id="status" class="status loading">Загрузка...</div>
 
     <div class="tabs" id="tabs">
-      <button class="active glass" data-tab="popular" style="flex:1;"><i data-lucide="flame"></i> Популярное</button>
+      <button class="active glass" data-tab="popular" style="flex:1;"><i data-lucide="heart"></i> Популярное</button>
       <button class="glass" data-tab="new" style="flex:1;"><i data-lucide="sparkles"></i> Новое</button>
     </div>
 
@@ -293,6 +288,8 @@
   </div>
 </div>
 
+<div class="auto-save-indicator" id="autoSaveIndicator">💾 Автосохранение...</div>
+
 <!-- МОДАЛЬНЫЕ ОКНА -->
 <div class="modal-overlay hidden" id="detailModal">
   <div class="modal-content">
@@ -304,6 +301,11 @@
       <h2 id="detailTitle"></h2>
       <div id="detailTags" class="tags-container"></div>
       <div id="detailAuthor" class="author-badge" style="margin-bottom: 15px;"></div>
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
+        <button class="like-btn" id="detailLikeBtn" onclick="toggleLike(currentDetailPlaceId)">
+          <i data-lucide="heart"></i> <span id="detailLikeCount">0</span>
+        </button>
+      </div>
       <div id="detailDesc" class="full-desc"></div>
       <div id="detailCoordsBox" style="margin-bottom: 20px; display: none;">
          <button class="btn-toggle glass" onclick="openMapToPlace()"><i data-lucide="map-pin"></i> Показать на карте</button>
@@ -337,15 +339,14 @@
     <label style="margin-bottom: 5px; display:block;">Прозрачность стекла</label>
     <input type="range" id="glassSlider" min="0.1" max="0.9" step="0.05" value="0.4" style="margin-bottom: 20px;">
     <div class="toggle-switch">
-      <span class="toggle-label">Умное автосохранение</span>
+      <span class="toggle-label">Автосохранение (30 сек)</span>
       <label class="switch">
         <input type="checkbox" id="autoSaveToggle" checked>
         <span class="slider"></span>
       </label>
     </div>
-    <p style="font-size: 12px; color: var(--text-desc); margin-bottom: 15px; text-align: center;">Если выключено, данные сохраняются только локально до ручной синхронизации.</p>
-    <button id="manualSyncBtn" class="btn-toggle glass" style="margin-bottom: 15px; display: none;"><i data-lucide="cloud-upload"></i> Синхронизировать сейчас</button>
-    <button id="offlineDownloadBtn" class="btn-toggle glass" style="margin-bottom: 15px;"><i data-lucide="download"></i> Скачать для офлайна</button>
+    <p style="font-size: 12px; color: var(--text-desc); margin-bottom: 15px; text-align: center;">Автоматическое пересохранение данных каждые 30 секунд</p>
+    <button id="manualSyncBtn" class="btn-toggle glass" style="margin-bottom: 15px;"><i data-lucide="refresh-cw"></i> Синхронизировать сейчас</button>
     <label style="margin-bottom: 5px; display:block;">Звук</label>
     <div style="display:flex; gap:10px; margin-bottom: 20px;">
       <button id="soundOnBtn" class="btn-toggle glass" style="flex:1; border-color:#00ffc8; color:#00ffc8;">Вкл</button>
@@ -410,24 +411,6 @@
   </div>
 </div>
 
-<!-- Модальное окно установки приложения -->
-<div class="modal-overlay hidden" id="installModal">
-  <div class="small-modal-content">
-    <h3 style="color: var(--text-title); margin-bottom: 20px; text-align: center; font-family: 'Oswald'; text-transform: uppercase;">Установить приложение</h3>
-    <div id="installAutoSection">
-      <p style="text-align:center; color: var(--text-main); margin-bottom: 20px;">Нажмите кнопку ниже, чтобы установить приложение на ваше устройство</p>
-      <button id="installAppBtn" type="button"><i data-lucide="download"></i> Установить</button>
-    </div>
-    <div id="installManualSection" class="hidden">
-      <div class="install-instruction">
-        <h4>📱 Как установить вручную:</h4>
-        <ol id="installSteps"></ol>
-      </div>
-    </div>
-    <button id="closeInstallBtn" type="button" class="btn-toggle glass" style="margin-top:20px;">Закрыть</button>
-  </div>
-</div>
-
 <button class="help-btn" id="helpBtn" type="button" title="Диагностика"><i data-lucide="activity"></i></button>
 
 <div class="modal-overlay hidden" id="helpModal">
@@ -439,18 +422,17 @@
 </div>
 
 <script>
-// ========== НАСТРОЙКИ APPWRITE ==========
-const APPWRITE_ENDPOINT   = 'https://fra.cloud.appwrite.io/v1';
+const APPWRITE_ENDPOINT = 'https://fra.cloud.appwrite.io/v1';
 const APPWRITE_PROJECT_ID = '6af75290002021ce6c30';
-const DATABASE_ID         = '6af752b800204637c982';
-const COLLECTION_ID       = '6af754b70031b4620e57';
-const ADMIN_PASSWORD      = 'SmirnovKirill03@inbox.ry';
-const STORAGE_BUCKET_ID   = '6afb48200025d425c71b';
+const DATABASE_ID = '6af752b800204637c982';
+const COLLECTION_ID = '6af754b70031b4620e57';
+const ADMIN_PASSWORD = 'SmirnovKirill03@inbox.ry';
+const STORAGE_BUCKET_ID = '6afb48200025d425c71b';
 
 const { Client, Databases, Storage, ID, Query } = Appwrite;
-const client    = new Client().setEndpoint(APPWRITE_ENDPOINT).setProject(APPWRITE_PROJECT_ID);
+const client = new Client().setEndpoint(APPWRITE_ENDPOINT).setProject(APPWRITE_PROJECT_ID);
 const databases = new Databases(client);
-const storage   = new Storage(client);
+const storage = new Storage(client);
 
 let map = null;
 let markers = [];
@@ -466,6 +448,8 @@ let editingPlaceId = null;
 let currentDetailPlaceId = null;
 let uploadedPhotoUrl = '';
 let autoSaveEnabled = localStorage.getItem('cheb_auto_save') !== 'false';
+let autoSaveInterval = null;
+let likedPlaces = safeParse(localStorage.getItem('cheb_liked_places')) || {};
 
 const statusEl = document.getElementById('status');
 const avatarBtn = document.getElementById('avatarBtn');
@@ -502,7 +486,6 @@ function checkAuthBeforeAction(action) {
   action();
 }
 
-// ================== ЛОГИ ==================
 const debugLogs = [];
 function addLog(msg) { const time = new Date().toLocaleTimeString(); debugLogs.push(`[${time}] ${msg}`); if (debugLogs.length > 100) debugLogs.shift(); console.log(msg); }
 window.addEventListener('error', function(e) { addLog(`КРИТИЧЕСКАЯ ОШИБКА JS: ${e.message}`); });
@@ -514,7 +497,6 @@ document.getElementById('helpBtn').addEventListener('click', () => {
 });
 document.getElementById('closeHelpBtn').addEventListener('click', () => { document.getElementById('helpModal').classList.remove('active'); setTimeout(() => document.getElementById('helpModal').classList.add('hidden'), 300); });
 
-// ================== ФОТО ==================
 async function uploadPhoto(input) {
   if (!input.files || input.files.length === 0) return;
   const file = input.files[0];
@@ -548,117 +530,23 @@ async function uploadPhoto(input) {
   } catch (e) { addLog('ОШИБКА ЗАГРУЗКИ ФОТО: ' + e.message); alert('Ошибка загрузки: ' + e.message); btnText.innerHTML = '❌ Ошибка. Попробуйте еще раз.'; input.value = ''; }
 }
 
-/* ЗВУК */
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
 let audioCtx;
 function playSound() { if (!soundEnabled) return; try { if (!audioCtx) audioCtx = new AudioCtx(); if (audioCtx.state === 'suspended') audioCtx.resume(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'sine'; osc.frequency.setValueAtTime(400, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.1); gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.1); } catch (e) {} }
 document.addEventListener('click', (e) => { if (e.target.closest('button')) playSound(); });
 
-/* УСТАНОВКА ПРИЛОЖЕНИЯ (ИСПРАВЛЕНО) */
 let deferredPrompt = null;
 const installBtn = document.getElementById('installBtn');
-const installModal = document.getElementById('installModal');
-const installAppBtn = document.getElementById('installAppBtn');
-const installAutoSection = document.getElementById('installAutoSection');
-const installManualSection = document.getElementById('installManualSection');
-const installSteps = document.getElementById('installSteps');
-
-// Проверяем, установлено ли уже приложение
-if (window.matchMedia('(display-mode: standalone)').matches || localStorage.getItem('cheb_app_installed') === 'true') {
-  installBtn.style.display = 'none';
-}
-
-// Слушаем событие установки PWA
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
-  addLog('PWA установка доступна');
-});
-
-// Клик по кнопке установки
 installBtn.addEventListener('click', () => {
-  installModal.classList.remove('hidden');
-  installModal.classList.add('active');
-  
   if (deferredPrompt) {
-    // Автоматическая установка доступна
-    installAutoSection.classList.remove('hidden');
-    installManualSection.classList.add('hidden');
-  } else {
-    // Показываем инструкцию для ручной установки
-    installAutoSection.classList.add('hidden');
-    installManualSection.classList.remove('hidden');
-    
-    // Определяем платформу и показываем соответствующую инструкцию
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isAndroid = /Android/.test(navigator.userAgent);
-    const isChrome = /Chrome/.test(navigator.userAgent) && !/Edge/.test(navigator.userAgent);
-    const isSafari = /Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent);
-    
-    let steps = [];
-    
-    if (isIOS && isSafari) {
-      steps = [
-        'Нажмите кнопку "Поделиться" внизу экрана (квадрат со стрелкой вверх)',
-        'Прокрутите вниз и найдите "На экран «Домой»"',
-        'Нажмите "Добавить" в правом верхнем углу'
-      ];
-    } else if (isAndroid && isChrome) {
-      steps = [
-        'Нажмите три точки в правом верхнем углу браузера',
-        'Выберите "Добавить на главный экран" или "Установить приложение"',
-        'Подтвердите установку'
-      ];
-    } else {
-      steps = [
-        'Откройте меню браузера (три точки или линии)',
-        'Найдите "Добавить на главный экран" или "Установить приложение"',
-        'Подтвердите установку'
-      ];
-    }
-    
-    installSteps.innerHTML = steps.map(step => `<li>${step}</li>`).join('');
-  }
-});
-
-// Кнопка автоматической установки
-installAppBtn.addEventListener('click', async () => {
-  if (!deferredPrompt) return;
-  
-  try {
     deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    
-    if (outcome === 'accepted') {
-      addLog('Пользователь принял установку PWA');
-      localStorage.setItem('cheb_app_installed', 'true');
-      installBtn.style.display = 'none';
-      showToast('Приложение установлено!');
-    } else {
-      addLog('Пользователь отменил установку PWA');
-    }
-    
-    deferredPrompt = null;
-    installModal.classList.remove('active');
-    setTimeout(() => installModal.classList.add('hidden'), 300);
-  } catch (e) {
-    addLog('Ошибка установки PWA: ' + e.message);
-    alert('Ошибка установки: ' + e.message);
+    deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+  } else {
+    alert('Для установки: меню браузера → "Добавить на главный экран"');
   }
 });
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
 
-document.getElementById('closeInstallBtn').addEventListener('click', () => {
-  installModal.classList.remove('active');
-  setTimeout(() => installModal.classList.add('hidden'), 300);
-});
-
-window.addEventListener('appinstalled', () => {
-  addLog('Приложение установлено');
-  localStorage.setItem('cheb_app_installed', 'true');
-  installBtn.style.display = 'none';
-});
-
-/* ============ КАРТА ============ */
 function initMap() {
   if (map) return;
   addLog('Инициализация Leaflet...');
@@ -674,34 +562,23 @@ function initMap() {
         e.stopPropagation();
         showEasterEgg();
       });
-      addLog('Пасхалка на атрибуции Leaflet активирована.');
     }
   }, 200);
 }
 
 function showEasterEgg() {
-  addLog('Активирована пасхалка на карте!');
   closeMap();
-  setTimeout(() => {
-    showToast("Россия · Путин · Победа");
-  }, 450);
+  setTimeout(() => { showToast("Россия · Путин · Победа"); }, 450);
 }
 
 function showToast(text) {
   let t = document.getElementById('toastMsg');
-  if (!t) {
-    t = document.createElement('div');
-    t.id = 'toastMsg';
-    t.className = 'toast-message';
-    document.body.appendChild(t);
-  }
-  t.innerText = text;
-  t.classList.add('show');
+  if (!t) { t = document.createElement('div'); t.id = 'toastMsg'; t.className = 'toast-message'; document.body.appendChild(t); }
+  t.innerText = text; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3500);
 }
 
 document.getElementById('mapBtn').addEventListener('click', () => {
-  addLog('--- ОТКРЫТИЕ КАРТЫ ---');
   document.getElementById('mapModal').classList.remove('hidden');
   document.getElementById('mapModal').classList.add('active');
   document.body.style.overflow = 'hidden';
@@ -711,38 +588,30 @@ document.getElementById('mapBtn').addEventListener('click', () => {
 
 function closeMap() {
   document.getElementById('mapModal').classList.remove('active');
-  setTimeout(() => {
-    document.getElementById('mapModal').classList.add('hidden');
-    document.body.style.overflow = '';
-  }, 300);
+  setTimeout(() => { document.getElementById('mapModal').classList.add('hidden'); document.body.style.overflow = ''; }, 300);
 }
-
 document.getElementById('closeMapBtn').addEventListener('click', closeMap);
 
 function locateUser() {
-  if (!navigator.geolocation) return alert('Геолокация не поддерживается вашим браузером');
-  addLog('Запрос геолокации...');
+  if (!navigator.geolocation) return alert('Геолокация не поддерживается');
   navigator.geolocation.getCurrentPosition((pos) => {
     const { latitude, longitude } = pos.coords;
     map.setView([latitude, longitude], 15);
     L.marker([latitude, longitude]).addTo(map).bindPopup("<b>Вы здесь</b>").openPopup();
-    addLog(`Геолокация успешна: ${latitude}, ${longitude}`);
-  }, (err) => { addLog('Ошибка геолокации: ' + err.message); alert('Не удалось определить местоположение.'); });
+  }, () => { alert('Не удалось определить местоположение.'); });
 }
 
 function updateMarkers() {
-  addLog(`Обновление маркеров. Всего мест: ${places.length}`);
-  if (!map) { addLog('ОШИБКА: Карта не инициализирована!'); return; }
-  markers.forEach(m => map.removeLayer(m)); markers = []; const bounds = []; let addedCount = 0;
+  if (!map) return;
+  markers.forEach(m => map.removeLayer(m)); markers = []; const bounds = [];
   places.forEach(p => {
     if (p.is_archived === 'true' || p.is_banned === 'true') return;
     const parsed = parseCoords(p.coords); if (!parsed) return;
     const [lat, lng] = parsed.split(',').map(Number);
-    const m = L.marker([lat, lng]).addTo(map).bindPopup(`<b>${esc(p.name)}</b>`);
-    markers.push(m); bounds.push([lat, lng]); addedCount++;
+    const m = L.marker([lat, lng]).addTo(map).bindPopup(`<b>${esc(p.name)}</b><br>❤️ ${p.likes || 0}`);
+    markers.push(m); bounds.push([lat, lng]);
   });
-  addLog(`Добавлено маркеров: ${addedCount}`);
-  if (bounds.length > 0) { map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 }); }
+  if (bounds.length > 0) map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
 }
 
 function openMapToPlace() {
@@ -759,11 +628,9 @@ function openMapToPlace() {
     map.invalidateSize();
     const [lat, lng] = parsed.split(',').map(Number);
     map.setView([lat, lng], 15);
-    markers.forEach(m => { if (m.getLatLng().lat === lat && m.getLatLng().lng === lng) m.openPopup(); });
   }, 150);
 }
 
-/* АВТОРИЗАЦИЯ */
 avatarBtn.addEventListener('click', () => {
   document.getElementById('profileModal').classList.remove('hidden');
   document.getElementById('profileModal').classList.add('active');
@@ -787,8 +654,6 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
     if (res.documents.length === 0) { alert('Пользователь не найден!'); return; }
     const user = res.documents[0];
     if (user.desc !== pass) { alert('Неверный пароль!'); return; }
-    if (user.ban_type === 'forever') { alert('Вы забанены навсегда!'); return; }
-    if (user.ban_type === 'day' || user.ban_type === 'week') { const until = Number(user.ban_until || 0); if (Date.now() < until) { alert('Вы забанены до ' + new Date(until).toLocaleString()); return; } }
     currentUser = { nickname: user.name, is_admin: 'false', id: user.$id, is_banned: user.is_banned || 'false', ban_type: user.ban_type || 'none', ban_until: user.ban_until || '0' };
     localStorage.setItem('cheb_current_user', JSON.stringify(currentUser)); updateAvatar(); document.getElementById('profileModal').classList.remove('active'); setTimeout(() => document.getElementById('profileModal').classList.add('hidden'), 300); alert('С возвращением, ' + user.name); render();
   } catch (e) { addLog('Ошибка входа: ' + e.message); alert('Ошибка входа'); }
@@ -796,19 +661,18 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
 
 document.getElementById('registerBtn').addEventListener('click', async () => {
   const nick = document.getElementById('regNickname').value.trim(); const pass = document.getElementById('regPassword').value;
-  if (!nick || !pass) return; if (nick.length > 30) { alert('Ник слишком длинный'); return; } if (localStorage.getItem('cheb_device_id')) { alert('На этом устройстве уже есть аккаунт!'); return; } if (pass === ADMIN_PASSWORD) { alert('Этот пароль занят!'); return; }
+  if (!nick || !pass) return; if (nick.length > 30) { alert('Ник слишком длинный'); return; }
   try {
     const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.equal('city', 'USER_ACCOUNT'), Query.equal('name', nick), Query.limit(1)]);
     if (res.documents.length > 0) { alert('Ник занят!'); return; }
-    const newUser = await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), { name: nick, desc: pass, city: 'USER_ACCOUNT', category: 'user', guard: 'false', is_banned: 'false', ban_type: 'none', ban_until: '0' });
-    localStorage.setItem('cheb_device_id', ID.unique()); currentUser = { nickname: nick, is_admin: 'false', id: newUser.$id, is_banned: 'false', ban_type: 'none', ban_until: '0' };
+    const newUser = await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), { name: nick, desc: pass, city: 'USER_ACCOUNT', is_banned: 'false', ban_type: 'none', ban_until: '0' });
+    currentUser = { nickname: nick, is_admin: 'false', id: newUser.$id, is_banned: 'false', ban_type: 'none', ban_until: '0' };
     localStorage.setItem('cheb_current_user', JSON.stringify(currentUser)); updateAvatar(); document.getElementById('profileModal').classList.remove('active'); setTimeout(() => document.getElementById('profileModal').classList.add('hidden'), 300); alert('Успешная регистрация!'); render();
   } catch (e) { addLog('Ошибка регистрации: ' + e.message); alert('Ошибка регистрации'); }
 });
 
 document.getElementById('logoutBtn').addEventListener('click', () => { currentUser = null; localStorage.removeItem('cheb_current_user'); updateAvatar(); document.getElementById('profileModal').classList.remove('active'); setTimeout(() => document.getElementById('profileModal').classList.add('hidden'), 300); render(); });
 
-/* МОДЕРАЦИЯ */
 function openUserInfo(nickname, userId) {
   if (currentUser && currentUser.id === userId) { alert('Вы не можете забанить самого себя!'); return; }
   selectedUserForBan = userId; document.getElementById('infoNickname').innerText = nickname || 'Неизвестный';
@@ -819,7 +683,7 @@ document.getElementById('closeUserInfoBtn').addEventListener('click', () => { do
 
 async function banUser(type) {
   if (!isAdmin() || !selectedUserForBan) return; let banUntil = '0'; if (type === 'day') banUntil = String(Date.now() + 86400000); if (type === 'week') banUntil = String(Date.now() + 604800000);
-  try { await databases.updateDocument(DATABASE_ID, COLLECTION_ID, selectedUserForBan, { is_banned: 'true', ban_type: type, ban_until: banUntil }); alert('Пользователь забанен!'); document.getElementById('userInfoModal').classList.remove('active'); setTimeout(() => document.getElementById('userInfoModal').classList.add('hidden'), 300); render(); } catch (e) { addLog('Ошибка бана: ' + e.message); alert('Ошибка бана: ' + e.message); }
+  try { await databases.updateDocument(DATABASE_ID, COLLECTION_ID, selectedUserForBan, { is_banned: 'true', ban_type: type, ban_until: banUntil }); alert('Пользователь забанен!'); document.getElementById('userInfoModal').classList.remove('active'); setTimeout(() => document.getElementById('userInfoModal').classList.add('hidden'), 300); render(); } catch (e) { alert('Ошибка бана'); }
 }
 
 banlistBtn.addEventListener('click', async () => {
@@ -827,15 +691,14 @@ banlistBtn.addEventListener('click', async () => {
   try {
     const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.equal('city', 'USER_ACCOUNT'), Query.limit(100)]);
     const banned = res.documents.filter(u => u.ban_type === 'forever' || ((u.ban_type === 'day' || u.ban_type === 'week') && Date.now() < Number(u.ban_until || 0)));
-    if (banned.length === 0) container.innerHTML = '<p style="text-align:center; color:var(--text-desc); padding: 20px;">Нет забаненных пользователей</p>';
+    if (banned.length === 0) container.innerHTML = '<p style="text-align:center; color:var(--text-desc); padding: 20px;">Нет забаненных</p>';
     else container.innerHTML = banned.map(u => `<div class="user-card"><span>${esc(u.name)}</span><button onclick="unbanUser('${esc(u.$id)}')" style="border-color:#00ffc8; color:#00ffc8;">Разбанить</button></div>`).join('');
-  } catch (e) { addLog('Ошибка загрузки банлиста: ' + e.message); container.innerHTML = 'Ошибка загрузки'; }
+  } catch (e) { container.innerHTML = 'Ошибка загрузки'; }
 });
 document.getElementById('closeBanlistBtn').addEventListener('click', () => { document.getElementById('banlistModal').classList.remove('active'); setTimeout(() => document.getElementById('banlistModal').classList.add('hidden'), 300); });
 
-async function unbanUser(userId) { if (!isAdmin()) return; try { await databases.updateDocument(DATABASE_ID, COLLECTION_ID, userId, { is_banned: 'false', ban_type: 'none', ban_until: '0' }); alert('Разбанен!'); banlistBtn.click(); } catch (e) { addLog('Ошибка разбана: ' + e.message); alert('Ошибка'); } }
+async function unbanUser(userId) { if (!isAdmin()) return; try { await databases.updateDocument(DATABASE_ID, COLLECTION_ID, userId, { is_banned: 'false', ban_type: 'none', ban_until: '0' }); alert('Разбанен!'); banlistBtn.click(); } catch (e) { alert('Ошибка'); } }
 
-/* НАСТРОЙКИ */
 document.getElementById('settingsBtn').addEventListener('click', () => { document.getElementById('settingsModal').classList.remove('hidden'); document.getElementById('settingsModal').classList.add('active'); });
 document.getElementById('closeSettingsBtn').addEventListener('click', () => { document.getElementById('settingsModal').classList.remove('active'); setTimeout(() => document.getElementById('settingsModal').classList.add('hidden'), 300); });
 
@@ -850,36 +713,93 @@ document.getElementById('themeToggle').addEventListener('click', () => {
 });
 
 const autoSaveToggle = document.getElementById('autoSaveToggle');
-const manualSyncBtn = document.getElementById('manualSyncBtn');
 autoSaveToggle.checked = autoSaveEnabled;
-updateSyncUI();
-
 autoSaveToggle.addEventListener('change', (e) => {
-  autoSaveEnabled = e.target.checked; localStorage.setItem('cheb_auto_save', autoSaveEnabled); updateSyncUI();
-  if (autoSaveEnabled && navigator.onLine) syncLocalData();
+  autoSaveEnabled = e.target.checked; localStorage.setItem('cheb_auto_save', autoSaveEnabled);
+  if (autoSaveEnabled) startAutoSave(); else stopAutoSave();
 });
 
-function updateSyncUI() { manualSyncBtn.style.display = autoSaveEnabled ? 'none' : 'flex'; }
-
-manualSyncBtn.addEventListener('click', async () => {
-  manualSyncBtn.innerHTML = '<i data-lucide="loader"></i> Синхронизация...'; refreshIcons();
-  await syncLocalData();
-  manualSyncBtn.innerHTML = '<i data-lucide="cloud-upload"></i> Синхронизировать сейчас'; refreshIcons();
+document.getElementById('manualSyncBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('manualSyncBtn');
+  btn.innerHTML = '<i data-lucide="loader"></i> Синхронизация...'; refreshIcons();
+  await autoSaveAllData();
+  btn.innerHTML = '<i data-lucide="refresh-cw"></i> Синхронизировать сейчас'; refreshIcons();
+  showToast('Данные сохранены!');
 });
 
-document.getElementById('offlineDownloadBtn').addEventListener('click', async () => {
-  const btn = document.getElementById('offlineDownloadBtn'); const originalHtml = btn.innerHTML;
-  btn.innerHTML = '<i data-lucide="loader"></i> Сохранение...'; refreshIcons(); addLog('Начата подготовка к офлайн-режиму...');
+// АВТОСОХРАНЕНИЕ КАЖДЫЕ 30 СЕКУНД
+function startAutoSave() {
+  if (autoSaveInterval) clearInterval(autoSaveInterval);
+  autoSaveInterval = setInterval(async () => {
+    if (navigator.onLine && autoSaveEnabled) {
+      const indicator = document.getElementById('autoSaveIndicator');
+      indicator.classList.add('show');
+      await autoSaveAllData();
+      setTimeout(() => indicator.classList.remove('show'), 2000);
+    }
+  }, 30000);
+}
+
+function stopAutoSave() {
+  if (autoSaveInterval) { clearInterval(autoSaveInterval); autoSaveInterval = null; }
+}
+
+async function autoSaveAllData() {
   try {
-    const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.limit(100)]);
-    const offlineData = response.documents.filter(doc => doc.city !== 'USER_ACCOUNT' && doc.city !== 'SYSTEM_ABOUT');
-    localStorage.setItem('cheb_offline_places', JSON.stringify(offlineData)); addLog(`Сохранено мест: ${offlineData.length}`);
-    alert('Успех! Данные сохранены в память.'); btn.innerHTML = '<i data-lucide="check-circle"></i> Готово'; refreshIcons();
-    setTimeout(() => { btn.innerHTML = originalHtml; refreshIcons(); }, 3000);
-  } catch (e) { addLog('Ошибка офлайна: ' + e.message); alert('Не удалось сохранить данные.'); btn.innerHTML = originalHtml; refreshIcons(); }
-});
+    const localPlaces = safeParse(localStorage.getItem('cheb_local_places')) || [];
+    if (localPlaces.length === 0) return;
+    
+    addLog(`Автосохранение: ${localPlaces.length} мест`);
+    
+    // Удаляем старые места (кроме SYSTEM_ABOUT и USER_ACCOUNT)
+    const existingPlaces = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.limit(100)]);
+    const placesToDelete = existingPlaces.documents.filter(doc => doc.city !== 'USER_ACCOUNT' && doc.city !== 'SYSTEM_ABOUT');
+    
+    for (const place of placesToDelete) {
+      await databases.deleteDocument(DATABASE_ID, COLLECTION_ID, place.$id);
+    }
+    
+    // Создаем новые
+    for (const place of localPlaces) {
+      await databases.createDocument(DATABASE_ID, COLLECTION_ID, place.id || ID.unique(), place);
+    }
+    
+    addLog('Автосохранение завершено');
+  } catch (e) {
+    addLog('Ошибка автосохранения: ' + e.message);
+  }
+}
 
-/* О ПРОЕКТЕ */
+// ЛАЙКИ
+async function toggleLike(placeId) {
+  if (!currentUser) { alert('Войдите чтобы поставить лайк!'); return; }
+  
+  const p = places.find(x => x.id === placeId); if (!p) return;
+  
+  const isLiked = likedPlaces[placeId];
+  let newLikes = Number(p.likes || 0);
+  
+  if (isLiked) {
+    newLikes = Math.max(0, newLikes - 1);
+    delete likedPlaces[placeId];
+  } else {
+    newLikes++;
+    likedPlaces[placeId] = true;
+  }
+  
+  localStorage.setItem('cheb_liked_places', JSON.stringify(likedPlaces));
+  p.likes = String(newLikes);
+  
+  if (navigator.onLine) {
+    try {
+      await databases.updateDocument(DATABASE_ID, COLLECTION_ID, placeId, { likes: String(newLikes) });
+    } catch (e) { addLog('Ошибка лайка: ' + e.message); }
+  }
+  
+  render();
+  if (currentDetailPlaceId === placeId) openPlaceDetail(placeId);
+}
+
 const DEFAULT_ABOUT_TEXT = `✨ Этот проект создан, чтобы посмотреть на города с другой стороны. Открыть Чебоксары, Новочебоксарск, Чувашию и Санкт-Петербург по-новому — через глаза тех, кто знает их скрытые уголки.
 
 👨‍💻 Автор: Кирилл
@@ -907,21 +827,11 @@ async function loadAboutData() {
     const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.limit(200)]);
     const aboutDoc = res.documents.find(doc => doc.city === 'SYSTEM_ABOUT');
     
-    if (aboutDoc) {
-      aboutData = aboutDoc;
-      displayEl.innerText = aboutDoc.desc || DEFAULT_ABOUT_TEXT;
-    } else {
-      displayEl.innerText = DEFAULT_ABOUT_TEXT;
-      aboutData = null;
-    }
+    if (aboutDoc) { aboutData = aboutDoc; displayEl.innerText = aboutDoc.desc || DEFAULT_ABOUT_TEXT; }
+    else { displayEl.innerText = DEFAULT_ABOUT_TEXT; aboutData = null; }
     
     editBtn.style.display = isAdmin() ? 'flex' : 'none';
-  } catch (e) {
-    displayEl.innerText = DEFAULT_ABOUT_TEXT;
-    aboutData = null;
-    editBtn.style.display = isAdmin() ? 'flex' : 'none';
-    addLog('Ошибка загрузки About (показан дефолт): ' + e.message);
-  }
+  } catch (e) { displayEl.innerText = DEFAULT_ABOUT_TEXT; aboutData = null; editBtn.style.display = isAdmin() ? 'flex' : 'none'; }
 }
 
 document.getElementById('editAboutBtn').addEventListener('click', () => { 
@@ -945,77 +855,47 @@ document.getElementById('saveAboutBtn').addEventListener('click', async () => {
   saveBtn.innerHTML = 'Сохранение...';
   
   try {
-    if (aboutData) { 
-      await databases.updateDocument(DATABASE_ID, COLLECTION_ID, aboutData.$id, { desc: newText }); 
-    } else { 
-      aboutData = await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), { 
-        name: 'О проекте', 
-        desc: newText, 
-        city: 'SYSTEM_ABOUT', 
-        is_archived: 'false' 
-      }); 
-    }
+    if (aboutData) { await databases.updateDocument(DATABASE_ID, COLLECTION_ID, aboutData.$id, { desc: newText }); }
+    else { aboutData = await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), { name: 'О проекте', desc: newText, city: 'SYSTEM_ABOUT', is_archived: 'false' }); }
     document.getElementById('aboutTextDisplay').innerText = newText;
     document.getElementById('aboutViewMode').classList.remove('hidden'); 
     document.getElementById('aboutEditMode').classList.add('hidden'); 
     document.getElementById('editAboutBtn').classList.remove('hidden');
-    alert('Информация о проекте обновлена!');
-  } catch (e) { 
-    addLog('Ошибка сохранения About: ' + e.message); 
-    alert('Ошибка сохранения: ' + e.message); 
-  } finally { 
-    saveBtn.innerHTML = '<i data-lucide="save"></i> Сохранить'; 
-    refreshIcons(); 
-  }
+    alert('Информация обновлена!');
+  } catch (e) { alert('Ошибка сохранения'); }
+  finally { saveBtn.innerHTML = '<i data-lucide="save"></i> Сохранить'; refreshIcons(); }
 });
 
-/* ВКЛАДКИ / ПОИСК */
 document.getElementById('tabs').addEventListener('click', (e) => { const btn = e.target.closest('button'); if (!btn) return; document.querySelectorAll('#tabs button').forEach(b => b.classList.remove('active')); btn.classList.add('active'); currentTab = btn.dataset.tab || 'popular'; render(); });
 document.getElementById('searchInput').addEventListener('input', (e) => { searchQuery = e.target.value.trim().toLowerCase(); render(); });
 
-/* УМНАЯ СИНХРОНИЗАЦИЯ */
-async function syncLocalData() {
-  if (!navigator.onLine) return;
-  const localQueue = safeParse(localStorage.getItem('cheb_sync_queue')) || [];
-  if (localQueue.length === 0) return;
-  addLog(`Начата синхронизация ${localQueue.length} изменений...`);
-  for (const item of localQueue) {
-    try {
-      if (item.type === 'create') await databases.createDocument(DATABASE_ID, COLLECTION_ID, item.id, item.data);
-      else if (item.type === 'update') await databases.updateDocument(DATABASE_ID, COLLECTION_ID, item.id, item.data);
-      else if (item.type === 'delete') await databases.deleteDocument(DATABASE_ID, COLLECTION_ID, item.id);
-    } catch (e) { addLog(`Ошибка синхронизации элемента ${item.id}: ${e.message}`); return; }
-  }
-  localStorage.removeItem('cheb_sync_queue'); addLog('Синхронизация завершена успешно.'); loadData();
-}
-
-window.addEventListener('online', () => { addLog('Интернет появился!'); statusEl.className = 'status ok'; statusEl.innerText = 'Онлайн'; if (autoSaveEnabled) syncLocalData(); });
-window.addEventListener('offline', () => { addLog('Интернет пропал!'); statusEl.className = 'status error'; statusEl.innerText = 'Офлайн режим'; });
-
-/* ЗАГРУЗКА ДАННЫХ */
 async function loadData() {
   addLog('Загрузка данных...');
   if (!navigator.onLine) {
-    addLog('Интернета нет. Пытаемся загрузить из памяти...');
     const saved = localStorage.getItem('cheb_offline_places');
-    if (saved) { places = JSON.parse(saved).map(doc => ({ ...doc, id: doc.$id, comments: Array.isArray(doc.comments) ? doc.comments : [] })); statusEl.style.display = 'none'; addLog(`Загружено из памяти: ${places.length}`); render(); updateMarkers(); return; }
-    else { statusEl.textContent = 'Нет интернета и нет сохраненных данных'; statusEl.className = 'status error'; return; }
+    if (saved) { places = JSON.parse(saved).map(doc => ({ ...doc, id: doc.$id, comments: Array.isArray(doc.comments) ? doc.comments : [], likes: Number(doc.likes || 0) })); statusEl.style.display = 'none'; render(); updateMarkers(); return; }
+    else { statusEl.textContent = 'Нет интернета'; statusEl.className = 'status error'; return; }
   }
   try {
-    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Сервер не отвечает (тайм-аут)')), 10000));
-    const response = await Promise.race([databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.limit(100)]), timeoutPromise]);
-    places = response.documents.filter(doc => doc.city !== 'USER_ACCOUNT' && doc.city !== 'SYSTEM_ABOUT').map(doc => ({ ...doc, id: doc.$id, comments: Array.isArray(doc.comments) ? doc.comments : [] }));
-    statusEl.style.display = 'none'; addLog(`Загружено мест (онлайн): ${places.length}`);
-  } catch (e) { statusEl.textContent = 'Ошибка базы'; statusEl.className = 'status error'; addLog('ОШИБКА ЗАГРУЗКИ: ' + e.message); }
+    const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.limit(100)]);
+    places = response.documents.filter(doc => doc.city !== 'USER_ACCOUNT' && doc.city !== 'SYSTEM_ABOUT').map(doc => ({ ...doc, id: doc.$id, comments: Array.isArray(doc.comments) ? doc.comments : [], likes: Number(doc.likes || 0) }));
+    
+    // Сохраняем локально для автосохранения
+    localStorage.setItem('cheb_local_places', JSON.stringify(places));
+    localStorage.setItem('cheb_offline_places', JSON.stringify(places));
+    
+    statusEl.style.display = 'none'; addLog(`Загружено мест: ${places.length}`);
+  } catch (e) { statusEl.textContent = 'Ошибка базы'; statusEl.className = 'status error'; }
   render(); updateMarkers();
 }
 
-/* РЕНДЕР */
 function getFilteredPlaces() {
   let list = places.filter(p => p.is_archived !== 'true' && p.is_banned !== 'true');
   if (searchQuery) list = list.filter(p => (p.name || '').toLowerCase().includes(searchQuery) || (Array.isArray(p.tags) && p.tags.some(t => t.toLowerCase().includes(searchQuery))));
+  
   if (currentTab === 'new') list = [...list].sort((a, b) => new Date(b.$createdAt || 0) - new Date(a.$createdAt || 0));
-  else list = [...list].sort((a, b) => { const la = Number(a.likes || 0), lb = Number(b.likes || 0); if (lb !== la) return lb - la; const ra = Number(a.rating_sum || 0), rb = Number(b.rating_sum || 0); if (rb !== ra) return rb - ra; return new Date(b.$createdAt || 0) - new Date(a.$createdAt || 0); });
+  else list = [...list].sort((a, b) => (Number(b.likes || 0) - Number(a.likes || 0)) || (new Date(b.$createdAt || 0) - new Date(a.$createdAt || 0)));
+  
   return list;
 }
 
@@ -1023,18 +903,28 @@ function render() {
   const listEl = document.getElementById('placesList'); if (!listEl) return;
   const filtered = getFilteredPlaces();
   if (filtered.length === 0) { listEl.innerHTML = '<div class="empty glass">Пока ничего нет</div>'; refreshIcons(); return; }
+  
   listEl.innerHTML = filtered.map(p => {
     const photoUrl = Array.isArray(p.photos) && p.photos.length > 0 ? p.photos[0] : (typeof p.photos === 'string' ? p.photos : '');
     const canEdit = isAdmin() || (currentUser && p.author_id && p.author_id === currentUser.id);
+    const likes = Number(p.likes || 0);
+    const isLiked = likedPlaces[p.id];
+    
     let tagsHtml = '';
     if (Array.isArray(p.tags) && p.tags.length > 0) tagsHtml = `<div class="tags-container">${p.tags.map(t => `<span class="tag-badge">#${esc(t.trim())}</span>`).join('')}</div>`;
+    
     return `
     <div class="place-card glass" onclick="openPlaceDetail('${esc(p.id)}')">
       ${photoUrl ? `<div class="photo-container"><img src="${esc(photoUrl)}" class="photo-item" onerror="this.parentElement.style.display='none'"></div>` : ''}
       <div class="place-content">
         <h3>${esc(p.name)}</h3>
         ${tagsHtml}
-        <div class="author-badge" onclick="event.stopPropagation(); openUserInfo('${esc(p.author || 'Неизвестный').replace(/'/g, "\\'")}', '${esc(p.author_id || '0')}')"><i data-lucide="user" style="width:12px;height:12px;"></i> ${esc(p.author || 'Неизвестный')}</div>
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+          <button class="like-btn ${isLiked ? 'liked' : ''}" onclick="event.stopPropagation(); toggleLike('${esc(p.id)}')">
+            <i data-lucide="heart" style="width:16px;height:16px;${isLiked ? 'fill:#ff0066;' : ''}"></i> ${likes}
+          </button>
+          <div class="author-badge" onclick="event.stopPropagation(); openUserInfo('${esc(p.author || 'Неизвестный').replace(/'/g, "\\'")}', '${esc(p.author_id || '0')}')"><i data-lucide="user" style="width:12px;height:12px;"></i> ${esc(p.author || 'Неизвестный')}</div>
+        </div>
         <div class="desc">${esc(p.desc || '')}</div>
         <div style="font-size:12px; color:#00ffc8; font-weight:bold; display:flex; align-items:center; gap:5px; margin-top:10px;"><i data-lucide="info" style="width:14px;height:14px;"></i> Нажмите, чтобы узнать подробнее</div>
         ${canEdit ? `<div class="actions" onclick="event.stopPropagation();"><button class="btn-edit" onclick="editPlace('${esc(p.id)}')"><i data-lucide="edit-3" style="width:14px;height:14px;"></i> Ред.</button><button class="btn-delete" onclick="deletePlace('${esc(p.id)}')"><i data-lucide="trash-2" style="width:14px;height:14px;"></i> Удалить</button></div>` : ''}
@@ -1044,26 +934,34 @@ function render() {
   refreshIcons();
 }
 
-/* МОДАЛКА ПОДРОБНОСТЕЙ */
 function openPlaceDetail(id) {
   const p = places.find(x => x.id === id); if (!p) return; currentDetailPlaceId = id;
   const photoUrl = Array.isArray(p.photos) && p.photos.length > 0 ? p.photos[0] : (typeof p.photos === 'string' ? p.photos : '');
   const imgEl = document.getElementById('detailImg'); const headerEl = document.getElementById('detailHeader');
   if (photoUrl) { imgEl.src = photoUrl; imgEl.style.display = 'block'; headerEl.style.display = 'flex'; } else { imgEl.style.display = 'none'; headerEl.style.display = 'none'; }
+  
   document.getElementById('detailTitle').innerText = p.name || 'Без названия';
   document.getElementById('detailAuthor').innerHTML = `<i data-lucide="user" style="width:14px;height:14px;"></i> Добавил: ${esc(p.author || 'Неизвестный')}`;
   document.getElementById('detailDesc').innerText = p.desc || '';
+  document.getElementById('detailLikeCount').innerText = p.likes || 0;
+  
+  const likeBtn = document.getElementById('detailLikeBtn');
+  if (likedPlaces[id]) likeBtn.classList.add('liked'); else likeBtn.classList.remove('liked');
+  
   let tagsHtml = '';
   if (Array.isArray(p.tags) && p.tags.length > 0) tagsHtml = p.tags.map(t => `<span class="tag-badge">#${esc(t.trim())}</span>`).join('');
   document.getElementById('detailTags').innerHTML = tagsHtml;
+  
   const coordsBox = document.getElementById('detailCoordsBox');
   if (p.coords) coordsBox.style.display = 'block'; else coordsBox.style.display = 'none';
+  
   const commentsContainer = document.getElementById('detailCommentsSection');
   const commentsHtml = (p.comments || []).map((c, idx) => {
     const cText = typeof c === 'string' ? c : (c.text || 'Ошибка');
     const canDel = isAdmin() || (currentUser && p.author_id === currentUser.id);
-    return `<div class="comment"><span>${esc(cText)}</span>${canDel ? `<button class="del-comment" onclick="deleteComment('${esc(p.id)}', ${idx})" title="Удалить"><i data-lucide="trash-2"></i></button>` : ''}</div>`;
+    return `<div class="comment"><span>${esc(cText)}</span>${canDel ? `<button class="del-comment" onclick="deleteComment('${esc(p.id)}', ${idx})"><i data-lucide="trash-2"></i></button>` : ''}</div>`;
   }).join('');
+  
   commentsContainer.innerHTML = `
     <strong style="font-size:12px;color:var(--text-desc); text-transform:uppercase; letter-spacing:1px;">Комментарии (${(p.comments || []).length})</strong>
     <div style="margin-top:10px;">${commentsHtml || '<div style="color:var(--text-desc); font-size:14px;">Пока нет комментариев</div>'}</div>
@@ -1071,29 +969,29 @@ function openPlaceDetail(id) {
       <input type="text" id="c_detail" placeholder="Ваш комментарий..." maxlength="500" onkeydown="if(event.key==='Enter'){event.preventDefault();addComment('${esc(p.id)}')}">
       <button onclick="addComment('${esc(p.id)}')"><i data-lucide="send"></i></button>
     </div>`;
+  
   document.getElementById('detailModal').classList.remove('hidden'); document.getElementById('detailModal').classList.add('active'); document.body.style.overflow = 'hidden'; refreshIcons();
 }
 document.getElementById('closeDetailBtn').addEventListener('click', () => { document.getElementById('detailModal').classList.remove('active'); setTimeout(() => { document.getElementById('detailModal').classList.add('hidden'); document.body.style.overflow = ''; }, 300); });
 
 async function addComment(id) {
   checkAuthBeforeAction(async () => {
-    const inp = document.getElementById('c_detail') || document.getElementById('c_' + id); if (!inp) return;
+    const inp = document.getElementById('c_detail'); if (!inp) return;
     const text = inp.value.trim(); if (!text) return;
     const p = places.find(x => x.id === id); if (!p) return;
     const comments = Array.isArray(p.comments) ? [...p.comments] : [];
     comments.push(`${currentUser.nickname}: ${text}`);
-    if (autoSaveEnabled && navigator.onLine) {
-      try { await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { comments }); p.comments = comments; inp.value = ''; if (currentDetailPlaceId === id) openPlaceDetail(id); else render(); }
-      catch (e) { addLog('Ошибка добавления комментария: ' + e.message); alert('Ошибка комментария: ' + e.message); }
-    } else {
-      p.comments = comments; addToSyncQueue('update', id, { comments }); inp.value = '';
-      if (currentDetailPlaceId === id) openPlaceDetail(id); else render();
-      if (!autoSaveEnabled) alert('Комментарий сохранен локально.');
+    p.comments = comments;
+    if (navigator.onLine) {
+      try { await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { comments }); }
+      catch (e) { alert('Ошибка комментария'); }
     }
+    inp.value = '';
+    openPlaceDetail(id);
+    localStorage.setItem('cheb_local_places', JSON.stringify(places));
   });
 }
 
-/* ДОБАВЛЕНИЕ / РЕДАКТИРОВАНИЕ */
 function resetAddForm() {
   editingPlaceId = null; document.getElementById('inName').value = ''; document.getElementById('inDesc').value = ''; document.getElementById('inPhotos').value = ''; document.getElementById('inCoords').value = ''; document.getElementById('inTags').value = ''; document.getElementById('inCity').value = 'Чебоксары';
   document.getElementById('uploadBtnText').innerHTML = '<i data-lucide="upload"></i> Загрузить фото с телефона'; uploadedPhotoUrl = '';
@@ -1106,50 +1004,45 @@ function editPlace(id) {
   document.getElementById('inPhotos').value = Array.isArray(p.photos) ? (p.photos[0] || '') : (p.photos || '');
   document.getElementById('inCoords').value = p.coords || '';
   document.getElementById('inCity').value = ['Чебоксары','Новочебоксарск','Чувашия','Санкт-Петербург'].includes(p.city) ? p.city : 'Чебоксары';
-  document.getElementById('addForm').classList.remove('hidden'); document.getElementById('toggleForm').innerHTML = '<i data-lucide="x"></i> Отменить редактирование'; document.getElementById('saveBtn').innerHTML = '<i data-lucide="save"></i> Обновить';
+  document.getElementById('addForm').classList.remove('hidden'); document.getElementById('toggleForm').innerHTML = '<i data-lucide="x"></i> Отменить'; document.getElementById('saveBtn').innerHTML = '<i data-lucide="save"></i> Обновить';
   document.getElementById('detailModal').classList.remove('active'); setTimeout(() => document.getElementById('detailModal').classList.add('hidden'), 300); document.body.style.overflow = ''; refreshIcons(); window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 document.getElementById('toggleForm').addEventListener('click', () => { const form = document.getElementById('addForm'); if (form.classList.contains('hidden')) { form.classList.remove('hidden'); resetAddForm(); } else { form.classList.add('hidden'); resetAddForm(); } });
 
-function addToSyncQueue(type, id, data) { const queue = safeParse(localStorage.getItem('cheb_sync_queue')) || []; queue.push({ type, id, data }); localStorage.setItem('cheb_sync_queue', JSON.stringify(queue)); addLog(`Добавлено в очередь синхронизации: ${type} ${id}`); }
-
 document.getElementById('saveBtn').addEventListener('click', () => {
   checkAuthBeforeAction(async () => {
     const name = document.getElementById('inName').value.trim(); const desc = document.getElementById('inDesc').value.trim();
-    if (!name || !desc) return alert('Заполните обязательные поля!');
+    if (!name || !desc) return alert('Заполните поля!');
     const photoLink = document.getElementById('inPhotos').value.trim(); const rawCoords = document.getElementById('inCoords').value.trim();
     const rawTags = document.getElementById('inTags').value.trim();
     const tagsArray = rawTags ? rawTags.split(',').map(t => t.trim()).filter(t => t.length > 0) : [];
     let finalCoords = '';
-    if (rawCoords) { const parsed = parseCoords(rawCoords); if (!parsed) return alert('Некорректные координаты. Вставьте координаты из Яндекс.Карт (например: 56.152594, 47.207843)'); finalCoords = parsed; }
+    if (rawCoords) { const parsed = parseCoords(rawCoords); if (!parsed) return alert('Некорректные координаты'); finalCoords = parsed; }
     const finalPhoto = photoLink || uploadedPhotoUrl;
-    const data = { name, desc, tags: tagsArray, city: document.getElementById('inCity').value, coords: finalCoords, photos: finalPhoto ? [finalPhoto] : [], author: currentUser.nickname, author_id: currentUser.id || '0', is_archived: 'false' };
-    if (finalPhoto) addLog(`Фото прикреплено: ${finalPhoto.substring(0, 30)}...`); else addLog(`Фото не прикреплено.`);
+    const data = { name, desc, tags: tagsArray, city: document.getElementById('inCity').value, coords: finalCoords, photos: finalPhoto ? [finalPhoto] : [], author: currentUser.nickname, author_id: currentUser.id || '0', is_archived: 'false', likes: '0', comments: [], is_banned: 'false' };
+    
     try {
       if (editingPlaceId) {
-        if (autoSaveEnabled && navigator.onLine) await databases.updateDocument(DATABASE_ID, COLLECTION_ID, editingPlaceId, data);
-        else { addToSyncQueue('update', editingPlaceId, data); if (!autoSaveEnabled) alert('Изменения сохранены локально.'); }
+        const existing = places.find(p => p.id === editingPlaceId);
+        data.likes = existing ? existing.likes : '0';
+        data.comments = existing ? existing.comments : [];
+        await databases.updateDocument(DATABASE_ID, COLLECTION_ID, editingPlaceId, data);
       } else {
-        data.likes = '0'; data.rating_sum = '0'; data.rating_count = '0'; data.comments = []; data.is_banned = 'false';
         const newId = ID.unique();
-        if (autoSaveEnabled && navigator.onLine) await databases.createDocument(DATABASE_ID, COLLECTION_ID, newId, data);
-        else { addToSyncQueue('create', newId, data); if (!autoSaveEnabled) alert('Место сохранено локально.'); }
+        data.$id = newId;
+        await databases.createDocument(DATABASE_ID, COLLECTION_ID, newId, data);
       }
       document.getElementById('addForm').classList.add('hidden'); resetAddForm(); loadData();
-    } catch (e) { addLog('Ошибка сохранения: ' + e.message); alert('Ошибка: ' + e.message); }
+    } catch (e) { alert('Ошибка: ' + e.message); }
   });
 });
 
 async function deletePlace(id) {
-  if (!confirm('Удалить это место? Это действие необратимо.')) return;
+  if (!confirm('Удалить место?')) return;
   checkAuthBeforeAction(async () => {
     const p = places.find(x => x.id === id); if (!p) return;
     const canEdit = isAdmin() || (currentUser && p.author_id === currentUser.id); if (!canEdit) { alert('Нет прав'); return; }
-    try {
-      if (autoSaveEnabled && navigator.onLine) await databases.deleteDocument(DATABASE_ID, COLLECTION_ID, id);
-      else { addToSyncQueue('delete', id, {}); if (!autoSaveEnabled) alert('Удаление сохранено локально.'); }
-      document.getElementById('detailModal').classList.remove('active'); setTimeout(() => document.getElementById('detailModal').classList.add('hidden'), 300); document.body.style.overflow = ''; loadData();
-    } catch (e) { addLog('Ошибка удаления: ' + e.message); alert('Ошибка удаления: ' + e.message); }
+    try { await databases.deleteDocument(DATABASE_ID, COLLECTION_ID, id); document.getElementById('detailModal').classList.remove('active'); setTimeout(() => document.getElementById('detailModal').classList.add('hidden'), 300); document.body.style.overflow = ''; loadData(); } catch (e) { alert('Ошибка удаления'); }
   });
 }
 
@@ -1157,17 +1050,12 @@ async function deleteComment(id, index) {
   const p = places.find(x => x.id === id); if (!p) return;
   const canDel = isAdmin() || (currentUser && p.author_id === currentUser.id); if (!canDel) { alert('Нет прав'); return; }
   const comments = Array.isArray(p.comments) ? [...p.comments] : []; comments.splice(index, 1);
-  try {
-    if (autoSaveEnabled && navigator.onLine) await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { comments });
-    else { addToSyncQueue('update', id, { comments }); if (!autoSaveEnabled) alert('Удаление комментария сохранено локально.'); }
-    p.comments = comments; if (currentDetailPlaceId === id) openPlaceDetail(id); else render();
-  } catch (e) { addLog('Ошибка удаления комментария: ' + e.message); alert('Ошибка удаления: ' + e.message); }
+  try { await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { comments }); p.comments = comments; openPlaceDetail(id); } catch (e) { alert('Ошибка'); }
 }
 
-/* ИНИЦИАЛИЗАЦИЯ */
 if (isLightTheme) { document.body.classList.add('light-theme'); document.getElementById('themeToggle').innerHTML = '<i data-lucide="sun"></i>'; }
 const savedOpacity = localStorage.getItem('cheb_glass_opacity') || '0.4'; document.documentElement.style.setProperty('--glass-opacity', savedOpacity); document.getElementById('glassSlider').value = savedOpacity;
-updateAvatar(); loadData(); window.addEventListener('load', () => refreshIcons());
+updateAvatar(); loadData(); window.addEventListener('load', () => { refreshIcons(); if (autoSaveEnabled) startAutoSave(); });
 </script>
 </body>
-  </html>
+</html>
