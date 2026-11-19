@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 <title>КРУТЫЕ МЕСТА</title>
-<meta name="yandex-verification" content="7631dcc440cbea26" />
+<!-- ВАЖНО: Замените content на ваш код верификации Яндекса, если он есть -->
+<meta name="yandex-verification" content="" /> 
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
 <link rel="manifest" href="manifest.json">
@@ -80,8 +81,8 @@
   .actions { display: flex; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--glass-border); }
   .actions button { padding: 8px 12px; font-size: 12px; border-radius: 10px; width: auto; font-family: 'Rubik', sans-serif; font-weight: 500; text-transform: none; }
   .btn-edit { color: #00ffc8; border-color: rgba(0,255,200,0.4); background: rgba(0,255,200,0.05); }
-  .btn-delete { color: #00ffc8; border-color: rgba(0,255,200,0.4); background: rgba(0,255,200,0.05); opacity: 0.8; }
-  .btn-delete:hover { opacity: 1; background: rgba(0,255,200,0.15); }
+  .btn-delete { color: #ff4d4d; border-color: rgba(255,77,77,0.4); background: rgba(255,77,77,0.05); opacity: 0.8; }
+  .btn-delete:hover { opacity: 1; background: rgba(255,77,77,0.15); }
   .like-btn { display: inline-flex; align-items: center; gap: 5px; background: rgba(255, 0, 102, 0.1); color: #ff0066; padding: 6px 12px; border-radius: 20px; font-size: 13px; border: 1px solid rgba(255, 0, 102, 0.3); cursor: pointer; transition: all 0.2s; margin-right: 10px; }
   .like-btn:hover { background: rgba(255, 0, 102, 0.2); transform: scale(1.05); }
   .like-btn.liked { background: rgba(255, 0, 102, 0.3); }
@@ -100,8 +101,8 @@
   .comments { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--glass-border); }
   .comment { background: var(--input-bg); padding: 15px; border-radius: 14px; font-size: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; border: 1px solid var(--glass-border); }
   .comment > span { flex: 1; word-break: break-word; line-height: 1.5; }
-  .del-comment { width: auto; padding: 6px; border: none; background: transparent; color: #00ffc8; cursor: pointer; display: inline-flex; border-radius: 8px; }
-  .del-comment:hover { background: rgba(0,255,200,0.1); }
+  .del-comment { width: auto; padding: 6px; border: none; background: transparent; color: #ff4d4d; cursor: pointer; display: inline-flex; border-radius: 8px; }
+  .del-comment:hover { background: rgba(255,77,77,0.1); }
   .comment-form { display: flex; gap: 10px; margin-top: 15px; }
   .comment-form input { margin: 0; padding: 14px; border-radius: 14px; }
   .comment-form button { width: auto; padding: 14px 20px; margin: 0; border-radius: 14px; }
@@ -128,9 +129,24 @@
   .user-card button { width: auto; padding: 6px 12px; font-size: 12px; border-radius: 10px; }
   .form-row { display: flex; gap: 10px; }
   .form-row > * { flex: 1; }
-  .file-upload-wrapper { position: relative; overflow: hidden; display: inline-block; width: 100%; margin-bottom: 10px; }
-  .file-upload-wrapper input[type=file] { font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; height: 100%; width: 100%; }
-  .file-upload-btn { display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--btn-bg); color: #00ffc8; border: 1px dashed rgba(0,255,200,0.4); border-radius: 16px; padding: 16px; font-weight: 600; font-family: 'Oswald', sans-serif; text-transform: uppercase; cursor: pointer; transition: all 0.2s; text-align: center; }
+  .file-upload-wrapper { position: relative; overflow: hidden; display: block; width: 100%; margin-bottom: 10px; border-radius: 16px; }
+  .file-upload-wrapper input[type=file] {
+    position: absolute;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    z-index: 2;
+  }
+  .file-upload-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    background: var(--btn-bg); color: #00ffc8;
+    border: 1px dashed rgba(0,255,200,0.4); border-radius: 16px;
+    padding: 16px; font-weight: 600; font-family: 'Oswald', sans-serif;
+    text-transform: uppercase; cursor: pointer;
+    transition: all 0.2s; text-align: center;
+    pointer-events: none;
+  }
   .file-upload-wrapper:hover .file-upload-btn { background: rgba(0,255,200,0.1); border-color: #00ffc8; }
   .about-text-display { font-size: 15px; line-height: 1.7; color: var(--text-main); margin-bottom: 20px; white-space: pre-wrap; }
   .admin-edit-controls { display: flex; gap: 10px; margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--glass-border); }
@@ -182,7 +198,7 @@
         <label>Теги (через запятую)</label><input type="text" id="inTags" placeholder="заброшка, лес, туннель">
         <label>Фото</label>
         <div class="file-upload-wrapper">
-          <input type="file" id="inFile" accept="image/*" onchange="uploadPhoto(this)">
+          <input type="file" id="inFile" accept="image/*">
           <div class="file-upload-btn glass" id="uploadBtnText"><i data-lucide="upload"></i> Загрузить фото</div>
         </div>
         <label style="margin-top:10px;">Или вставьте ссылку</label>
@@ -252,22 +268,29 @@
 <div class="modal-overlay hidden" id="profileModal">
   <div class="small-modal-content">
     <h3 style="color: var(--text-title); margin-bottom: 20px; text-align: center; font-family: 'Oswald'; text-transform: uppercase;" id="profileTitle">Вход</h3>
+    
+    <!-- Секция входа -->
     <div id="loginSection">
       <input type="text" id="loginNickname" placeholder="Ник" autocomplete="username">
       <input type="password" id="loginPassword" placeholder="Пароль" autocomplete="current-password">
       <button id="loginBtn" type="button">Войти</button>
       <p style="text-align:center; margin-top:15px; font-size:12px; color:var(--text-desc);">Нет аккаунта? <a href="#" id="showRegisterLink" style="color:#00ffc8; text-decoration: none; border-bottom: 1px dashed #00ffc8;">Регистрация</a></p>
     </div>
+
+    <!-- Секция регистрации -->
     <div id="registerSection" class="hidden">
       <input type="text" id="regNickname" placeholder="Придумайте ник" maxlength="30" autocomplete="username">
       <input type="password" id="regPassword" placeholder="Придумайте пароль" autocomplete="new-password">
       <button id="registerBtn" type="button">Зарегистрироваться</button>
       <p style="text-align:center; margin-top:15px; font-size:12px; color:var(--text-desc);">Уже есть аккаунт? <a href="#" id="showLoginLink" style="color:#00ffc8; text-decoration: none; border-bottom: 1px dashed #00ffc8;">Войти</a></p>
     </div>
+
+    <!-- Секция залогиненного пользователя -->
     <div id="loggedInSection" class="hidden">
       <p id="userGreeting" style="text-align:center; margin-bottom:20px; font-weight:bold; color:#00ffc8; font-size: 1.1em;"></p>
       <button id="logoutBtn" type="button" style="border-color: #ffaa00; color: #ffaa00; background: rgba(255,170,0,0.05);">Выйти</button>
     </div>
+    
     <button id="closeProfileBtn" type="button" class="btn-toggle glass" style="margin-top:20px;">Закрыть</button>
   </div>
 </div>
@@ -302,12 +325,17 @@
 </div>
 
 <script>
+// === КОНФИГУРАЦИЯ ===
 const APPWRITE_ENDPOINT = 'https://fra.cloud.appwrite.io/v1';
 const APPWRITE_PROJECT_ID = '6af75290002021ce6c30';
 const DATABASE_ID = '6af752b800204637c982';
 const COLLECTION_ID = '6af754b70031b4620e57';
-const ADMIN_PASSWORD = 'SmirnovKirill03@inbox.ry';
 const STORAGE_BUCKET_ID = '6afb48200025d425c71b';
+
+// ВНИМАНИЕ: Хранить секреты на клиенте небезопасно. 
+// Этот ключ используется только для демонстрации входа админа.
+// В реальном проекте используйте Appwrite Auth Roles.
+const ADMIN_SECRET_KEY = 'SmirnovKirill03@inbox.ry'; 
 
 const { Client, Databases, Storage, ID, Query } = Appwrite;
 const client = new Client().setEndpoint(APPWRITE_ENDPOINT).setProject(APPWRITE_PROJECT_ID);
@@ -332,7 +360,7 @@ const installBtn = document.getElementById('installBtn');
 function safeParse(str) { try { return JSON.parse(str); } catch { return null; } }
 function esc(s) { if (s === null || s === undefined) return ''; return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
 function refreshIcons() { if (typeof lucide !== 'undefined' && lucide.createIcons) { try { lucide.createIcons(); } catch (e) {} } }
-function isAdmin() { return !!(currentUser && currentUser.is_admin === 'true'); }
+function isAdmin() { return !!(currentUser && currentUser.is_admin === true); }
 
 function parseCoords(str) {
   if (!str || typeof str !== 'string') return null;
@@ -345,7 +373,8 @@ function parseCoords(str) {
 
 function updateAvatar() {
   if (currentUser) {
-    avatarBtn.classList.remove('guest'); avatarBtn.innerText = (currentUser.nickname || '?').charAt(0).toUpperCase();
+    avatarBtn.classList.remove('guest'); 
+    avatarBtn.innerText = (currentUser.nickname || '?').charAt(0).toUpperCase();
     banlistBtn.style.display = isAdmin() ? 'flex' : 'none';
   } else {
     avatarBtn.classList.add('guest'); avatarBtn.innerText = '?'; banlistBtn.style.display = 'none';
@@ -353,7 +382,12 @@ function updateAvatar() {
 }
 
 function checkAuthBeforeAction(action) {
-  if (!currentUser) { alert('Войдите в профиль!'); document.getElementById('profileModal').classList.remove('hidden'); document.getElementById('profileModal').classList.add('active'); return; }
+  if (!currentUser) { 
+    alert('Войдите в профиль!'); 
+    document.getElementById('profileModal').classList.remove('hidden'); 
+    document.getElementById('profileModal').classList.add('active'); 
+    return; 
+  }
   action();
 }
 
@@ -367,16 +401,27 @@ function addLog(msg, type = '') {
 }
 window.addEventListener('error', function(e) { addLog(`ОШИБКА JS: ${e.message}`, 'err'); });
 
-// УЛУЧШЕННАЯ ЗАГРУЗКА ФОТО
+// ===== ЗАГРУЗКА ФОТО =====
+document.addEventListener('DOMContentLoaded', () => {
+  const fileInput = document.getElementById('inFile');
+  if (fileInput) {
+    fileInput.addEventListener('change', function(e) {
+      console.log('📷 CHANGE событие сработало!', this.files);
+      uploadPhoto(this);
+    });
+  }
+});
+
 async function uploadPhoto(input) {
   if (!input.files || input.files.length === 0) return;
+  
   const file = input.files[0];
   const btnText = document.getElementById('uploadBtnText');
   
-  addLog(`Исходный файл: ${file.name}, ${(file.size/1024/1024).toFixed(2)} МБ`, 'warn');
-  btnText.innerHTML = '📷 Сжатие...';
-  
   try {
+    btnText.innerHTML = '📷 Сжатие...';
+    
+    // Сжатие изображения перед отправкой
     const compressedFile = await new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
@@ -392,42 +437,30 @@ async function uploadPhoto(input) {
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
           canvas.toBlob((blob) => {
-            if (!blob) reject(new Error('Canvas toBlob вернул null'));
-            const newFile = new File([blob], "photo.jpg", { type: "image/jpeg" });
-            addLog(`После сжатия: ${(newFile.size/1024).toFixed(1)} КБ`, 'ok');
-            resolve(newFile);
+            if (!blob) { reject(new Error('Canvas toBlob вернул null')); return; }
+            resolve(new File([blob], "photo.jpg", { type: "image/jpeg" }));
           }, 'image/jpeg', 0.6);
         };
         img.onerror = () => reject(new Error('Не удалось загрузить изображение'));
       };
-      reader.onerror = () => reject(new Error('Ошибка чтения файла'));
+      reader.onerror = () => reject(new Error('FileReader ошибка'));
     });
     
     btnText.innerHTML = '☁️ Загрузка...';
-    addLog('Отправка в Appwrite Storage...', 'warn');
-    
     const response = await storage.createFile(STORAGE_BUCKET_ID, ID.unique(), compressedFile);
+    
     const url = `${APPWRITE_ENDPOINT}/storage/buckets/${STORAGE_BUCKET_ID}/files/${response.$id}/view?project=${APPWRITE_PROJECT_ID}`;
     
     uploadedPhotoUrl = url;
     document.getElementById('inPhotos').value = url;
     btnText.innerHTML = '✅ Фото готово!';
-    addLog('✓ Фото загружено: ' + url.substring(0, 60) + '...', 'ok');
+    alert('Фото загружено успешно!');
     
   } catch (e) {
-    const errMsg = e.message || String(e);
-    addLog('✗ ОШИБКА ЗАГРУЗКИ ФОТО: ' + errMsg, 'err');
+    console.error('✗ ОШИБКА:', e);
+    alert('Ошибка загрузки фото: ' + e.message);
     btnText.innerHTML = '❌ Ошибка';
     input.value = '';
-    
-    let hint = '';
-    if (errMsg.includes('permission') || errMsg.includes('Unauthorized') || errMsg.includes('scope')) {
-      hint = '\n\n⚠️ НЕТ ПРАВ!\nAppwrite Console → Storage → Bucket → Settings → Permissions\nДобавь роль "Any" с правами Create/Read/Update/Delete';
-    } else if (errMsg.includes('size') || errMsg.includes('too large')) {
-      hint = '\n\n⚠️ ФАЙЛ СЛИШКОМ БОЛЬШОЙ!';
-    }
-    
-    alert('Ошибка загрузки фото: ' + errMsg + hint);
   }
 }
 
@@ -501,26 +534,57 @@ function openMapToPlace() {
   setTimeout(() => { map.invalidateSize(); const [lat, lng] = parsed.split(',').map(Number); map.setView([lat, lng], 15); }, 150);
 }
 
+// === АВТОРИЗАЦИЯ ===
 avatarBtn.addEventListener('click', () => {
   document.getElementById('profileModal').classList.remove('hidden'); document.getElementById('profileModal').classList.add('active');
-  if (currentUser) { document.getElementById('loginSection').classList.add('hidden'); document.getElementById('registerSection').classList.add('hidden'); document.getElementById('loggedInSection').classList.remove('hidden'); document.getElementById('userGreeting').innerText = 'Привет, ' + (currentUser.nickname || '') + (isAdmin() ? ' 👑' : ''); }
-  else { document.getElementById('loginSection').classList.remove('hidden'); document.getElementById('registerSection').classList.add('hidden'); document.getElementById('loggedInSection').classList.add('hidden'); }
+  if (currentUser) { 
+    document.getElementById('loginSection').classList.add('hidden'); 
+    document.getElementById('registerSection').classList.add('hidden'); 
+    document.getElementById('loggedInSection').classList.remove('hidden'); 
+    document.getElementById('userGreeting').innerText = 'Привет, ' + (currentUser.nickname || '') + (isAdmin() ? ' 👑' : ''); 
+  }
+  else { 
+    document.getElementById('loginSection').classList.remove('hidden'); 
+    document.getElementById('registerSection').classList.add('hidden'); 
+    document.getElementById('loggedInSection').classList.add('hidden'); 
+  }
 });
 document.getElementById('showRegisterLink').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('loginSection').classList.add('hidden'); document.getElementById('registerSection').classList.remove('hidden'); });
 document.getElementById('showLoginLink').addEventListener('click', (e) => { e.preventDefault(); document.getElementById('loginSection').classList.remove('hidden'); document.getElementById('registerSection').classList.add('hidden'); });
 document.getElementById('closeProfileBtn').addEventListener('click', () => { document.getElementById('profileModal').classList.remove('active'); setTimeout(() => document.getElementById('profileModal').classList.add('hidden'), 300); });
 
 document.getElementById('loginBtn').addEventListener('click', async () => {
-  const nick = document.getElementById('loginNickname').value.trim(); const pass = document.getElementById('loginPassword').value;
+  const nick = document.getElementById('loginNickname').value.trim(); 
+  const pass = document.getElementById('loginPassword').value;
+  
   if (!nick || !pass) return;
-  if (pass === ADMIN_PASSWORD) { currentUser = { nickname: 'Админ', is_admin: 'true', is_banned: 'false', ban_type: 'none', ban_until: '0', id: 'admin' }; localStorage.setItem('cheb_current_user', JSON.stringify(currentUser)); updateAvatar(); document.getElementById('profileModal').classList.remove('active'); setTimeout(() => document.getElementById('profileModal').classList.add('hidden'), 300); alert('Добро пожаловать, Админ! 👑'); render(); return; }
+  
+  // Проверка на Админа по секретному ключу
+  if (pass === ADMIN_SECRET_KEY) { 
+    currentUser = { nickname: nick || 'Админ', is_admin: true, is_banned: 'false', ban_type: 'none', ban_until: '0', id: 'admin' }; 
+    localStorage.setItem('cheb_current_user', JSON.stringify(currentUser)); 
+    updateAvatar(); 
+    document.getElementById('profileModal').classList.remove('active'); 
+    setTimeout(() => document.getElementById('profileModal').classList.add('hidden'), 300); 
+    alert('Добро пожаловать, Админ! 👑'); 
+    render(); 
+    return; 
+  }
+
+  // Обычный пользователь
   try {
     const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.limit(200)]);
     const user = res.documents.find(doc => doc.city === 'USER_ACCOUNT' && doc.name === nick);
     if (!user) { alert('Пользователь не найден!'); return; }
     if (user.desc !== pass) { alert('Неверный пароль!'); return; }
-    currentUser = { nickname: user.name, is_admin: 'false', id: user.$id, is_banned: user.is_banned || 'false', ban_type: user.ban_type || 'none', ban_until: user.ban_until || '0' };
-    localStorage.setItem('cheb_current_user', JSON.stringify(currentUser)); updateAvatar(); document.getElementById('profileModal').classList.remove('active'); setTimeout(() => document.getElementById('profileModal').classList.add('hidden'), 300); alert('С возвращением, ' + user.name); render();
+    
+    currentUser = { nickname: user.name, is_admin: false, id: user.$id, is_banned: user.is_banned || 'false', ban_type: user.ban_type || 'none', ban_until: user.ban_until || '0' };
+    localStorage.setItem('cheb_current_user', JSON.stringify(currentUser)); 
+    updateAvatar(); 
+    document.getElementById('profileModal').classList.remove('active'); 
+    setTimeout(() => document.getElementById('profileModal').classList.add('hidden'), 300); 
+    alert('С возвращением, ' + user.name); 
+    render();
   } catch (e) { addLog('Ошибка входа: ' + e.message, 'err'); alert('Ошибка входа: ' + e.message); }
 });
 
@@ -532,13 +596,14 @@ document.getElementById('registerBtn').addEventListener('click', async () => {
     const existing = res.documents.find(doc => doc.city === 'USER_ACCOUNT' && doc.name === nick);
     if (existing) { alert('Ник занят!'); return; }
     const newUser = await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), { name: nick, desc: pass, city: 'USER_ACCOUNT', is_banned: 'false', ban_type: 'none', ban_until: '0' });
-    currentUser = { nickname: nick, is_admin: 'false', id: newUser.$id, is_banned: 'false', ban_type: 'none', ban_until: '0' };
+    currentUser = { nickname: nick, is_admin: false, id: newUser.$id, is_banned: 'false', ban_type: 'none', ban_until: '0' };
     localStorage.setItem('cheb_current_user', JSON.stringify(currentUser)); updateAvatar(); document.getElementById('profileModal').classList.remove('active'); setTimeout(() => document.getElementById('profileModal').classList.add('hidden'), 300); alert('Успешная регистрация!'); render();
   } catch (e) { addLog('Ошибка регистрации: ' + e.message, 'err'); alert('Ошибка регистрации: ' + e.message); }
 });
 
 document.getElementById('logoutBtn').addEventListener('click', () => { currentUser = null; localStorage.removeItem('cheb_current_user'); updateAvatar(); document.getElementById('profileModal').classList.remove('active'); setTimeout(() => document.getElementById('profileModal').classList.add('hidden'), 300); render(); });
 
+// === МОДЕРАЦИЯ ===
 function openUserInfo(nickname, userId) {
   if (currentUser && currentUser.id === userId) { alert('Нельзя забанить себя!'); return; }
   selectedUserForBan = userId; document.getElementById('infoNickname').innerText = nickname || 'Неизвестный';
@@ -563,13 +628,12 @@ banlistBtn.addEventListener('click', async () => {
   } catch (e) { container.innerHTML = 'Ошибка: ' + e.message; }
 });
 document.getElementById('closeBanlistBtn').addEventListener('click', () => { document.getElementById('banlistModal').classList.remove('active'); setTimeout(() => document.getElementById('banlistModal').classList.add('hidden'), 300); });
-
 async function unbanUser(userId) { if (!isAdmin()) return; try { await databases.updateDocument(DATABASE_ID, COLLECTION_ID, userId, { is_banned: 'false', ban_type: 'none', ban_until: '0' }); alert('Разбанен!'); banlistBtn.click(); } catch (e) { alert('Ошибка'); } }
 
+// === НАСТРОЙКИ И ТЕМА ===
 document.getElementById('settingsBtn').addEventListener('click', () => { document.getElementById('settingsModal').classList.remove('hidden'); document.getElementById('settingsModal').classList.add('active'); });
 document.getElementById('closeSettingsBtn').addEventListener('click', () => { document.getElementById('settingsModal').classList.remove('active'); setTimeout(() => document.getElementById('settingsModal').classList.add('hidden'), 300); });
 
-// ДИАГНОСТИКА В НАСТРОЙКАХ
 document.getElementById('diagnosticsBtn').addEventListener('click', () => {
   const logEl = document.getElementById('diagnosticsLog');
   logEl.innerHTML = debugLogs.map(l => {
@@ -598,7 +662,6 @@ const autoSaveToggle = document.getElementById('autoSaveToggle');
 autoSaveToggle.checked = autoSaveEnabled;
 autoSaveToggle.addEventListener('change', (e) => { autoSaveEnabled = e.target.checked; localStorage.setItem('cheb_auto_save', autoSaveEnabled); if (autoSaveEnabled) startAutoSave(); else stopAutoSave(); });
 
-// АВТОСОХРАНЕНИЕ: 2 МИНУТЫ, ТОЛЬКО ОБНОВЛЕНИЕ
 function startAutoSave() {
   if (autoSaveInterval) clearInterval(autoSaveInterval);
   autoSaveInterval = setInterval(async () => {
@@ -625,6 +688,7 @@ async function toggleLike(placeId) {
   if (currentDetailPlaceId === placeId) openPlaceDetail(placeId);
 }
 
+// === О ПРОЕКТЕ ===
 const DEFAULT_ABOUT_TEXT = `✨ Этот проект создан, чтобы посмотреть на города с другой стороны. Открыть Чебоксары, Новочебоксарск, Чувашию и Санкт-Петербург по-новому — через глаза тех, кто знает их скрытые уголки.
 
 👨‍💻 Автор: Кирилл
@@ -644,20 +708,14 @@ async function loadAboutData() {
     const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.limit(200)]);
     let aboutDoc = res.documents.find(doc => doc.city === 'SYSTEM_ABOUT');
     if (!aboutDoc) {
-      addLog('Запись "О проекте" не найдена, создаю...', 'warn');
-      try {
-        aboutDoc = await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), {
+      aboutDoc = await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), {
           name: 'О проекте', desc: DEFAULT_ABOUT_TEXT, city: 'SYSTEM_ABOUT', is_archived: 'false'
         });
-        addLog('✓ Запись "О проекте" создана', 'ok');
-      } catch (createErr) {
-        addLog('Не удалось создать запись: ' + createErr.message, 'err');
-      }
     }
     aboutData = aboutDoc;
     displayEl.innerText = aboutDoc ? (aboutDoc.desc || DEFAULT_ABOUT_TEXT) : DEFAULT_ABOUT_TEXT;
     editBtn.style.display = isAdmin() ? 'flex' : 'none';
-  } catch (e) { displayEl.innerText = DEFAULT_ABOUT_TEXT; aboutData = null; editBtn.style.display = isAdmin() ? 'flex' : 'none'; addLog('Ошибка About: ' + e.message, 'err'); }
+  } catch (e) { displayEl.innerText = DEFAULT_ABOUT_TEXT; aboutData = null; editBtn.style.display = isAdmin() ? 'flex' : 'none'; }
 }
 
 document.getElementById('editAboutBtn').addEventListener('click', () => { document.getElementById('aboutViewMode').classList.add('hidden'); document.getElementById('aboutEditMode').classList.remove('hidden'); document.getElementById('editAboutBtn').classList.add('hidden'); document.getElementById('aboutTextEdit').value = aboutData ? aboutData.desc : document.getElementById('aboutTextDisplay').innerText; });
@@ -678,53 +736,27 @@ document.getElementById('saveAboutBtn').addEventListener('click', async () => {
   finally { saveBtn.innerHTML = '<i data-lucide="save"></i> Сохранить'; refreshIcons(); }
 });
 
+// === ОСНОВНАЯ ЛОГИКА ===
 document.getElementById('tabs').addEventListener('click', (e) => { const btn = e.target.closest('button'); if (!btn) return; document.querySelectorAll('#tabs button').forEach(b => b.classList.remove('active')); btn.classList.add('active'); currentTab = btn.dataset.tab || 'popular'; render(); });
 document.getElementById('searchInput').addEventListener('input', (e) => { searchQuery = e.target.value.trim().toLowerCase(); render(); });
 
 async function loadData() {
-  addLog('=== НАЧАЛО ЗАГРУЗКИ ===');
-  addLog(`Интернет: ${navigator.onLine ? '✓' : '✗'}`);
-  addLog(`Пользователь: ${currentUser ? currentUser.nickname : 'гость'}`);
-  
   if (!navigator.onLine) {
-    addLog('Нет интернета, загружаем из памяти', 'warn');
     const saved = localStorage.getItem('cheb_offline_places');
     if (saved) {
       try {
         places = JSON.parse(saved).map(doc => ({ ...doc, id: doc.id || doc.$id, comments: Array.isArray(doc.comments) ? doc.comments : [], likes: Number(doc.likes || 0) }));
         statusEl.style.display = 'none';
-        statusEl.className = 'status ok';
-        statusEl.innerText = `Из памяти: ${places.length} мест`;
-        addLog(`✓ Из памяти: ${places.length} мест`, 'ok');
         render(); updateMarkers();
         return;
-      } catch (e) { addLog('Ошибка парсинга памяти: ' + e.message, 'err'); }
+      } catch (e) { console.error(e); }
     }
-    statusEl.textContent = 'Нет интернета и нет данных'; statusEl.className = 'status error';
-    addLog('✗ Нет данных в памяти', 'err');
+    statusEl.textContent = 'Нет интернета'; statusEl.className = 'status error';
     return;
   }
 
   try {
-    addLog('Запрос к Appwrite...');
     const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.limit(200)]);
-    const totalDocs = response.documents.length;
-    addLog(`Получено документов: ${totalDocs}`, 'ok');
-    
-    const userAccounts = response.documents.filter(d => d.city === 'USER_ACCOUNT').length;
-    const systemAbout = response.documents.filter(d => d.city === 'SYSTEM_ABOUT').length;
-    const actualPlaces = response.documents.filter(d => d.city !== 'USER_ACCOUNT' && d.city !== 'SYSTEM_ABOUT').length;
-    
-    addLog(`  - Пользователей: ${userAccounts}`);
-    addLog(`  - О проекте: ${systemAbout}`);
-    addLog(`  - Мест: ${actualPlaces}`);
-    
-    if (totalDocs === 0) {
-      addLog('⚠️ БАЗА ДАННЫХ ПОЛНОСТЬЮ ПУСТАЯ!', 'warn');
-    } else if (actualPlaces === 0) {
-      addLog('⚠️ Мест нет, но другие документы есть', 'warn');
-    }
-    
     places = response.documents
       .filter(doc => doc.city !== 'USER_ACCOUNT' && doc.city !== 'SYSTEM_ABOUT')
       .map(doc => ({
@@ -735,34 +767,14 @@ async function loadData() {
       }));
     
     localStorage.setItem('cheb_offline_places', JSON.stringify(places));
-    
     statusEl.style.display = 'none';
-    statusEl.className = 'status ok';
-    statusEl.innerText = `Загружено: ${places.length} мест`;
-    addLog(`✓ Загружено ${places.length} мест`, 'ok');
     
   } catch (e) {
-    const errMsg = e.message || String(e);
-    addLog(`✗ ОШИБКА ЗАГРУЗКИ: ${errMsg}`, 'err');
-    statusEl.textContent = `Ошибка`;
-    statusEl.className = 'status error';
-    
-    if (errMsg.includes('permission') || errMsg.includes('Unauthorized') || errMsg.includes('scope')) {
-      addLog('⚠️ ПРОБЛЕМА С ПРАВАМИ ДОСТУПА!', 'warn');
-      addLog('Appwrite Console → Database → Collection → Settings → Permissions', 'warn');
-      addLog('Добавьте роль "Any" с правами Read/Create/Update/Delete', 'warn');
-    }
-    
+    statusEl.textContent = `Ошибка`; statusEl.className = 'status error';
     const saved = localStorage.getItem('cheb_offline_places');
     if (saved) {
-      try {
-        places = JSON.parse(saved).map(doc => ({ ...doc, id: doc.id || doc.$id, comments: Array.isArray(doc.comments) ? doc.comments : [], likes: Number(doc.likes || 0) }));
-        statusEl.innerText = `Из памяти: ${places.length} мест`;
-        addLog(`Восстановлено из памяти: ${places.length}`, 'warn');
-      } catch (e2) { places = []; }
-    } else {
-      places = [];
-    }
+      try { places = JSON.parse(saved).map(doc => ({ ...doc, id: doc.id || doc.$id, comments: Array.isArray(doc.comments) ? doc.comments : [], likes: Number(doc.likes || 0) })); } catch (e2) { places = []; }
+    } else { places = []; }
   }
   
   render();
@@ -855,6 +867,7 @@ function resetAddForm() {
   document.getElementById('uploadBtnText').innerHTML = '<i data-lucide="upload"></i> Загрузить фото'; uploadedPhotoUrl = '';
   document.getElementById('saveBtn').innerHTML = '<i data-lucide="save"></i> Сохранить'; document.getElementById('toggleForm').innerHTML = '<i data-lucide="plus-circle"></i> Добавить место'; refreshIcons();
 }
+
 function editPlace(id) {
   const p = places.find(x => x.id === id); if (!p) return; editingPlaceId = id;
   document.getElementById('inName').value = p.name || ''; document.getElementById('inDesc').value = p.desc || '';
@@ -877,14 +890,34 @@ document.getElementById('saveBtn').addEventListener('click', () => {
     let finalCoords = '';
     if (rawCoords) { const parsed = parseCoords(rawCoords); if (!parsed) return alert('Некорректные координаты'); finalCoords = parsed; }
     const finalPhoto = photoLink || uploadedPhotoUrl;
-    const data = { name, desc, tags: tagsArray, city: document.getElementById('inCity').value, coords: finalCoords, photos: finalPhoto ? [finalPhoto] : [], author: currentUser.nickname, author_id: currentUser.id || '0', is_archived: 'false', likes: '0', comments: [], is_banned: 'false' };
+    
+    // Базовые данные
+    const data = { 
+        name, desc, tags: tagsArray, city: document.getElementById('inCity').value, 
+        coords: finalCoords, photos: finalPhoto ? [finalPhoto] : [] 
+    };
+
     try {
       if (editingPlaceId) {
+        // РЕДАКТИРОВАНИЕ: Сохраняем старые метаданные
         const existing = places.find(p => p.id === editingPlaceId);
-        data.likes = existing ? existing.likes : '0';
-        data.comments = existing ? existing.comments : [];
+        if(existing) {
+            data.likes = existing.likes;
+            data.comments = existing.comments;
+            data.author = existing.author; // Не меняем автора при редактировании!
+            data.author_id = existing.author_id;
+            data.is_archived = existing.is_archived;
+            data.is_banned = existing.is_banned;
+        }
         await databases.updateDocument(DATABASE_ID, COLLECTION_ID, editingPlaceId, data);
       } else {
+        // СОЗДАНИЕ: Новые метаданные
+        data.author = currentUser.nickname;
+        data.author_id = currentUser.id || '0';
+        data.likes = '0';
+        data.comments = [];
+        data.is_archived = 'false';
+        data.is_banned = 'false';
         await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), data);
       }
       document.getElementById('addForm').classList.add('hidden'); resetAddForm(); loadData();
@@ -912,10 +945,8 @@ checkInstallStatus();
 if (isLightTheme) { document.body.classList.add('light-theme'); document.getElementById('themeToggle').innerHTML = '<i data-lucide="sun"></i>'; }
 const savedOpacity = localStorage.getItem('cheb_glass_opacity') || '0.4'; document.documentElement.style.setProperty('--glass-opacity', savedOpacity); document.getElementById('glassSlider').value = savedOpacity;
 updateAvatar();
-addLog('Приложение запущено', 'ok');
-addLog(`Автосохранение: ${autoSaveEnabled ? 'ВКЛ (2 мин)' : 'ВЫКЛ'}`, autoSaveEnabled ? 'ok' : 'warn');
 loadData();
 window.addEventListener('load', () => { refreshIcons(); checkInstallStatus(); if (autoSaveEnabled) startAutoSave(); });
 </script>
 </body>
-</html>
+  </html>
