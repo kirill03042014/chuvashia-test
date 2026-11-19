@@ -126,8 +126,6 @@
   .leaflet-control-attribution:hover a { color: #05070a !important; }
   .user-card { padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; background: var(--input-bg); border-radius: 14px; border: 1px solid var(--glass-border); }
   .user-card button { width: auto; padding: 6px 12px; font-size: 12px; border-radius: 10px; }
-  .help-btn { position: fixed; bottom: 25px; right: 25px; width: 55px; height: 55px; border-radius: 50%; background: linear-gradient(135deg, #00ffc8, #00b894); color: #05070a; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 32px rgba(0,255,200,0.5); z-index: 1000; cursor: pointer; backdrop-filter: blur(5px); transition: all 0.3s; }
-  .help-btn:hover { transform: scale(1.1) rotate(10deg); box-shadow: 0 12px 40px rgba(0,255,200,0.7); }
   .form-row { display: flex; gap: 10px; }
   .form-row > * { flex: 1; }
   .file-upload-wrapper { position: relative; overflow: hidden; display: inline-block; width: 100%; margin-bottom: 10px; }
@@ -148,10 +146,10 @@
   .toast-message.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
   .auto-save-indicator { position: fixed; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,255,200,0.2); color: #00ffc8; padding: 8px 16px; border-radius: 20px; font-size: 12px; z-index: 3000; opacity: 0; transition: opacity 0.3s; pointer-events: none; }
   .auto-save-indicator.show { opacity: 1; }
-  .debug-panel { background: rgba(255,170,0,0.1); border: 1px solid rgba(255,170,0,0.4); color: #ffcc00; padding: 12px; border-radius: 14px; font-size: 12px; margin-bottom: 15px; font-family: monospace; white-space: pre-wrap; line-height: 1.5; }
-  .debug-panel .ok { color: #00ffc8; }
-  .debug-panel .err { color: #ff0066; }
-  .debug-panel .warn { color: #ffaa00; }
+  .debug-log { width: 100%; height: 250px; background: var(--input-bg); color: var(--text-main); border: 1px solid var(--glass-border); padding: 12px; font-size: 11px; border-radius: 14px; font-family: monospace; overflow-y: auto; white-space: pre-wrap; line-height: 1.4; }
+  .debug-log .ok { color: #00ffc8; }
+  .debug-log .err { color: #ff0066; }
+  .debug-log .warn { color: #ffaa00; }
 </style>
 </head>
 <body>
@@ -169,7 +167,6 @@
     <h1>Крутые места</h1>
     <div class="subtitle">Чебоксары · Новочебоксарск · Чувашия · Питер</div>
     <div id="status" class="status loading">Загрузка...</div>
-    <div id="debugPanel" class="debug-panel hidden"></div>
     <div class="tabs" id="tabs">
       <button class="active glass" data-tab="popular" style="flex:1;"><i data-lucide="heart"></i> Популярное</button>
       <button class="glass" data-tab="new" style="flex:1;"><i data-lucide="sparkles"></i> Новое</button>
@@ -236,14 +233,20 @@
     <input type="range" id="glassSlider" min="0.1" max="0.9" step="0.05" value="0.4" style="margin-bottom: 20px;">
     <div class="toggle-switch"><span class="toggle-label">Автообновление (2 мин)</span><label class="switch"><input type="checkbox" id="autoSaveToggle"><span class="slider"></span></label></div>
     <p style="font-size: 12px; color: var(--text-desc); margin-bottom: 15px; text-align: center;">Автоматическое обновление данных каждые 2 минуты</p>
-    <button id="manualSyncBtn" class="btn-toggle glass" style="margin-bottom: 15px;"><i data-lucide="refresh-cw"></i> Обновить сейчас</button>
-    <button id="createTestBtn" class="btn-toggle glass" style="margin-bottom: 15px; border-color: #ffaa00; color: #ffaa00;"><i data-lucide="plus"></i> Создать тестовое место</button>
+    <button id="diagnosticsBtn" class="btn-toggle glass" style="margin-bottom: 15px;"><i data-lucide="activity"></i> Диагностика</button>
     <label style="margin-bottom: 5px; display:block;">Звук</label>
     <div style="display:flex; gap:10px; margin-bottom: 20px;">
       <button id="soundOnBtn" class="btn-toggle glass" style="flex:1; border-color:#00ffc8; color:#00ffc8;">Вкл</button>
       <button id="soundOffBtn" class="btn-toggle glass" style="flex:1; border-color:#ffaa00; color:#ffaa00;">Выкл</button>
     </div>
     <button id="closeSettingsBtn" type="button" class="btn-toggle glass">Закрыть</button>
+  </div>
+</div>
+<div class="modal-overlay hidden" id="diagnosticsModal">
+  <div class="small-modal-content">
+    <h3 style="color: var(--text-title); margin-bottom: 20px; text-align: center; font-family: 'Oswald'; text-transform: uppercase;">📊 Диагностика</h3>
+    <div id="diagnosticsLog" class="debug-log"></div>
+    <button id="closeDiagnosticsBtn" type="button" class="btn-toggle glass" style="margin-top:15px;">Закрыть</button>
   </div>
 </div>
 <div class="modal-overlay hidden" id="profileModal">
@@ -297,14 +300,6 @@
     <button class="map-locate-btn" onclick="locateUser()" title="Моё местоположение"><i data-lucide="navigation"></i></button>
   </div>
 </div>
-<button class="help-btn" id="helpBtn" type="button" title="Диагностика"><i data-lucide="activity"></i></button>
-<div class="modal-overlay hidden" id="helpModal">
-  <div class="small-modal-content">
-    <h3 style="color: var(--text-title); margin-bottom: 20px; text-align: center; font-family: 'Oswald'; text-transform: uppercase;">🛠 Диагностика</h3>
-    <textarea id="errorLog" readonly style="width: 100%; height: 200px; margin-bottom: 15px; background: var(--input-bg); color: var(--text-main); border: 1px solid var(--glass-border); padding: 12px; font-size: 12px; border-radius: 14px; font-family: monospace;"></textarea>
-    <button id="closeHelpBtn" type="button" class="btn-toggle glass">Закрыть</button>
-  </div>
-</div>
 
 <script>
 const APPWRITE_ENDPOINT = 'https://fra.cloud.appwrite.io/v1';
@@ -325,7 +320,6 @@ let soundEnabled = localStorage.getItem('cheb_sound') !== 'false';
 let isLightTheme = localStorage.getItem('cheb_theme') === 'light';
 let currentUser = safeParse(localStorage.getItem('cheb_current_user'));
 let selectedUserForBan = null, editingPlaceId = null, currentDetailPlaceId = null, uploadedPhotoUrl = '';
-// ПО УМОЛЧАНИЮ ВЫКЛЮЧЕНО
 let autoSaveEnabled = localStorage.getItem('cheb_auto_save') === 'true';
 let autoSaveInterval = null;
 let likedPlaces = safeParse(localStorage.getItem('cheb_liked_places')) || {};
@@ -334,7 +328,6 @@ const statusEl = document.getElementById('status');
 const avatarBtn = document.getElementById('avatarBtn');
 const banlistBtn = document.getElementById('banlistBtn');
 const installBtn = document.getElementById('installBtn');
-const debugPanel = document.getElementById('debugPanel');
 
 function safeParse(str) { try { return JSON.parse(str); } catch { return null; } }
 function esc(s) { if (s === null || s === undefined) return ''; return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
@@ -369,25 +362,10 @@ function addLog(msg, type = '') {
   const time = new Date().toLocaleTimeString();
   const entry = `[${time}] ${msg}`;
   debugLogs.push({ text: entry, type });
-  if (debugLogs.length > 50) debugLogs.shift();
+  if (debugLogs.length > 100) debugLogs.shift();
   console.log(msg);
-  updateDebugPanel();
-}
-function updateDebugPanel() {
-  const html = debugLogs.map(l => {
-    const cls = l.type === 'ok' ? 'ok' : l.type === 'err' ? 'err' : l.type === 'warn' ? 'warn' : '';
-    return `<div class="${cls}">${esc(l.text)}</div>`;
-  }).join('');
-  debugPanel.innerHTML = html;
-  debugPanel.classList.remove('hidden');
 }
 window.addEventListener('error', function(e) { addLog(`ОШИБКА JS: ${e.message}`, 'err'); });
-
-document.getElementById('helpBtn').addEventListener('click', () => {
-  document.getElementById('errorLog').value = debugLogs.map(l => l.text).join('\n') || 'Логи пусты';
-  document.getElementById('helpModal').classList.remove('hidden'); document.getElementById('helpModal').classList.add('active');
-});
-document.getElementById('closeHelpBtn').addEventListener('click', () => { document.getElementById('helpModal').classList.remove('active'); setTimeout(() => document.getElementById('helpModal').classList.add('hidden'), 300); });
 
 async function uploadPhoto(input) {
   if (!input.files || input.files.length === 0) return;
@@ -559,6 +537,21 @@ async function unbanUser(userId) { if (!isAdmin()) return; try { await databases
 document.getElementById('settingsBtn').addEventListener('click', () => { document.getElementById('settingsModal').classList.remove('hidden'); document.getElementById('settingsModal').classList.add('active'); });
 document.getElementById('closeSettingsBtn').addEventListener('click', () => { document.getElementById('settingsModal').classList.remove('active'); setTimeout(() => document.getElementById('settingsModal').classList.add('hidden'), 300); });
 
+// ДИАГНОСТИКА В НАСТРОЙКАХ
+document.getElementById('diagnosticsBtn').addEventListener('click', () => {
+  const logEl = document.getElementById('diagnosticsLog');
+  logEl.innerHTML = debugLogs.map(l => {
+    const cls = l.type === 'ok' ? 'ok' : l.type === 'err' ? 'err' : l.type === 'warn' ? 'warn' : '';
+    return `<div class="${cls}">${esc(l.text)}</div>`;
+  }).join('') || '<div>Логи пусты</div>';
+  document.getElementById('diagnosticsModal').classList.remove('hidden');
+  document.getElementById('diagnosticsModal').classList.add('active');
+});
+document.getElementById('closeDiagnosticsBtn').addEventListener('click', () => {
+  document.getElementById('diagnosticsModal').classList.remove('active');
+  setTimeout(() => document.getElementById('diagnosticsModal').classList.add('hidden'), 300);
+});
+
 document.getElementById('glassSlider').addEventListener('input', (e) => { const v = e.target.value; document.documentElement.style.setProperty('--glass-opacity', v); localStorage.setItem('cheb_glass_opacity', v); });
 document.getElementById('soundOnBtn').addEventListener('click', () => { soundEnabled = true; localStorage.setItem('cheb_sound', 'true'); playSound(); });
 document.getElementById('soundOffBtn').addEventListener('click', () => { soundEnabled = false; localStorage.setItem('cheb_sound', 'false'); });
@@ -573,52 +566,17 @@ const autoSaveToggle = document.getElementById('autoSaveToggle');
 autoSaveToggle.checked = autoSaveEnabled;
 autoSaveToggle.addEventListener('change', (e) => { autoSaveEnabled = e.target.checked; localStorage.setItem('cheb_auto_save', autoSaveEnabled); if (autoSaveEnabled) startAutoSave(); else stopAutoSave(); });
 
-document.getElementById('manualSyncBtn').addEventListener('click', async () => { const btn = document.getElementById('manualSyncBtn'); btn.innerHTML = '<i data-lucide="loader"></i> Обновление...'; refreshIcons(); await loadData(); btn.innerHTML = '<i data-lucide="refresh-cw"></i> Обновить сейчас'; refreshIcons(); showToast('Обновлено!'); });
-
-document.getElementById('createTestBtn').addEventListener('click', async () => {
-  if (!currentUser) { alert('Сначала войдите как Админ!\nПароль: SmirnovKirill03@inbox.ry'); return; }
-  if (!confirm('Создать тестовое место "Проверка работы"?\n\nЕсли место появится в списке — база работает!')) return;
-  try {
-    const testData = {
-      name: 'Тестовое место',
-      desc: 'Это тестовое место для проверки работы базы данных. Если вы видите это место — всё работает корректно!',
-      city: 'Чебоксары',
-      tags: ['тест', 'проверка'],
-      coords: '56.1321, 47.2519',
-      photos: [],
-      author: currentUser.nickname,
-      author_id: currentUser.id,
-      is_archived: 'false',
-      is_banned: 'false',
-      likes: '0',
-      comments: []
-    };
-    const result = await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), testData);
-    addLog(`✓ Тестовое место создано: ${result.$id}`, 'ok');
-    alert('✅ Тестовое место создано!\nЗакройте настройки и проверьте список мест.');
-    await loadData();
-  } catch (e) {
-    const errMsg = e.message || String(e);
-    addLog(`✗ Ошибка создания: ${errMsg}`, 'err');
-    let hint = '';
-    if (errMsg.includes('permission') || errMsg.includes('Unauthorized') || errMsg.includes('scope')) {
-      hint = '\n\n⚠️ ПРОБЛЕМА С ПРАВАМИ!\nAppwrite Console → Database → Collection → Settings → Permissions → добавьте роль "Any" с правами Read/Create/Update/Delete';
-    }
-    alert('Ошибка создания: ' + errMsg + hint);
-  }
-});
-
-// АВТОСОХРАНЕНИЕ: 2 МИНУТЫ, ТОЛЬКО ОБНОВЛЕНИЕ, НИЧЕГО НЕ УДАЛЯЕТ
+// АВТОСОХРАНЕНИЕ: 2 МИНУТЫ, ТОЛЬКО ОБНОВЛЕНИЕ
 function startAutoSave() {
   if (autoSaveInterval) clearInterval(autoSaveInterval);
   autoSaveInterval = setInterval(async () => {
     if (navigator.onLine && autoSaveEnabled) {
       const indicator = document.getElementById('autoSaveIndicator');
       indicator.classList.add('show');
-      await loadData(); // Только загружает свежие данные
+      await loadData();
       setTimeout(() => indicator.classList.remove('show'), 2000);
     }
-  }, 120000); // 2 минуты
+  }, 120000);
 }
 function stopAutoSave() { if (autoSaveInterval) { clearInterval(autoSaveInterval); autoSaveInterval = null; } }
 
@@ -652,9 +610,20 @@ async function loadAboutData() {
   displayEl.innerText = 'Загрузка...';
   try {
     const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.limit(200)]);
-    const aboutDoc = res.documents.find(doc => doc.city === 'SYSTEM_ABOUT');
-    if (aboutDoc) { aboutData = aboutDoc; displayEl.innerText = aboutDoc.desc || DEFAULT_ABOUT_TEXT; }
-    else { displayEl.innerText = DEFAULT_ABOUT_TEXT; aboutData = null; }
+    let aboutDoc = res.documents.find(doc => doc.city === 'SYSTEM_ABOUT');
+    if (!aboutDoc) {
+      addLog('Запись "О проекте" не найдена, создаю...', 'warn');
+      try {
+        aboutDoc = await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), {
+          name: 'О проекте', desc: DEFAULT_ABOUT_TEXT, city: 'SYSTEM_ABOUT', is_archived: 'false'
+        });
+        addLog('✓ Запись "О проекте" создана', 'ok');
+      } catch (createErr) {
+        addLog('Не удалось создать запись: ' + createErr.message, 'err');
+      }
+    }
+    aboutData = aboutDoc;
+    displayEl.innerText = aboutDoc ? (aboutDoc.desc || DEFAULT_ABOUT_TEXT) : DEFAULT_ABOUT_TEXT;
     editBtn.style.display = isAdmin() ? 'flex' : 'none';
   } catch (e) { displayEl.innerText = DEFAULT_ABOUT_TEXT; aboutData = null; editBtn.style.display = isAdmin() ? 'flex' : 'none'; addLog('Ошибка About: ' + e.message, 'err'); }
 }
@@ -720,10 +689,8 @@ async function loadData() {
     
     if (totalDocs === 0) {
       addLog('⚠️ БАЗА ДАННЫХ ПОЛНОСТЬЮ ПУСТАЯ!', 'warn');
-      addLog('Нажмите "Создать тестовое место" в настройках', 'warn');
     } else if (actualPlaces === 0) {
       addLog('⚠️ Мест нет, но другие документы есть', 'warn');
-      addLog('Нажмите "Создать тестовое место" в настройках', 'warn');
     }
     
     places = response.documents
@@ -782,7 +749,7 @@ function render() {
   const listEl = document.getElementById('placesList'); if (!listEl) return;
   const filtered = getFilteredPlaces();
   if (filtered.length === 0) { 
-    listEl.innerHTML = '<div class="empty glass">Пока ничего нет<br><br><small style="font-size:0.7em; color:#ffaa00;">Нажмите "Добавить место" или создайте тестовое в настройках</small></div>'; 
+    listEl.innerHTML = '<div class="empty glass">Пока ничего нет<br><br><small style="font-size:0.7em; color:#ffaa00;">Нажмите "Добавить место", чтобы создать первое место</small></div>'; 
     refreshIcons(); 
     return; 
   }
