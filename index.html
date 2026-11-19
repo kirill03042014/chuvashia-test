@@ -288,7 +288,7 @@
   </div>
 </div>
 
-<div class="auto-save-indicator" id="autoSaveIndicator">💾 Автосохранение...</div>
+<div class="auto-save-indicator" id="autoSaveIndicator">💾 Обновление...</div>
 
 <!-- МОДАЛЬНЫЕ ОКНА -->
 <div class="modal-overlay hidden" id="detailModal">
@@ -339,7 +339,7 @@
     <label style="margin-bottom: 5px; display:block;">Прозрачность стекла</label>
     <input type="range" id="glassSlider" min="0.1" max="0.9" step="0.05" value="0.4" style="margin-bottom: 20px;">
     <div class="toggle-switch">
-      <span class="toggle-label">Автосохранение (30 сек)</span>
+      <span class="toggle-label">Автообновление (30 сек)</span>
       <label class="switch">
         <input type="checkbox" id="autoSaveToggle" checked>
         <span class="slider"></span>
@@ -454,6 +454,7 @@ let likedPlaces = safeParse(localStorage.getItem('cheb_liked_places')) || {};
 const statusEl = document.getElementById('status');
 const avatarBtn = document.getElementById('avatarBtn');
 const banlistBtn = document.getElementById('banlistBtn');
+const installBtn = document.getElementById('installBtn');
 
 function safeParse(str) { try { return JSON.parse(str); } catch { return null; } }
 function esc(s) { if (s === null || s === undefined) return ''; return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
@@ -535,17 +536,52 @@ let audioCtx;
 function playSound() { if (!soundEnabled) return; try { if (!audioCtx) audioCtx = new AudioCtx(); if (audioCtx.state === 'suspended') audioCtx.resume(); const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain(); osc.type = 'sine'; osc.frequency.setValueAtTime(400, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.1); gain.gain.setValueAtTime(0.2, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1); osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.1); } catch (e) {} }
 document.addEventListener('click', (e) => { if (e.target.closest('button')) playSound(); });
 
+// ПРОВЕРКА УСТАНОВКИ ПРИЛОЖЕНИЯ
+function checkInstallStatus() {
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                       window.navigator.standalone === true ||
+                       localStorage.getItem('cheb_app_installed') === 'true';
+  
+  if (isStandalone) {
+    installBtn.style.display = 'none';
+    addLog('Приложение уже установлено');
+  }
+}
+
 let deferredPrompt = null;
-const installBtn = document.getElementById('installBtn');
 installBtn.addEventListener('click', () => {
   if (deferredPrompt) {
     deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+    deferredPrompt.userChoice.then((choiceResult) => {
+      if (choiceResult.outcome === 'accepted') {
+        localStorage.setItem('cheb_app_installed', 'true');
+        installBtn.style.display = 'none';
+        showToast('Приложение установлено!');
+      }
+      deferredPrompt = null;
+    });
   } else {
-    alert('Для установки: меню браузера → "Добавить на главный экран"');
+    // Показываем инструкцию
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    if (isIOS) {
+      alert('Для установки: нажмите "Поделиться" → "На экран Домой"');
+    } else {
+      alert('Для установки: меню браузера (⋮) → "Добавить на главный экран" или "Установить"');
+    }
   }
 });
-window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
+
+window.addEventListener('beforeinstallprompt', (e) => { 
+  e.preventDefault(); 
+  deferredPrompt = e; 
+  addLog('PWA установка доступна');
+});
+
+window.addEventListener('appinstalled', () => {
+  localStorage.setItem('cheb_app_installed', 'true');
+  installBtn.style.display = 'none';
+  showToast('Приложение установлено!');
+});
 
 function initMap() {
   if (map) return;
@@ -650,9 +686,10 @@ document.getElementById('loginBtn').addEventListener('click', async () => {
   if (!nick || !pass) return;
   if (pass === ADMIN_PASSWORD) { currentUser = { nickname: 'Админ', is_admin: 'true', is_banned: 'false', ban_type: 'none', ban_until: '0', id: 'admin' }; localStorage.setItem('cheb_current_user', JSON.stringify(currentUser)); updateAvatar(); document.getElementById('profileModal').classList.remove('active'); setTimeout(() => document.getElementById('profileModal').classList.add('hidden'), 300); alert('Добро пожаловать, Админ! 👑'); render(); return; }
   try {
-    const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.equal('city', 'USER_ACCOUNT'), Query.equal('name', nick), Query.limit(1)]);
-    if (res.documents.length === 0) { alert('Пользователь не найден!'); return; }
-    const user = res.documents[0];
+    // Загружаем все и фильтруем на клиенте
+    const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.limit(200)]);
+    const user = res.documents.find(doc => doc.city === 'USER_ACCOUNT' && doc.name === nick);
+    if (!user) { alert('Пользователь не найден!'); return; }
     if (user.desc !== pass) { alert('Неверный пароль!'); return; }
     currentUser = { nickname: user.name, is_admin: 'false', id: user.$id, is_banned: user.is_banned || 'false', ban_type: user.ban_type || 'none', ban_until: user.ban_until || '0' };
     localStorage.setItem('cheb_current_user', JSON.stringify(currentUser)); updateAvatar(); document.getElementById('profileModal').classList.remove('active'); setTimeout(() => document.getElementById('profileModal').classList.add('hidden'), 300); alert('С возвращением, ' + user.name); render();
@@ -663,8 +700,9 @@ document.getElementById('registerBtn').addEventListener('click', async () => {
   const nick = document.getElementById('regNickname').value.trim(); const pass = document.getElementById('regPassword').value;
   if (!nick || !pass) return; if (nick.length > 30) { alert('Ник слишком длинный'); return; }
   try {
-    const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.equal('city', 'USER_ACCOUNT'), Query.equal('name', nick), Query.limit(1)]);
-    if (res.documents.length > 0) { alert('Ник занят!'); return; }
+    const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.limit(200)]);
+    const existing = res.documents.find(doc => doc.city === 'USER_ACCOUNT' && doc.name === nick);
+    if (existing) { alert('Ник занят!'); return; }
     const newUser = await databases.createDocument(DATABASE_ID, COLLECTION_ID, ID.unique(), { name: nick, desc: pass, city: 'USER_ACCOUNT', is_banned: 'false', ban_type: 'none', ban_until: '0' });
     currentUser = { nickname: nick, is_admin: 'false', id: newUser.$id, is_banned: 'false', ban_type: 'none', ban_until: '0' };
     localStorage.setItem('cheb_current_user', JSON.stringify(currentUser)); updateAvatar(); document.getElementById('profileModal').classList.remove('active'); setTimeout(() => document.getElementById('profileModal').classList.add('hidden'), 300); alert('Успешная регистрация!'); render();
@@ -689,8 +727,9 @@ async function banUser(type) {
 banlistBtn.addEventListener('click', async () => {
   if (!isAdmin()) return; document.getElementById('banlistModal').classList.remove('hidden'); document.getElementById('banlistModal').classList.add('active'); const container = document.getElementById('banlistItems'); container.innerHTML = 'Загрузка...';
   try {
-    const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.equal('city', 'USER_ACCOUNT'), Query.limit(100)]);
-    const banned = res.documents.filter(u => u.ban_type === 'forever' || ((u.ban_type === 'day' || u.ban_type === 'week') && Date.now() < Number(u.ban_until || 0)));
+    const res = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.limit(200)]);
+    const users = res.documents.filter(doc => doc.city === 'USER_ACCOUNT');
+    const banned = users.filter(u => u.ban_type === 'forever' || ((u.ban_type === 'day' || u.ban_type === 'week') && Date.now() < Number(u.ban_until || 0)));
     if (banned.length === 0) container.innerHTML = '<p style="text-align:center; color:var(--text-desc); padding: 20px;">Нет забаненных</p>';
     else container.innerHTML = banned.map(u => `<div class="user-card"><span>${esc(u.name)}</span><button onclick="unbanUser('${esc(u.$id)}')" style="border-color:#00ffc8; color:#00ffc8;">Разбанить</button></div>`).join('');
   } catch (e) { container.innerHTML = 'Ошибка загрузки'; }
@@ -727,7 +766,6 @@ document.getElementById('manualSyncBtn').addEventListener('click', async () => {
   showToast('Данные обновлены!');
 });
 
-// АВТОСОХРАНЕНИЕ КАЖДЫЕ 30 СЕКУНД (просто обновляет данные)
 function startAutoSave() {
   if (autoSaveInterval) clearInterval(autoSaveInterval);
   autoSaveInterval = setInterval(async () => {
@@ -744,7 +782,6 @@ function stopAutoSave() {
   if (autoSaveInterval) { clearInterval(autoSaveInterval); autoSaveInterval = null; }
 }
 
-// ЛАЙКИ
 async function toggleLike(placeId) {
   if (!currentUser) { alert('Войдите чтобы поставить лайк!'); return; }
   
@@ -843,41 +880,70 @@ document.getElementById('saveAboutBtn').addEventListener('click', async () => {
 document.getElementById('tabs').addEventListener('click', (e) => { const btn = e.target.closest('button'); if (!btn) return; document.querySelectorAll('#tabs button').forEach(b => b.classList.remove('active')); btn.classList.add('active'); currentTab = btn.dataset.tab || 'popular'; render(); });
 document.getElementById('searchInput').addEventListener('input', (e) => { searchQuery = e.target.value.trim().toLowerCase(); render(); });
 
+// ЗАГРУЗКА ДАННЫХ - ПРОСТАЯ И НАДЕЖНАЯ
 async function loadData() {
   addLog('Загрузка данных...');
-  if (!navigator.onLine) {
-    const saved = localStorage.getItem('cheb_offline_places');
-    if (saved) { 
-      places = JSON.parse(saved).map(doc => ({ ...doc, id: doc.id || doc.$id, comments: Array.isArray(doc.comments) ? doc.comments : [], likes: Number(doc.likes || 0) })); 
+  
+  // Сначала пробуем загрузить из базы
+  if (navigator.onLine) {
+    try {
+      const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.limit(200)]);
+      
+      // Фильтруем на клиенте - только места (не пользователи и не "О проекте")
+      places = response.documents
+        .filter(doc => doc.city !== 'USER_ACCOUNT' && doc.city !== 'SYSTEM_ABOUT')
+        .map(doc => ({ 
+          ...doc, 
+          id: doc.$id, 
+          comments: Array.isArray(doc.comments) ? doc.comments : [], 
+          likes: Number(doc.likes || 0) 
+        }));
+      
+      // Сохраняем локально
+      localStorage.setItem('cheb_offline_places', JSON.stringify(places));
+      
       statusEl.style.display = 'none'; 
+      statusEl.className = 'status ok';
+      statusEl.innerText = `Загружено: ${places.length} мест`;
+      addLog(`Загружено мест из базы: ${places.length}`);
+      
       render(); 
-      updateMarkers(); 
-      return; 
+      updateMarkers();
+      return;
+    } catch (e) { 
+      addLog('Ошибка загрузки из базы: ' + e.message); 
     }
-    else { statusEl.textContent = 'Нет интернета'; statusEl.className = 'status error'; return; }
   }
-  try {
-    const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.limit(100)]);
-    places = response.documents.filter(doc => doc.city !== 'USER_ACCOUNT' && doc.city !== 'SYSTEM_ABOUT').map(doc => ({ 
-      ...doc, 
-      id: doc.$id, 
-      comments: Array.isArray(doc.comments) ? doc.comments : [], 
-      likes: Number(doc.likes || 0) 
-    }));
-    
-    localStorage.setItem('cheb_offline_places', JSON.stringify(places));
-    
-    statusEl.style.display = 'none'; 
-    statusEl.className = 'status ok';
-    statusEl.innerText = `Загружено: ${places.length} мест`;
-    addLog(`Загружено мест: ${places.length}`);
-  } catch (e) { 
-    statusEl.textContent = 'Ошибка базы'; 
-    statusEl.className = 'status error'; 
-    addLog('ОШИБКА ЗАГРУЗКИ: ' + e.message); 
+  
+  // Если онлайн загрузка не удалась, пробуем из локального хранилища
+  const saved = localStorage.getItem('cheb_offline_places');
+  if (saved) {
+    try {
+      places = JSON.parse(saved).map(doc => ({ 
+        ...doc, 
+        id: doc.id || doc.$id, 
+        comments: Array.isArray(doc.comments) ? doc.comments : [], 
+        likes: Number(doc.likes || 0) 
+      }));
+      
+      statusEl.style.display = 'none';
+      statusEl.className = 'status ok';
+      statusEl.innerText = `Загружено из памяти: ${places.length} мест`;
+      addLog(`Загружено из памяти: ${places.length}`);
+      
+      render(); 
+      updateMarkers();
+      return;
+    } catch (e) {
+      addLog('Ошибка загрузки из памяти: ' + e.message);
+    }
   }
-  render(); 
-  updateMarkers();
+  
+  // Если ничего не загрузилось
+  statusEl.textContent = 'Нет данных'; 
+  statusEl.className = 'status error';
+  places = [];
+  render();
 }
 
 function getFilteredPlaces() {
@@ -1042,9 +1108,16 @@ async function deleteComment(id, index) {
   try { await databases.updateDocument(DATABASE_ID, COLLECTION_ID, id, { comments }); p.comments = comments; openPlaceDetail(id); } catch (e) { alert('Ошибка'); }
 }
 
+// ИНИЦИАЛИЗАЦИЯ
+checkInstallStatus();
 if (isLightTheme) { document.body.classList.add('light-theme'); document.getElementById('themeToggle').innerHTML = '<i data-lucide="sun"></i>'; }
 const savedOpacity = localStorage.getItem('cheb_glass_opacity') || '0.4'; document.documentElement.style.setProperty('--glass-opacity', savedOpacity); document.getElementById('glassSlider').value = savedOpacity;
-updateAvatar(); loadData(); window.addEventListener('load', () => { refreshIcons(); if (autoSaveEnabled) startAutoSave(); });
+updateAvatar(); loadData(); 
+window.addEventListener('load', () => { 
+  refreshIcons(); 
+  checkInstallStatus();
+  if (autoSaveEnabled) startAutoSave(); 
+});
 </script>
 </body>
   </html>
