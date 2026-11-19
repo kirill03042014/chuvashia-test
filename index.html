@@ -345,8 +345,8 @@
         <span class="slider"></span>
       </label>
     </div>
-    <p style="font-size: 12px; color: var(--text-desc); margin-bottom: 15px; text-align: center;">Автоматическое пересохранение данных каждые 30 секунд</p>
-    <button id="manualSyncBtn" class="btn-toggle glass" style="margin-bottom: 15px;"><i data-lucide="refresh-cw"></i> Синхронизировать сейчас</button>
+    <p style="font-size: 12px; color: var(--text-desc); margin-bottom: 15px; text-align: center;">Автоматическое обновление данных каждые 30 секунд</p>
+    <button id="manualSyncBtn" class="btn-toggle glass" style="margin-bottom: 15px;"><i data-lucide="refresh-cw"></i> Обновить сейчас</button>
     <label style="margin-bottom: 5px; display:block;">Звук</label>
     <div style="display:flex; gap:10px; margin-bottom: 20px;">
       <button id="soundOnBtn" class="btn-toggle glass" style="flex:1; border-color:#00ffc8; color:#00ffc8;">Вкл</button>
@@ -721,20 +721,20 @@ autoSaveToggle.addEventListener('change', (e) => {
 
 document.getElementById('manualSyncBtn').addEventListener('click', async () => {
   const btn = document.getElementById('manualSyncBtn');
-  btn.innerHTML = '<i data-lucide="loader"></i> Синхронизация...'; refreshIcons();
-  await autoSaveAllData();
-  btn.innerHTML = '<i data-lucide="refresh-cw"></i> Синхронизировать сейчас'; refreshIcons();
-  showToast('Данные сохранены!');
+  btn.innerHTML = '<i data-lucide="loader"></i> Обновление...'; refreshIcons();
+  await loadData();
+  btn.innerHTML = '<i data-lucide="refresh-cw"></i> Обновить сейчас'; refreshIcons();
+  showToast('Данные обновлены!');
 });
 
-// АВТОСОХРАНЕНИЕ КАЖДЫЕ 30 СЕКУНД
+// АВТОСОХРАНЕНИЕ КАЖДЫЕ 30 СЕКУНД (просто обновляет данные)
 function startAutoSave() {
   if (autoSaveInterval) clearInterval(autoSaveInterval);
   autoSaveInterval = setInterval(async () => {
     if (navigator.onLine && autoSaveEnabled) {
       const indicator = document.getElementById('autoSaveIndicator');
       indicator.classList.add('show');
-      await autoSaveAllData();
+      await loadData();
       setTimeout(() => indicator.classList.remove('show'), 2000);
     }
   }, 30000);
@@ -742,32 +742,6 @@ function startAutoSave() {
 
 function stopAutoSave() {
   if (autoSaveInterval) { clearInterval(autoSaveInterval); autoSaveInterval = null; }
-}
-
-async function autoSaveAllData() {
-  try {
-    const localPlaces = safeParse(localStorage.getItem('cheb_local_places')) || [];
-    if (localPlaces.length === 0) return;
-    
-    addLog(`Автосохранение: ${localPlaces.length} мест`);
-    
-    // Удаляем старые места (кроме SYSTEM_ABOUT и USER_ACCOUNT)
-    const existingPlaces = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.limit(100)]);
-    const placesToDelete = existingPlaces.documents.filter(doc => doc.city !== 'USER_ACCOUNT' && doc.city !== 'SYSTEM_ABOUT');
-    
-    for (const place of placesToDelete) {
-      await databases.deleteDocument(DATABASE_ID, COLLECTION_ID, place.$id);
-    }
-    
-    // Создаем новые
-    for (const place of localPlaces) {
-      await databases.createDocument(DATABASE_ID, COLLECTION_ID, place.id || ID.unique(), place);
-    }
-    
-    addLog('Автосохранение завершено');
-  } catch (e) {
-    addLog('Ошибка автосохранения: ' + e.message);
-  }
 }
 
 // ЛАЙКИ
@@ -873,20 +847,37 @@ async function loadData() {
   addLog('Загрузка данных...');
   if (!navigator.onLine) {
     const saved = localStorage.getItem('cheb_offline_places');
-    if (saved) { places = JSON.parse(saved).map(doc => ({ ...doc, id: doc.$id, comments: Array.isArray(doc.comments) ? doc.comments : [], likes: Number(doc.likes || 0) })); statusEl.style.display = 'none'; render(); updateMarkers(); return; }
+    if (saved) { 
+      places = JSON.parse(saved).map(doc => ({ ...doc, id: doc.id || doc.$id, comments: Array.isArray(doc.comments) ? doc.comments : [], likes: Number(doc.likes || 0) })); 
+      statusEl.style.display = 'none'; 
+      render(); 
+      updateMarkers(); 
+      return; 
+    }
     else { statusEl.textContent = 'Нет интернета'; statusEl.className = 'status error'; return; }
   }
   try {
     const response = await databases.listDocuments(DATABASE_ID, COLLECTION_ID, [Query.limit(100)]);
-    places = response.documents.filter(doc => doc.city !== 'USER_ACCOUNT' && doc.city !== 'SYSTEM_ABOUT').map(doc => ({ ...doc, id: doc.$id, comments: Array.isArray(doc.comments) ? doc.comments : [], likes: Number(doc.likes || 0) }));
+    places = response.documents.filter(doc => doc.city !== 'USER_ACCOUNT' && doc.city !== 'SYSTEM_ABOUT').map(doc => ({ 
+      ...doc, 
+      id: doc.$id, 
+      comments: Array.isArray(doc.comments) ? doc.comments : [], 
+      likes: Number(doc.likes || 0) 
+    }));
     
-    // Сохраняем локально для автосохранения
-    localStorage.setItem('cheb_local_places', JSON.stringify(places));
     localStorage.setItem('cheb_offline_places', JSON.stringify(places));
     
-    statusEl.style.display = 'none'; addLog(`Загружено мест: ${places.length}`);
-  } catch (e) { statusEl.textContent = 'Ошибка базы'; statusEl.className = 'status error'; }
-  render(); updateMarkers();
+    statusEl.style.display = 'none'; 
+    statusEl.className = 'status ok';
+    statusEl.innerText = `Загружено: ${places.length} мест`;
+    addLog(`Загружено мест: ${places.length}`);
+  } catch (e) { 
+    statusEl.textContent = 'Ошибка базы'; 
+    statusEl.className = 'status error'; 
+    addLog('ОШИБКА ЗАГРУЗКИ: ' + e.message); 
+  }
+  render(); 
+  updateMarkers();
 }
 
 function getFilteredPlaces() {
@@ -988,7 +979,6 @@ async function addComment(id) {
     }
     inp.value = '';
     openPlaceDetail(id);
-    localStorage.setItem('cheb_local_places', JSON.stringify(places));
   });
 }
 
@@ -1029,7 +1019,6 @@ document.getElementById('saveBtn').addEventListener('click', () => {
         await databases.updateDocument(DATABASE_ID, COLLECTION_ID, editingPlaceId, data);
       } else {
         const newId = ID.unique();
-        data.$id = newId;
         await databases.createDocument(DATABASE_ID, COLLECTION_ID, newId, data);
       }
       document.getElementById('addForm').classList.add('hidden'); resetAddForm(); loadData();
@@ -1058,4 +1047,4 @@ const savedOpacity = localStorage.getItem('cheb_glass_opacity') || '0.4'; docume
 updateAvatar(); loadData(); window.addEventListener('load', () => { refreshIcons(); if (autoSaveEnabled) startAutoSave(); });
 </script>
 </body>
-</html>
+  </html>
