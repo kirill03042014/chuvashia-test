@@ -367,11 +367,15 @@ function addLog(msg, type = '') {
 }
 window.addEventListener('error', function(e) { addLog(`ОШИБКА JS: ${e.message}`, 'err'); });
 
+// УЛУЧШЕННАЯ ЗАГРУЗКА ФОТО
 async function uploadPhoto(input) {
   if (!input.files || input.files.length === 0) return;
   const file = input.files[0];
   const btnText = document.getElementById('uploadBtnText');
-  btnText.innerHTML = 'Сжатие... ⏳';
+  
+  addLog(`Исходный файл: ${file.name}, ${(file.size/1024/1024).toFixed(2)} МБ`, 'warn');
+  btnText.innerHTML = '📷 Сжатие...';
+  
   try {
     const compressedFile = await new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -381,22 +385,50 @@ async function uploadPhoto(input) {
         img.src = e.target.result;
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          const MAX_WIDTH = 1200;
+          const MAX_WIDTH = 800;
           const scale = Math.min(MAX_WIDTH / img.width, 1);
-          canvas.width = img.width * scale; canvas.height = img.height * scale;
+          canvas.width = img.width * scale;
+          canvas.height = img.height * scale;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          canvas.toBlob((blob) => { if (!blob) reject(new Error('Ошибка сжатия')); resolve(new File([blob], "photo.jpg", { type: "image/jpeg" })); }, 'image/jpeg', 0.7);
+          canvas.toBlob((blob) => {
+            if (!blob) reject(new Error('Canvas toBlob вернул null'));
+            const newFile = new File([blob], "photo.jpg", { type: "image/jpeg" });
+            addLog(`После сжатия: ${(newFile.size/1024).toFixed(1)} КБ`, 'ok');
+            resolve(newFile);
+          }, 'image/jpeg', 0.6);
         };
-        img.onerror = () => reject(new Error('Ошибка чтения картинки'));
+        img.onerror = () => reject(new Error('Не удалось загрузить изображение'));
       };
       reader.onerror = () => reject(new Error('Ошибка чтения файла'));
     });
-    btnText.innerHTML = 'Загрузка... ⏳';
+    
+    btnText.innerHTML = '☁️ Загрузка...';
+    addLog('Отправка в Appwrite Storage...', 'warn');
+    
     const response = await storage.createFile(STORAGE_BUCKET_ID, ID.unique(), compressedFile);
     const url = `${APPWRITE_ENDPOINT}/storage/buckets/${STORAGE_BUCKET_ID}/files/${response.$id}/view?project=${APPWRITE_PROJECT_ID}`;
-    uploadedPhotoUrl = url; document.getElementById('inPhotos').value = url; btnText.innerHTML = '✅ Фото готово!';
-  } catch (e) { alert('Ошибка загрузки: ' + e.message); btnText.innerHTML = '❌ Ошибка'; input.value = ''; }
+    
+    uploadedPhotoUrl = url;
+    document.getElementById('inPhotos').value = url;
+    btnText.innerHTML = '✅ Фото готово!';
+    addLog('✓ Фото загружено: ' + url.substring(0, 60) + '...', 'ok');
+    
+  } catch (e) {
+    const errMsg = e.message || String(e);
+    addLog('✗ ОШИБКА ЗАГРУЗКИ ФОТО: ' + errMsg, 'err');
+    btnText.innerHTML = '❌ Ошибка';
+    input.value = '';
+    
+    let hint = '';
+    if (errMsg.includes('permission') || errMsg.includes('Unauthorized') || errMsg.includes('scope')) {
+      hint = '\n\n⚠️ НЕТ ПРАВ!\nAppwrite Console → Storage → Bucket → Settings → Permissions\nДобавь роль "Any" с правами Create/Read/Update/Delete';
+    } else if (errMsg.includes('size') || errMsg.includes('too large')) {
+      hint = '\n\n⚠️ ФАЙЛ СЛИШКОМ БОЛЬШОЙ!';
+    }
+    
+    alert('Ошибка загрузки фото: ' + errMsg + hint);
+  }
 }
 
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
