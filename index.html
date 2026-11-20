@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
 <title>КРУТЫЕ МЕСТА</title>
-<!-- ВАЖНО: Замените content на ваш код верификации Яндекса, если он есть -->
 <meta name="yandex-verification" content="" /> 
 <link rel="icon" type="image/svg+xml" href="icon.svg">
 <link rel="apple-touch-icon" href="icon.svg">
@@ -181,7 +180,8 @@
       <div class="avatar guest" id="avatarBtn">?</div>
     </div>
     <h1>Крутые места</h1>
-    <div class="subtitle">Чебоксары · Новочебоксарск · Чувашия · Питер</div>
+    <!-- Добавлен Мариий Эл в подзаголовок -->
+    <div class="subtitle">Чебоксары · Новочебоксарск · Чувашия · Питер · Марий Эл</div>
     <div id="status" class="status loading">Загрузка...</div>
     <div class="tabs" id="tabs">
       <button class="active glass" data-tab="popular" style="flex:1;"><i data-lucide="heart"></i> Популярное</button>
@@ -204,8 +204,25 @@
         <label style="margin-top:10px;">Или вставьте ссылку</label>
         <input type="url" id="inPhotos" placeholder="https://.../image.jpg">
         <div class="form-row">
-          <div><label>Город</label><select id="inCity"><option>Чебоксары</option><option>Новочебоксарск</option><option>Чувашия</option><option>Санкт-Петербург</option></select></div>
-          <div><label>Координаты</label><input type="text" id="inCoords" placeholder="56.152594, 47.207843"></div>
+          <div>
+            <label>Город</label>
+            <!-- Добавлен Марий Эл в список городов -->
+            <select id="inCity">
+                <option>Чебоксары</option>
+                <option>Новочебоксарск</option>
+                <option>Чувашия</option>
+                <option>Санкт-Петербург</option>
+                <option>Марий Эл</option>
+            </select>
+          </div>
+          <div>
+              <label>Координаты</label>
+              <input type="text" id="inCoords" placeholder="56.152594, 47.207843">
+              <!-- Подсказка про точность координат -->
+              <div style="font-size: 11px; color: var(--text-desc); margin-top: 5px; padding-left: 5px;">
+                  💡 Укажите координаты с точностью до ~100 метров
+              </div>
+          </div>
         </div>
         <button id="saveBtn" type="button"><i data-lucide="save"></i> Сохранить</button>
       </div>
@@ -333,8 +350,6 @@ const COLLECTION_ID = '6af754b70031b4620e57';
 const STORAGE_BUCKET_ID = '6afb48200025d425c71b';
 
 // ВНИМАНИЕ: Хранить секреты на клиенте небезопасно. 
-// Этот ключ используется только для демонстрации входа админа.
-// В реальном проекте используйте Appwrite Auth Roles.
 const ADMIN_SECRET_KEY = 'SmirnovKirill03@inbox.ry'; 
 
 const { Client, Databases, Storage, ID, Query } = Appwrite;
@@ -406,7 +421,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const fileInput = document.getElementById('inFile');
   if (fileInput) {
     fileInput.addEventListener('change', function(e) {
-      console.log('📷 CHANGE событие сработало!', this.files);
       uploadPhoto(this);
     });
   }
@@ -874,7 +888,10 @@ function editPlace(id) {
   document.getElementById('inTags').value = Array.isArray(p.tags) ? p.tags.join(', ') : (p.tags || '');
   document.getElementById('inPhotos').value = Array.isArray(p.photos) ? (p.photos[0] || '') : (p.photos || '');
   document.getElementById('inCoords').value = p.coords || '';
-  document.getElementById('inCity').value = ['Чебоксары','Новочебоксарск','Чувашия','Санкт-Петербург'].includes(p.city) ? p.city : 'Чебоксары';
+  // Исправлено: добавлен Марий Эл в проверку
+  const validCities = ['Чебоксары','Новочебоксарск','Чувашия','Санкт-Петербург','Марий Эл'];
+  document.getElementById('inCity').value = validCities.includes(p.city) ? p.city : 'Чебоксары';
+  
   document.getElementById('addForm').classList.remove('hidden'); document.getElementById('toggleForm').innerHTML = '<i data-lucide="x"></i> Отменить'; document.getElementById('saveBtn').innerHTML = '<i data-lucide="save"></i> Обновить';
   document.getElementById('detailModal').classList.remove('active'); setTimeout(() => document.getElementById('detailModal').classList.add('hidden'), 300); document.body.style.overflow = ''; refreshIcons(); window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -899,12 +916,12 @@ document.getElementById('saveBtn').addEventListener('click', () => {
 
     try {
       if (editingPlaceId) {
-        // РЕДАКТИРОВАНИЕ: Сохраняем старые метаданные
+        // РЕДАКТИРОВАНИЕ: Сохраняем старые метаданные, чтобы не было ошибки лайков
         const existing = places.find(p => p.id === editingPlaceId);
         if(existing) {
-            data.likes = existing.likes;
-            data.comments = existing.comments;
-            data.author = existing.author; // Не меняем автора при редактировании!
+            data.likes = existing.likes; // Жестко сохраняем текущие лайки
+            data.comments = existing.comments; // Жестко сохраняем комментарии
+            data.author = existing.author; // Не меняем автора
             data.author_id = existing.author_id;
             data.is_archived = existing.is_archived;
             data.is_banned = existing.is_banned;
